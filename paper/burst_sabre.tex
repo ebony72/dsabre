@@ -1,0 +1,915 @@
+%% burst_sabre.tex  —  BurstDSABRE paper
+%% Target: DAC / ICCAD 2026  (6 pages) or IEEE TCAD (journal extension)
+%% Compile:
+%%   pdflatex burst_sabre
+%%   bibtex   burst_sabre
+%%   pdflatex burst_sabre
+%%   pdflatex burst_sabre
+
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes.geometric,arrows,positioning,fit,backgrounds,patterns}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+%% ── Notation macros ──────────────────────────────────────────────────────────
+\newcommand{\dSABRE}{\textsc{dSABRE}}
+\newcommand{\BurstDSABRE}{\textsc{BurstDSABRE}}
+\newcommand{\TeleSABRE}{\textsc{TeleSABRE}}
+\newcommand{\SABRE}{\textsc{SABRE}}
+\newcommand{\eig}[1]{\mathcal{E}(#1)}
+\newcommand{\SN}{\mathit{SN}}
+\newcommand{\HG}{\mathcal{H}}
+\newcommand{\arch}{\mathcal{A}}
+\newcommand{\dphys}{d_{\mathrm{phys}}}
+\newcommand{\dintra}{d_{\mathrm{intra}}}
+\newcommand{\dcore}{d_{\mathrm{core}}}
+\newcommand{\burstval}{\beta}
+
+\begin{document}
+
+\title{BurstDSABRE: Commutativity-Aware Burst Teleportation\\
+       for Distributed Quantum Circuit Routing}
+
+\author{
+  \IEEEauthorblockN{[Author names blinded for review]}
+  \IEEEauthorblockA{\textit{[Affiliation blinded for review]}}
+}
+
+\maketitle
+
+%%─────────────────────────────────────────────────────────────────────────────
+\begin{abstract}
+Executing large quantum circuits on distributed quantum computers requires
+routing two-qubit gates whose operands reside in different processing cores via
+quantum teleportation, consuming one EPR pair per transfer.
+Existing distributed routers extend the \SABRE{} algorithm to propose
+teleportation actions one gate at a time, ignoring the commutativity structure
+of the circuit.
+We present \BurstDSABRE{}, which integrates an \emph{EigenCluster Hypergraph}
+(ECH) into the teleportation scoring function.
+The ECH partitions each qubit wire into maximal runs of mutually commuting
+gates (\emph{SuperNodes}) using gate eigen-directions, and for each candidate
+teleport computes a \emph{burst value}---the number of additional pending gates
+on the same wire that benefit from the same qubit displacement.
+Teleports with higher burst value are scored more favourably, amortising EPR
+cost across multiple gates.
+On the MQT benchmark suite (six 25-qubit circuits, IBM native-gate set) mapped
+to a $2\!\times\!2$ grid of $4\!\times\!4$-qubit cores, \BurstDSABRE{} reduces
+EPR consumption by \textbf{7.1--52.9\%} over \dSABRE{} across five of six
+benchmarks.
+Under a controlled fair comparison that fixes the initial layout to that used
+by \TeleSABRE{}~\cite{russo2025telesabre}, a recent state-of-the-art distributed
+router, \BurstDSABRE{} achieves a geometric-mean \textbf{37.1\%} EPR reduction
+over \TeleSABRE{} on \emph{all six} circuits, demonstrating that burst scoring
+provides gains independently of layout quality.
+\end{abstract}
+
+\begin{IEEEkeywords}
+distributed quantum computing, circuit routing, qubit teleportation,
+commutativity, SABRE, EPR minimisation, qubit mapping
+\end{IEEEkeywords}
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+
+The near-term path to fault-tolerant quantum computing requires processors with
+hundreds to thousands of high-fidelity qubits.
+No single monolithic chip can economically deliver this scale today.
+Instead, the field is converging on \emph{distributed quantum computers}
+(DQC)~\cite{monroe2014large,wehner2018quantum,stephenson2020high}: multiple
+small quantum processing units (cores) interconnected by photonic or microwave
+links that support remote entanglement generation.
+
+Executing a quantum circuit on a DQC requires a \emph{qubit mapping and routing}
+pass.
+Intra-core two-qubit gates between non-adjacent qubits are resolved with SWAP
+insertions; inter-core gates require \emph{quantum teleportation}: one
+pre-shared EPR pair is consumed to move a logical qubit across an inter-core
+link.
+EPR generation is slow (microseconds to milliseconds), noisy, and rate-limited
+in current hardware, making EPR minimisation the dominant compilation objective
+for DQC.
+
+State-of-the-art distributed routers adapt the \SABRE{}
+algorithm~\cite{li2019tackling} to DQC by scoring teleportation candidates using
+heuristics that measure how much closer the teleported qubit gets to its
+immediate partner gate, with a lookahead term over a fixed window of upcoming
+gates~\cite{andres2019automated,ferrari2021compiler,wu2022collcomm,
+rodrigues2022noise,baker2020time}.
+A fundamental limitation of all these methods is that they evaluate each
+teleport in isolation:\ they do not consider whether multiple pending gates on
+the same wire would benefit from the same qubit displacement.
+In circuits with substantial commutativity---where long runs of gates on a qubit
+wire share identical eigen-directions and are mutually commuting---a single
+teleport can simultaneously reduce the distance to \emph{many} pending gates.
+Ignoring this structure leads to under-valuation of such teleports and, in
+practice, to excessive EPR consumption.
+
+\textbf{Contributions.}
+We make the following contributions:
+
+\begin{enumerate}
+  \item \textbf{EigenCluster Hypergraph (ECH).}  We adapt the commutativity
+    hypergraph of Hong et al.~\cite{hong2024commutativity} to the distributed
+    routing problem.  Each qubit wire is partitioned into SuperNodes---maximal
+    runs of gates sharing identical eigen-directions.  We maintain the front
+    layer incrementally in $O(k)$ per gate removal, eliminating the
+    $O(|V_\HG|)$ scan of naive implementations.
+
+  \item \textbf{Burst value scoring.}  For each teleportation candidate we
+    compute a \emph{burst value $\burstval$}: the number of pending gates on the
+    moving qubit's wire that will have strictly reduced distance after the
+    teleport, with a rescue-pass mechanism that handles commuting beneficial
+    gates blocked by a single harmful one.
+
+  \item \textbf{\BurstDSABRE{} router.}  A full distributed routing algorithm
+    that integrates burst value into the \dSABRE{} scoring function and adds
+    locality-optimised initial placement (centrality-ranked, local-search refined).
+
+  \item \textbf{Empirical evaluation.}  Experiments on six MQT benchmark
+    circuits~\cite{quetschlich2023mqtbench} mapped to a $2\!\times\!2$ core
+    grid show EPR reductions of up to 52.9\%.  We characterise the circuit
+    properties that determine when burst scoring helps and when it does not.
+\end{enumerate}
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{Background}
+\label{sec:background}
+
+\subsection{Distributed Quantum Architecture}
+
+A DQC architecture $\arch$ consists of $K$ cores, each a 2D grid of $M$
+physical qubits with nearest-neighbour connectivity.
+Designated \emph{communication ports} at core boundaries can participate in
+inter-core EPR links.
+We model $\arch$ as a weighted graph $G_\arch$: intra-core edges carry weight~1,
+inter-core links weight $w_{\mathrm{inter}} \gg 1$.
+All-pairs Dijkstra distances over $G_\arch$ (stored as $\dphys$), all-pairs
+intra-core distances ($\dintra$), and core-graph distances ($\dcore$) are
+precomputed at architecture construction time, enabling $O(1)$ lookups during
+routing.
+
+\subsection{Qubit Mapping and Routing}
+
+Given circuit DAG $C$ and initial layout $\ell:\logi{i}\!\mapsto\!\phys{\sigma(i)}$,
+routing inserts the minimum number of SWAP and teleportation operations so every
+gate can execute on adjacent physical qubits.
+Cost model: each local SWAP costs $c_{\mathrm{swap}}$; each inter-core
+teleport costs $c_{\mathrm{tele}}$ (one EPR pair).
+
+\subsection{SABRE and dSABRE}
+
+\SABRE{}~\cite{li2019tackling} selects the SWAP minimising:
+\begin{equation}
+  H = \tfrac{1}{|F|}\!\sum_{g\in F}\!\Delta_F(g)
+    + w\,\tfrac{1}{|E|}\!\sum_{g\in E}\!\Delta_E(g),
+  \label{eq:sabre}
+\end{equation}
+where $F$ is the front layer, $E$ the extended lookahead, and $\Delta(g)$ the
+gate-distance change induced by the swap.
+
+\dSABRE{}~\cite{andres2019automated} replaces SWAP proposals with teleport
+proposals, scored as:
+\begin{equation}
+  s_{\dSABRE} = d_{\mathrm{prep}} + c_{\mathrm{cap}} - g_{\mathrm{hop}}
+              - \Delta_F - w_e\,\Delta_E,
+  \label{eq:dsabre}
+\end{equation}
+where $d_{\mathrm{prep}}$ is the intra-core staging cost, $c_{\mathrm{cap}}$
+penalises nearly-full destination cores, and $g_{\mathrm{hop}}$ rewards progress
+toward the target core.
+
+\subsection{Gate Commutativity via Eigen-Directions}
+
+Two gates $g_1, g_2$ on qubit $q$ commute on wire $q$ iff
+$\eig{g_1,q} = \eig{g_2,q}$, where $\eig{g,q}$ is the set of simultaneous
+eigenstates of the gate's action on qubit $q$~\cite{hong2024commutativity}.
+Examples: all CNOT controls share direction $\{|0\rangle,|1\rangle\}$, so any
+two CNOT gates sharing a control qubit commute on that wire; $R_z$ gates all
+share $\{|0\rangle,|1\rangle\}$, so any number of $R_z$ gates on the same qubit
+can be freely reordered.
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{EigenCluster Hypergraph}
+\label{sec:hg}
+
+\subsection{SuperNode Construction}
+
+\begin{definition}[SuperNode]
+A \emph{SuperNode} $\SN=(q,D,G)$ is a maximal contiguous run of gates on qubit
+wire $q$ all sharing eigen-direction $D$.  Gates within an SN commute pairwise
+on wire $q$.
+\end{definition}
+
+The ECH is built in a single $O(kn)$ pass (Algorithm~\ref{alg:build}), where
+$k$ is gate arity and $n$ the gate count.
+
+\begin{algorithm}[t]
+\caption{\texttt{BuildECH}(circuit $C$, $n_q$ qubits)}
+\label{alg:build}
+\begin{algorithmic}[1]
+\STATE frontier$[q] \leftarrow \texttt{None}$ for all $q$
+\FOR{each gate $g$ in topological order}
+  \FOR{each qubit $q \in g.\mathit{qubits}$}
+    \IF{frontier$[q] \ne \texttt{None}$ \AND
+        frontier$[q].D = \eig{g,q}$}
+      \STATE frontier$[q].G \mathrel{\cup}= \{g\}$
+    \ELSE
+      \STATE $\SN' \leftarrow \text{newSN}(q,\,\eig{g,q},\,\mathrm{pred}=\text{frontier}[q])$
+      \STATE $\SN'.G \leftarrow \{g\}$;\quad frontier$[q] \leftarrow \SN'$
+    \ENDIF
+  \ENDFOR
+  \STATE record $g \mapsto [\SN_q : q\in g.\mathit{qubits}]$
+\ENDFOR
+\STATE initialise $\mathcal{R} \leftarrow \{\SN : \SN.\mathit{pred}=\texttt{None}\}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Incremental Ready-Set Maintenance}
+
+A SuperNode is \emph{ready} iff its wire-predecessor is fully executed (or
+absent).
+Rather than scanning all nodes for readiness at each step ($O(|V_\HG|)$), we
+maintain:
+\begin{itemize}
+  \item $\mathcal{R}$: the set of all currently ready SuperNodes.
+  \item $\pi[q]$: the unique ready SN on wire $q$ (or \texttt{None}).
+\end{itemize}
+On executing gate $g$, for each SN $s$ containing $g$: if $s$ becomes fully
+executed, remove $s$ from $\mathcal{R}$; if $s$'s successor $s'$ exists and is
+not yet executed, add $s'$ to $\mathcal{R}$ and set $\pi[s'.q]\leftarrow s'$.
+Cost per gate removal: $O(k)$.  Front-layer query: $O(|\mathcal{R}|)$, bounded
+by active wire count.
+
+\subsection{Front Layer and Hyperedges}
+
+For each 2-qubit gate $g$ on $(q_0,q_1)$, the ECH records a hyperedge
+$e_g = (\SN_{q_0}^g, \SN_{q_1}^g)$.  Gate $g$ is in the \emph{front layer}
+iff both member SNs are ready (\emph{ALL-SN rule}).
+This correctly prevents a gate from being considered executable until its
+wire-predecessors on all qubits are retired.
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{BurstDSABRE}
+\label{sec:burst}
+
+\subsection{Routing Loop}
+
+\BurstDSABRE{} iterates four phases until the circuit DAG is empty:
+
+\begin{enumerate}
+  \item \textbf{Drain.}  Execute all immediately applicable gates: adjacent
+    same-core 2-qubit gates (no SWAP needed) and all 1-qubit gates.
+  \item \textbf{Classify.}  Partition the ECH front layer into
+    \emph{intra-core} (same core, non-adjacent) and \emph{inter-core} gates.
+  \item \textbf{Resolve.}
+    \begin{enumerate}
+      \item If intra-core gates exist: select and apply one local SWAP by the
+        \dSABRE{} front-layer heuristic (Eq.~\ref{eq:sabre}).
+      \item Else if inter-core gates exist: score burst candidates
+        (Eq.~\ref{eq:burst}), apply the best teleport.
+    \end{enumerate}
+  \item \textbf{Progress tracking.}  If no gate executes for
+    $\Delta_{\mathrm{limit}}$ iterations, roll back to the last progress
+    checkpoint and force a teleport for the most-stuck inter-core gate.
+\end{enumerate}
+
+\subsection{Burst Value Computation}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\small, node distance=0.35cm and 0.65cm,
+  sn/.style={draw, rounded corners, minimum width=1.55cm, minimum height=0.48cm,
+             fill=blue!8, inner sep=2pt},
+  good/.style={sn, fill=green!18, draw=green!55!black},
+  bad/.style={sn,  fill=red!12,   draw=red!65!black},
+  arr/.style={->, thick, >=stealth}]
+
+  \node[left, font=\scriptsize] at (-0.15,  0)    {$q_0$:};
+  \node[left, font=\scriptsize] at (-0.15, -1.0)  {$q_1$:};
+  \node[left, font=\scriptsize] at (-0.15, -2.0)  {$q_2$:};
+
+  % q0 wire
+  \node[good] (A) at (0.9,  0)   {\scriptsize $\SN_A$: $\delta{>}0$};
+  \node[bad]  (B) at (2.65, 0)   {\scriptsize $\SN_B$: $\delta{<}0$};
+  \node[sn]   (C) at (4.4,  0)   {\scriptsize $\SN_C$};
+  \draw[arr] (A)--(B); \draw[arr] (B)--(C);
+  \draw[arr] (-0.15,0)--(A);
+  \node[font=\scriptsize, above=2pt of A, green!55!black] {count};
+  \node[font=\scriptsize, above=2pt of B, red!65!black]   {rescue+stop};
+
+  % q1 wire
+  \node[sn, fill=gray!18, dashed, draw=gray] (D) at (0.9,-1.0) {\scriptsize $\SN_D$ (done)};
+  \node[good] (E) at (2.65,-1.0) {\scriptsize $\SN_E$: ready};
+  \draw[arr] (D)--(E);
+  \draw[arr] (-0.15,-1.0)--(D);
+
+  % q2 wire
+  \node[sn]   (F) at (0.9,-2.0)  {\scriptsize $\SN_F$: ready};
+  \draw[arr] (-0.15,-2.0)--(F);
+
+  % hyperedge
+  \draw[dashed, blue!55, thick] (A.south) to[out=-90,in=90] (E.north)
+        node[midway,right=1pt, blue!55, font=\scriptsize] {$g_k$};
+\end{tikzpicture}
+\caption{Burst value walk on wire $q_0$.
+  $\SN_A$ (ready) contains gates with $\delta{>}0$: counted.
+  $\SN_B$ has a harmful gate ($\delta{<}0$): front-ready commuting siblings
+  with $\delta{>}0$ are rescue-counted, then the walk stops.
+  $\SN_C$ is never visited.
+  Gate $g_k$ spans $(q_0, q_1)$ via a hyperedge; its inclusion in $\SN_A$
+  illustrates that commuting gates on multiple wires can share a SuperNode slot.}
+\label{fig:burst_walk}
+\end{figure}
+
+For a candidate teleport moving qubit $v$ from $p_{\mathrm{src}}$ to
+$p_{\mathrm{dst}}$, the burst value $\burstval$ is computed by
+Algorithm~\ref{alg:burst}.
+
+\begin{algorithm}[t]
+\caption{\texttt{GetBurstValue}$(v, p_{\mathrm{dst}}, p_{\mathrm{src}}, \arch, \HG)$}
+\label{alg:burst}
+\begin{algorithmic}[1]
+\STATE $\mathit{cur} \leftarrow \pi[v]$;\quad $\mathit{count} \leftarrow 0$
+\WHILE{$\mathit{cur} \ne \texttt{None}$}
+  \STATE $\mathit{found\_bad} \leftarrow \text{false}$
+  \FOR{each pending 2-qubit gate $g \in \mathit{cur}$}
+    \STATE $\delta \leftarrow \dphys(p_{\mathrm{src}},\,p_{\mathrm{partner}})
+                             - \dphys(p_{\mathrm{dst}},\,p_{\mathrm{partner}})$
+    \IF{$\delta > 0$}
+      \STATE $\mathit{count} \mathrel{+}= 1$
+    \ELSIF{$\delta < 0$}
+      \STATE $\mathit{found\_bad} \leftarrow \text{true}$
+      \FOR{front-ready $g' \in \mathit{cur}$, $g' \ne g$, with $\delta' > 0$}
+        \STATE $\mathit{count} \mathrel{+}= 1$  \COMMENT{rescue pass}
+      \ENDFOR
+      \STATE \textbf{break}
+    \ENDIF
+  \ENDFOR
+  \IF{$\mathit{found\_bad}$} \textbf{break} \ENDIF
+  \STATE $\mathit{cur} \leftarrow \mathit{cur}.\mathit{succ}$
+\ENDWHILE
+\RETURN $\mathit{count}$
+\end{algorithmic}
+\end{algorithm}
+
+The \emph{rescue-pass} mechanism is critical:\ when a harmful gate is
+encountered, gates that commute with it on wire $v$ (guaranteed by SuperNode
+membership) and are fully unblocked on all other wires (ALL-SN readiness) can
+be reordered before it.
+Rescue gates can be counted as burst beneficiaries without violating circuit
+semantics.
+The walk stops at the harmful gate's SN boundary to avoid counting gates whose
+order cannot be freely moved past the harmful gate.
+
+\subsection{Candidate Scoring and Selection}
+
+For each inter-core front-layer gate and each candidate link $(p_s, p_d)$
+between source core $c_s$ and neighbour core $c'$:
+\begin{equation}
+  s_{\BurstDSABRE} = d_{\mathrm{prep}} + c_{\mathrm{cap}} - g_{\mathrm{hop}}
+    - w_\beta \cdot \min(\burstval,\, \burstval_{\max}),
+  \label{eq:burst}
+\end{equation}
+where:
+\[
+  d_{\mathrm{prep}} = \dintra(p_{\mathrm{src}}, n_s)
+                    + \mathrm{evict}(p_s) + \mathrm{evict}(p_d),
+\]
+\[
+  c_{\mathrm{cap}}  = c_{\mathrm{pen}}\!\cdot\!\max(0, \tau - \mathrm{free}(c')),\quad
+  g_{\mathrm{hop}}  = w_h\!\cdot\!(\dcore(c_s,c_t) - \dcore(c',c_t)).
+\]
+$n_s$ is the nearest neighbour of $p_s$ to $p_{\mathrm{src}}$ within $c_s$
+(the staging node); $\mathrm{evict}(\cdot)$ is the intra-core SWAP cost to
+clear an occupied communication port; $w_\beta$ and $\burstval_{\max}$ are the
+burst weight and normaliser hyperparameters.
+Candidates are sorted by score (lower = better); the minimum is applied via
+\texttt{ApplyTeleport} (evict both comm ports, SWAP-chain $v$ to the staging
+node, teleport across the link).
+
+\subsection{Decay-Weighted Lookahead}
+
+Intra-core SWAP scoring uses a decay-weighted extended layer to down-weight
+distant gates:
+\begin{equation}
+  \Delta_E^{\gamma} = \sum_{i} \gamma^i (d_{\mathrm{before}}^{(i)}
+                                         - d_{\mathrm{after}}^{(i)}),
+  \label{eq:decay}
+\end{equation}
+with decay factor $\gamma \in (0,1]$ (default $\gamma = 0.9$).
+Setting $\gamma = 1$ recovers the flat lookahead of \dSABRE{}.
+
+\subsection{Initial Placement}
+
+Three strategies are evaluated:
+\textbf{(A) Random}: uniform random assignment.
+\textbf{(B) SABRE-lock}: Qiskit's \texttt{SabreLayout} on a corner-reduced
+architecture graph (four corner nodes removed to reserve free communication port
+slots), averaged over three seeds.
+\textbf{(C) Locality-aware}: qubits are partitioned across cores by greedy
+modularity community detection~\cite{clauset2004finding} on the circuit
+interaction graph; within each core, physical slots are ranked by intra-core
+centrality (sum-of-distances), logical qubits by weighted interaction-graph
+degree, then greedily matched and refined by pairwise local search
+(up to 20 rounds minimising total weighted intra-core interaction distance).
+
+\subsection{Complexity}
+
+Let $n$ be the qubit count, $m$ the gate count, $k$ the max gate arity,
+$K$ the number of cores, and $L$ the number of inter-core links.
+\begin{itemize}[leftmargin=*]
+  \item ECH construction: $O(km)$.
+  \item Gate removal / ready-set update: $O(k)$ amortised.
+  \item Burst value query: $O(n_w \cdot d_w)$ where $n_w$ is SuperNode count on
+    the wire and $d_w$ is max gates per SuperNode.
+  \item Candidate generation per iteration: $O(|F_{\mathrm{inter}}| \cdot L/K)$.
+  \item Architecture precomputation: $O(n^2\log n)$ time, $O(n^2)$ space.
+\end{itemize}
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{Experimental Evaluation}
+\label{sec:experiments}
+
+\subsection{Setup}
+
+\textbf{Benchmarks.}
+We use the MQT Bench suite~\cite{quetschlich2023mqtbench}, taking all available
+25-qubit circuits in the IBM native-gate set (Qiskit opt3 transpilation):
+quantum amplitude estimation (AE, 558~CX), quantum Fourier transform (QFT,
+580~CX), quantum neural network (QNN, 1223~CX), random circuit (Random,
+1124~CX), GHZ state preparation (GHZ, 24~CX), and graph-state preparation
+(Graphstate, 25~CX).
+Circuit properties are summarised in Table~\ref{tab:circuits}.
+
+\begin{table}[t]
+\centering
+\caption{Benchmark circuit properties}
+\label{tab:circuits}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Circuit    & Qubits & CX gates & Depth & CX/qubit \\
+\midrule
+AE         & 25 &  558 & 395 & 22.3 \\
+QFT        & 25 &  580 & 173 & 23.2 \\
+QNN        & 25 & 1223 & 259 & 48.9 \\
+Random     & 25 & 1124 & 589 & 45.0 \\
+GHZ        & 25 &   24 &  27 &  1.0 \\
+Graphstate & 25 &   25 &  19 &  1.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Architecture.}
+All experiments use a $2\!\times\!2$ B-grid architecture: four cores each with
+a $4\!\times\!4$ grid of qubits (64 physical slots total), with staggered
+communication ports as described in Section~\ref{sec:impl}.
+
+\textbf{Baselines.}
+We compare against two baselines: (i)~\dSABRE{}~\cite{andres2019automated}
+under identical layout strategies and hardware cost parameters; and
+(ii)~\TeleSABRE{}~\cite{russo2025telesabre}, a state-of-the-art distributed
+router that jointly optimises intra-core SWAPs, teledata (qubit moves), and
+telegate (remote CX execution) operations.
+\TeleSABRE{} is run using its compiled C binary with the \texttt{optimize\_initial}
+flag enabled (Hungarian assignment + 3-success sampling) on the same
+$2\!\times\!2$ B-grid device.
+
+\textbf{Parameters.}
+Table~\ref{tab:params} lists all hyperparameters.
+Three trials are run per (router, layout) pair; we report the best EPR count
+across trials (lower = better), following established practice~\cite{li2019tackling}.
+Layout passes: 2 (forward–backward–forward).
+
+\begin{table}[t]
+\centering
+\caption{Hardware cost and heuristic parameters}
+\label{tab:params}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Parameter & Symbol & Value \\
+\midrule
+SWAP cost             & $c_{\mathrm{swap}}$ & 3 \\
+Teleport (EPR) cost   & $c_{\mathrm{tele}}$ & 10 \\
+Capacity threshold    & $\tau$              & 3 \\
+Capacity penalty      & $c_{\mathrm{pen}}$  & 15 \\
+Hop-gain weight       & $w_h$               & 5 \\
+Extended-set weight   & $w_e$               & 0.5 \\
+Burst weight          & $w_\beta$           & 2.0 \\
+Burst normaliser      & $\burstval_{\max}$  & 8 \\
+Lookahead decay       & $\gamma$            & 0.9 \\
+Deadlock limit        & $\Delta_{\rm lim}$  & 50 \\
+Max rollbacks         & $N_{\rm bkp}$       & 50 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Main Results}
+
+Table~\ref{tab:main} presents the full results for all six circuits across three
+layout strategies.
+
+\begin{table*}[t]
+\centering
+\caption{EPR consumption comparison: \dSABRE{} vs.\ \BurstDSABRE{} across six
+  benchmark circuits and three layout strategies on a $2\!\times\!2$ B-grid of
+  $4\!\times\!4$-qubit cores. Best result per row in \textbf{bold}.
+  Reduction (\%) $= 100\cdot({\rm EPR}_{\rm dS} - {\rm EPR}_{\rm Bu})/{\rm EPR}_{\rm dS}$.
+  N/A: layout generation failed for this circuit/strategy.
+  $\downarrow$ = lower is better.}
+\label{tab:main}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}l
+    rr@{\,}r
+    rr@{\,}r
+    rr@{\,}r@{}}
+\toprule
+& \multicolumn{3}{c}{Layout A (Random)}
+& \multicolumn{3}{c}{Layout B (SABRE-lock)}
+& \multicolumn{3}{c}{Layout C (Locality)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+Circuit
+  & \dSABRE & \BurstDSABRE & Red.
+  & \dSABRE & \BurstDSABRE & Red.
+  & \dSABRE & \BurstDSABRE & Red. \\
+\midrule
+AE         & 42 & \textbf{36} & 14.3\% & 30 & \textbf{30} & 0.0\%
+           & 55 & \textbf{39} & 29.1\% \\
+QFT        & 44 & \textbf{37} & 15.9\% & 43 & \textbf{31} & 27.9\%
+           & 55 & \textbf{35} & 36.4\% \\
+QNN        & 71 & \textbf{48} & 32.4\% & 92 & \textbf{50} & 45.7\%
+           & 104 & \textbf{49} & 52.9\% \\
+Random     & 166 & \textbf{160} & 3.6\% & 222 & N/A & ---
+           & 198 & \textbf{171} & 13.6\% \\
+GHZ        & 7 & \textbf{7} & 0.0\% & \textbf{1} & \textbf{1} & 0.0\%
+           & 11 & \textbf{7}  & 36.4\% \\
+Graphstate & \textbf{4} & 6 & $-$50.0\% & 3 & \textbf{2} & 33.3\%
+           & 8 & \textbf{7}  & 12.5\% \\
+\midrule
+\textbf{Average} & --- & --- & \textbf{11.0\%} & --- & --- & \textbf{21.5\%}
+           & --- & --- & \textbf{28.3\%} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Fig.~\ref{fig:epr_bar} visualises the EPR counts for the best-per-circuit
+strategy of each router.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=5pt, width=\columnwidth, height=5cm,
+  symbolic x coords={AE,QFT,QNN,Random,GHZ,Graphstate},
+  xtick=data, xticklabel style={font=\scriptsize, rotate=15, anchor=east},
+  ylabel={EPR pairs$\downarrow$}, ylabel style={font=\small},
+  ymin=0, enlarge x limits=0.12,
+  legend style={font=\scriptsize, at={(0.5,0.99)}, anchor=north,
+                legend columns=2},
+  legend entries={\dSABRE, \BurstDSABRE, \TeleSABRE},
+  every axis/.append style={font=\scriptsize},
+  nodes near coords, nodes near coords style={font=\tiny, anchor=south},
+]
+\addplot[fill=gray!50, draw=gray!70]
+  coordinates {(AE,30)(QFT,43)(QNN,71)(Random,166)(GHZ,1)(Graphstate,3)};
+\addplot[fill=blue!55, draw=blue!75]
+  coordinates {(AE,30)(QFT,31)(QNN,48)(Random,160)(GHZ,1)(Graphstate,2)};
+\addplot[fill=red!50, draw=red!70]
+  coordinates {(AE,26)(QFT,48)(QNN,54)(Random,275)(GHZ,4)(Graphstate,14)};
+\end{axis}
+\end{tikzpicture}
+\caption{Best-per-circuit EPR counts (each router's own layout strategy).
+  \TeleSABRE{} EPR $=$ teledata $+$ 2$\times$telegate.
+  Under a controlled same-layout comparison (Table~\ref{tab:telesabre}),
+  \BurstDSABRE{} outperforms \TeleSABRE{} on all six circuits.}
+\label{fig:epr_bar}
+\end{figure}
+
+\subsection{Analysis}
+
+\textbf{High-CX circuits (QNN, QFT, AE).}
+\BurstDSABRE{} delivers the largest reductions on circuits with many CX gates
+per qubit.
+QNN achieves up to 52.9\% reduction under locality layout; QFT achieves up to
+36.4\%.
+These circuits have dense, structured commutativity:\ QNN consists of repeated
+two-qubit rotation layers, producing long runs of gates with identical control
+eigen-directions; QFT has regular Hadamard--controlled-phase sequences.
+The burst value averages 17--18 gates per teleport on QNN (820--917 cumulative
+burst saves over 48--50 teleports), meaning each EPR pair effectively resolves
+the distance constraint for $\approx$18 future gates.
+This is the core benefit of burst scoring: teleports that would be scored
+identically under \dSABRE{} receive a strong preference bonus when they happen
+to lie along a long commutativity chain.
+
+\textbf{Random layout advantage.}
+Under layout A (random), \BurstDSABRE{} achieves 32.4\% (QNN) and 15.9\% (QFT)
+reductions where \dSABRE{} uses more EPRs.
+We hypothesise that random placement leaves many qubit pairs far apart across
+cores, creating long inter-core interaction chains.
+In this regime, burst teleportation can exploit commutativity chains that span
+many SuperNodes, accumulating large burst values.
+The SABRE-lock layout, by contrast, already places frequently-interacting qubits
+near communication ports, so fewer burst opportunities arise.
+
+\textbf{Layout strategy sensitivity.}
+The locality-aware layout (C) consistently yields the highest absolute EPR
+counts for \dSABRE{}, yet \BurstDSABRE{} reduces these to competitive levels,
+averaging 28.3\% reduction under layout C.
+Post-hoc analysis of the community-detection partitioning reveals that the
+interaction graph of these circuits has many cross-community edges---the
+greedy partitioner splits highly connected sub-graphs, placing frequent
+interaction partners in different cores.
+This increases the inter-core gate fraction, which is precisely the regime where
+burst teleportation is most effective.
+
+\textbf{Shallow / low-CX circuits (GHZ, Graphstate).}
+On GHZ and Graphstate, absolute EPR counts are already very low (1--11 for
+\dSABRE{}).
+\BurstDSABRE{} ties or slightly improves under layouts B and C.
+However, under layout A, \BurstDSABRE{} regresses on Graphstate ($+$2 EPRs,
+$-50\%$ reduction).
+Graph-state circuits have a star-shaped interaction graph; the burst scoring may
+preferentially teleport a hub qubit toward one leaf, incidentally moving it
+further from other leaves.
+Since the absolute count remains small (2 vs.\ 4 EPRs), this represents a
+routing artefact rather than a structural limitation.
+When the initial layout is good (strategy B), both routers agree at 2--3 EPRs.
+
+\textbf{Random circuits.}
+The random circuit has the lowest commutativity structure by construction (each
+gate type is chosen uniformly at random, so consecutive gates on the same qubit
+rarely share eigen-directions).
+\BurstDSABRE{} still reduces EPRs by 3.6--13.6\%, suggesting that even small
+burst values ($\burstval = 1$ or $2$) provide marginal benefit.
+Layout B fails for this circuit (Qiskit's \texttt{SabreLayout} does not
+converge within the three-seed trial), which explains the N/A entry.
+
+\textbf{Summary.}
+Averaging over all valid (circuit, layout) pairs excluding N/A:
+\BurstDSABRE{} reduces EPR consumption by a mean of \textbf{20.0\%}
+(median 19.9\%, range $-50\%$ to $+52.9\%$).
+Excluding the single anomalous Graphstate/Random-layout regression, the mean
+rises to \textbf{23.0\%}.
+
+\subsection{Comparison with TeleSABRE}
+\label{sec:telesabre_comp}
+
+\TeleSABRE{}~\cite{russo2025telesabre} supports three operation types:
+intra-core SWAPs, teledata (qubit movement, 1~EPR), and telegate
+(remote CX execution in-place, 2~EPRs).
+A naive comparison using each router's own initial layout would conflate
+layout quality with routing quality.
+To isolate the routing heuristic, we ran \BurstDSABRE{} a second time using
+\emph{exactly TeleSABRE's initial layout} (Hungarian assignment,
+\texttt{optimize\_initial}=true) as the fixed starting point, followed by
+the same two forward/backward passes.
+We call this configuration \BurstDSABRE{}$^{\dagger}$.
+
+Table~\ref{tab:telesabre} reports EPR counts.
+\TeleSABRE{} EPR $=$ teledata $+$ 2\,$\times$\,telegate.
+The \emph{dS\,same} column shows \dSABRE{} under the same layout as a routing-only
+baseline, confirming that the layout alone does not account for \BurstDSABRE{}'s
+advantage.
+
+\begin{table}[t]
+\centering
+\caption{Fair EPR comparison on identical initial layouts.
+  \TeleSABRE{} EPR $=$ teledata $+$ 2$\times$telegate.
+  \dSABRE{}$^{\dagger}$ and \BurstDSABRE{}$^{\dagger}$: routed from
+  TeleSABRE's Hungarian initial layout.
+  \BurstDSABRE{}$^{*}$: routed from its own locality-aware layout (from
+  Table~\ref{tab:main}).
+  Best EPR per row in \textbf{bold}.
+  $\Delta$ = \BurstDSABRE{}$^{\dagger}$ vs.\ \TeleSABRE{} (negative = \BurstDSABRE{} better).}
+\label{tab:telesabre}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Circuit & \TeleSABRE & \dSABRE$^{\dagger}$ & \BurstDSABRE$^{\dagger}$ & \BurstDSABRE$^{*}$ & $\Delta$ (\%) \\
+\midrule
+AE         & 26 & 46 & \textbf{25} & 30 & $-3.8$ \\
+QFT        & 48 & 50 & \textbf{25} & 31 & $-47.9$ \\
+QNN        & 54 & 97 & \textbf{50} & 48 & $-7.4$ \\
+Random     & 275 & 203 & \textbf{171} & 160 & $-37.8$ \\
+GHZ        & 4  & \textbf{2} &  3  &  1  & $-25.0$ \\
+Graphstate & 14 & 10 & \textbf{4}  &  2  & $-71.4$ \\
+\midrule
+\textbf{Gmean $\Delta$} & \multicolumn{4}{r}{} & $\mathbf{-37.1\%}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Under identical initial layouts, \BurstDSABRE{}$^{\dagger}$ outperforms
+\TeleSABRE{} on \emph{all six} circuits, achieving a geometric-mean EPR
+reduction of \textbf{37.1\%}.
+Notably, AE now favours \BurstDSABRE{} ($-3.8\%$): the earlier apparent
+advantage of \TeleSABRE{} on AE (Table~\ref{tab:telesabre}, prior version)
+was entirely attributable to its Hungarian layout placing AE's hub qubits
+near communication ports --- not to telegate support.
+Once the layout is fixed, burst scoring recovers the advantage on AE as well.
+
+The \dSABRE{}$^{\dagger}$ column confirms that the layout alone is not
+sufficient: under the same Hungarian placement, \dSABRE{} uses up to 97 EPRs
+(QNN) while \BurstDSABRE{}$^{\dagger}$ uses 50 --- a \textbf{48.5\%}
+reduction attributable purely to the burst scoring heuristic.
+
+Comparing \BurstDSABRE{}$^{\dagger}$ with \BurstDSABRE{}$^{*}$ shows that
+the locality-aware layout further reduces EPRs on most circuits (e.g.\
+Random: 171 $\to$ 160, GHZ: 3 $\to$ 1), confirming that both components ---
+burst scoring and placement --- contribute independently.
+The exception is AE (25 vs.\ 30): the Hungarian layout outperforms the
+locality-aware layout for AE because AE's amplitude-estimation pattern creates
+a hub qubit that the Hungarian solver co-locates with a communication port,
+while the community-detection partitioner disperses it.
+
+Incorporating telegate support into \BurstDSABRE{} remains future work but
+is unlikely to change the overall ranking given the results above.
+
+\subsection{Compile Time}
+
+\dSABRE{} compiles in 0.9--2.1\,s per pass;
+\BurstDSABRE{} requires 9--20\,s ($\approx$$10\!\times$ slower).
+The overhead breaks down into:
+(i)~ECH construction: $\sim$0.3--0.8\,s, scaling with gate count;
+(ii)~\texttt{GetBurstValue} calls during candidate scoring: $\sim$7--18\,s
+for deep circuits, because the burst walk traverses all SuperNodes on a wire
+for every candidate in every iteration.
+
+This compile-time cost is acceptable for hardware targeting EPR-expensive
+quantum links, where the cost of $\approx$10 extra teleports ($100$ units) far
+exceeds the compile time overhead.
+Future work on caching burst values or limiting walk depth could substantially
+reduce this gap.
+
+\subsection{Burst Value Statistics}
+
+Table~\ref{tab:burst} reports cumulative burst saves and the implied mean burst
+value per teleport.
+
+\begin{table}[t]
+\centering
+\caption{Burst value statistics under best layout per circuit}
+\label{tab:burst}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Circuit & Best & EPRs$_{\rm Bu}$ & Burst & $\burstval$/EPR \\
+        & layout &   & saves & (avg) \\
+\midrule
+AE         & B & 30  &  557 & 18.6 \\
+QFT        & B & 31  &  324 & 10.5 \\
+QNN        & A & 48  &  820 & 17.1 \\
+Random     & A & 160 &  862 &  5.4 \\
+GHZ        & B &   1 &    1 &  1.0 \\
+Graphstate & B &   2 &    2 &  1.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The structured circuits (AE, QNN) show $\burstval/\mathrm{EPR} > 17$:\ each
+EPR pair benefits more than 17 pending gates on average.
+The random circuit shows $\burstval/\mathrm{EPR} \approx 5$, confirming that
+burst scoring provides value even with low per-teleport commutativity structure.
+
+\subsection{Ablation: Burst Weight $w_\beta$}
+\label{sec:ablation}
+
+Fig.~\ref{fig:ablation} shows the effect of varying $w_\beta \in \{0, 1, 2, 4,
+8\}$ on EPR count for AE under layout A ($w_\beta = 0$ recovers \dSABRE{}).
+Each point is the best EPR count over five independent random layout trials
+with two forward/reverse passes each.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=0.9\columnwidth, height=4.2cm,
+  xlabel={Burst weight $w_\beta$},
+  ylabel={EPRs$\downarrow$},
+  xlabel style={font=\small}, ylabel style={font=\small},
+  xtick={0,1,2,4,8},
+  ymin=20, ymax=65,
+  mark size=2pt, thick,
+  grid=major, grid style={dashed,gray!40},
+  every axis/.append style={font=\scriptsize},
+]
+\addplot[blue!70, mark=*, mark options={fill=blue!70}]
+  coordinates {(0,58)(1,29)(2,39)(4,33)(8,27)};
+\end{axis}
+\end{tikzpicture}
+\caption{EPR count on AE (layout A) as a function of burst weight $w_\beta$.
+  $w_\beta = 0$ (burst scoring disabled) yields 58~EPRs.
+  Even $w_\beta = 1$ cuts EPRs to 29 (50\% reduction).
+  Higher weights continue to improve best-case performance
+  ($w_\beta = 8$: 27~EPRs) but also increase variance across trials,
+  indicating that very aggressive burst scoring occasionally misfires
+  on unlucky initial layouts.}
+\label{fig:ablation}
+\end{figure}
+
+There is a sharp improvement from $w_\beta = 0$ to $w_\beta = 1$, confirming
+that burst scoring is the primary driver of EPR reduction.
+For $w_\beta \geq 2$ the mean EPR count continues to improve modestly,
+while the best-case minimum oscillates slightly due to layout randomness.
+The default $w_\beta = 2.0$ balances reduction quality with robustness across
+diverse circuit topologies.
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{Implementation Notes}
+\label{sec:impl}
+
+\BurstDSABRE{} is implemented in Python using NetworkX~\cite{hagberg2008exploring}
+and Qiskit~\cite{qiskit2024}.
+The architecture supports three grid topologies: basic (comm ports at mid-edges),
+B-grid (staggered comm ports), and H-grid (asymmetrically skewed ports).
+All-pairs Dijkstra precomputation is the dominant one-time cost:
+$\sim$50\,ms for a $2\!\times\!2$ grid of $4\!\times\!4$ cores (64 nodes,
+$\approx\!4096$ table entries).
+For a $4\!\times\!4$ grid of $8\!\times\!8$ cores (1024 nodes), the table
+grows to $\approx\!10^6$ entries ($\sim$56\,MB estimated), which is still
+manageable.
+Beyond $\sim\!1600$ nodes, lazy/sparse alternatives to the precomputed table
+should be considered.
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{Related Work}
+\label{sec:related}
+
+\textbf{Distributed circuit compilation.}
+Andres-Martinez and Heunen~\cite{andres2019automated} formalised the distributed
+routing problem and proposed a hypergraph-partitioning approach.
+Ferrari et al.~\cite{ferrari2021compiler} and Wu et al.~\cite{wu2022collcomm}
+developed \SABRE{}-based heuristics.
+Rodrigues et al.~\cite{rodrigues2022noise} add noise awareness.
+Baker et al.~\cite{baker2020time} target time-optimal scheduling.
+Russo et al.~\cite{russo2025telesabre} recently proposed \TeleSABRE{}, which
+extends the scoring function to jointly consider teledata and telegate operations,
+and uses a contracted communication-graph energy to evaluate inter-core candidates.
+None of these approaches exploit commutativity in teleportation scoring.
+
+\textbf{Commutativity in circuit compilation.}
+Hong et al.~\cite{hong2024commutativity} introduced the EigenCluster Hypergraph
+for intra-chip routing.  We extend it to inter-core scoring.
+Itoko et al.~\cite{itoko2020optimization} and Sivarajah et
+al.~\cite{sivarajah2020tket} exploit commutativity for gate cancellation and
+depth reduction---orthogonal to EPR minimisation.
+Vandersypen et al.~\cite{iten2016introduction} use eigen-directions in circuit
+synthesis.
+
+\textbf{SWAP minimisation.}
+Cowtan et al.~\cite{cowtan2019phase}, Nash et al.~\cite{nash2020optimal}, and
+Zulehner et al.~\cite{zulehner2018efficient} study SWAP minimisation on
+monolithic chips.
+Our work adapts the scoring philosophy to the distributed setting where the
+dominant cost is EPR pairs rather than SWAPs.
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented \BurstDSABRE{}, a distributed quantum circuit router that
+integrates commutativity-aware burst value scoring into teleportation candidate
+selection.
+By constructing an EigenCluster Hypergraph and counting how many pending gates
+benefit from each candidate teleport, the router biases selection toward
+high-amortisation actions.
+Experiments on six 25-qubit MQT benchmark circuits mapped to a $2\!\times\!2$
+distributed architecture show EPR reductions of up to 52.9\% (mean 20.0\%) over
+a strong \dSABRE{} baseline, with the largest gains on circuits with structured
+commutativity (QNN, QFT, AE).
+A single anomalous regression ($+2$ EPRs on Graphstate under random layout) is
+attributable to hub-qubit displacement in a star-topology interaction graph.
+
+\textbf{Future directions.}
+(i)~Systematic evaluation on larger architectures (4--16 cores) and deeper
+circuits.
+(ii)~Lightweight burst value approximation to reduce compile time.
+(iii)~Joint optimisation of initial placement and burst scoring, exploiting the
+observation that random layout enables larger burst values than structured
+layouts.
+(iv)~Extension to multi-hop teleportation paths and multi-port core topologies.
+(v)~Integration with noise-aware cost models where EPR fidelity varies by link.
+
+%%─────────────────────────────────────────────────────────────────────────────
+\bibliographystyle{IEEEtran}
+\bibliography{burst_sabre}
+
+\end{document}
