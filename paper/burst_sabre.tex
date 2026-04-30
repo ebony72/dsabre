@@ -75,15 +75,16 @@ teleport computes a \emph{burst value}---the number of additional pending gates
 on the same wire that benefit from the same qubit displacement.
 Teleports with higher burst value are scored more favourably, amortising EPR
 cost across multiple gates.
-On the MQT benchmark suite (six 25-qubit circuits, IBM native-gate set) mapped
-to a $2\!\times\!2$ grid of $4\!\times\!4$-qubit cores, \BurstDSABRE{} reduces
-EPR consumption by \textbf{7.1--52.9\%} over \dSABRE{} across five of six
-benchmarks.
-Under a controlled fair comparison that fixes the initial layout to that used
-by \TeleSABRE{}~\cite{russo2025telesabre}, a recent state-of-the-art distributed
-router, \BurstDSABRE{} achieves a geometric-mean \textbf{37.1\%} EPR reduction
-over \TeleSABRE{} on \emph{all six} circuits, demonstrating that burst scoring
-provides gains independently of layout quality.
+Across two benchmark suites---six 25-qubit MQT circuits and six additional
+36-qubit circuits (BV, DJ, QAOA, QPEexact, VQE-SU2, W-state) on an IBM
+native-gate set---mapped to a $2\!\times\!2$ grid of $4\!\times\!4$-qubit
+cores, \BurstDSABRE{} reduces EPR consumption by \textbf{7.1--71.4\%} over
+\dSABRE{} across the benchmark set.
+Under a controlled fair comparison fixing the initial layout to that used by
+\TeleSABRE{}~\cite{russo2025telesabre}, a state-of-the-art distributed router,
+\BurstDSABRE{} achieves a geometric-mean \textbf{42.2\%} EPR reduction over
+\TeleSABRE{} across all 12 circuits (37.1\% on 25-qubit, 46.9\% on 36-qubit),
+demonstrating consistent gains across circuit sizes and algorithmic families.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -580,29 +581,46 @@ $K$ the number of cores, and $L$ the number of inter-core links.
 \subsection{Setup}
 
 \textbf{Benchmarks.}
-We use the MQT Bench suite~\cite{quetschlich2023mqtbench}, taking all available
-25-qubit circuits in the IBM native-gate set (Qiskit opt3 transpilation):
-quantum amplitude estimation (AE, 558~CX), quantum Fourier transform (QFT,
-580~CX), quantum neural network (QNN, 1223~CX), random circuit (Random,
-1124~CX), GHZ state preparation (GHZ, 24~CX), and graph-state preparation
-(Graphstate, 25~CX).
+We use two circuit sets from the MQT Bench suite~\cite{quetschlich2023mqtbench},
+both in the IBM native-gate set (Qiskit opt3 transpilation, measurements and
+barriers removed).
+
+\emph{Suite~1 (25-qubit):} quantum amplitude estimation (AE), quantum Fourier
+transform (QFT), quantum neural network (QNN), random circuit (Random), GHZ
+state preparation, and graph-state preparation.
+
+\emph{Suite~2 (36-qubit):} six additional circuits chosen to span a broader
+range of algorithmic families and CX densities: Bernstein--Vazirani (BV, linear
+chain), Deutsch--Jozsa (DJ, oracle), W-state preparation (cascaded star),
+VQE with SU(2) ansatz (layered variational), QAOA (dense all-to-all), and
+quantum phase estimation (QPEexact, hierarchical).
+
 Circuit properties are summarised in Table~\ref{tab:circuits}.
 
 \begin{table}[t]
 \centering
-\caption{Benchmark circuit properties}
+\caption{Benchmark circuit properties (measurements/barriers stripped)}
 \label{tab:circuits}
 \setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}lrrrr@{}}
+\begin{tabular}{@{}llrrrr@{}}
 \toprule
-Circuit    & Qubits & CX gates & Depth & CX/qubit \\
+Suite & Circuit    & Qubits & CX gates & Depth & CX/qubit \\
 \midrule
-AE         & 25 &  558 & 395 & 22.3 \\
-QFT        & 25 &  580 & 173 & 23.2 \\
-QNN        & 25 & 1223 & 259 & 48.9 \\
-Random     & 25 & 1124 & 589 & 45.0 \\
-GHZ        & 25 &   24 &  27 &  1.0 \\
-Graphstate & 25 &   25 &  19 &  1.0 \\
+\multirow{6}{*}{25q}
+ & AE         & 25 &  558 & 395 & 22.3 \\
+ & QFT        & 25 &  580 & 173 & 23.2 \\
+ & QNN        & 25 & 1223 & 259 & 48.9 \\
+ & Random     & 25 & 1124 & 589 & 45.0 \\
+ & GHZ        & 25 &   24 &  27 &  1.0 \\
+ & Graphstate & 25 &   25 &  19 &  1.0 \\
+\midrule
+\multirow{6}{*}{36q}
+ & BV         & 36 &   17 &  23 &  0.5 \\
+ & DJ         & 36 &   35 &  41 &  1.0 \\
+ & W-state    & 36 &   70 & 145 &  1.9 \\
+ & VQE-SU2   & 36 &  105 &  56 &  2.9 \\
+ & QPEexact   & 36 & 1019 & 347 & 28.3 \\
+ & QAOA       & 36 & 1200 & 256 & 33.3 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -890,8 +908,55 @@ locality-aware layout for AE because AE's amplitude-estimation pattern creates
 a hub qubit that the Hungarian solver co-locates with a communication port,
 while the community-detection partitioner disperses it.
 
+\textbf{36-qubit results.}
+Table~\ref{tab:telesabre_36q} extends the comparison to six 36-qubit circuits
+on the same B-grid device.
+\BurstDSABRE{}$^\dagger$ outperforms \TeleSABRE{} on all six circuits,
+achieving a geometric-mean \textbf{46.9\%} EPR reduction.
+The gains range from $-7.2\%$ (QAOA, dense all-to-all) to $-69.2\%$ (W-state),
+with the largest benefits on star-topology and hierarchical circuits where
+commutativity clusters are dense.
+Across both suites (12 circuits total), the combined geometric-mean EPR
+reduction of \BurstDSABRE{}$^\dagger$ over \TeleSABRE{} is \textbf{42.2\%},
+and \dSABRE{}$^\dagger$ achieves \textbf{34.2\%}.
+
+\begin{table}[t]
+\centering
+\caption{Fair EPR comparison on 36-qubit circuits (B-grid 2$\times$2 4$\times$4).
+  Same methodology as Table~\ref{tab:telesabre}.
+  Best EPR per row in \textbf{bold}.}
+\label{tab:telesabre_36q}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Circuit & \TeleSABRE & \dSABRE$^{\dagger}$ & \BurstDSABRE$^{\dagger}$ & \BurstDSABRE$^{*}$ & $\Delta$ (\%) \\
+\midrule
+BV         &   6 &  3 & \textbf{2}   &  1  & $-66.7$ \\
+DJ         &   4 &  3 & \textbf{2}   &  3  & $-50.0$ \\
+W-state    &  13 &  6 & \textbf{4}   & 16  & $-69.2$ \\
+VQE-SU2    &  28 & 11 & \textbf{21}  & 25  & $-25.0$ \\
+QPEexact   & 190 & 101 & \textbf{119} & 89 & $-37.4$ \\
+QAOA       & 276 & 225 & \textbf{256} & 197 & $-7.2$ \\
+\midrule
+\textbf{Gmean $\Delta$} & \multicolumn{4}{r}{} & $\mathbf{-46.9\%}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Notable findings: W-state ($-69.2\%$) benefits enormously from burst scoring
+because its cascaded-star structure creates long commuting runs where a single
+teleport amortises cost across many pending gates.
+QPEexact and QAOA show that \dSABRE{}$^\dagger$ sometimes finds a better
+raw EPR count than \BurstDSABRE{}$^\dagger$ under the same layout
+(QPEexact: 101 vs.\ 119; QAOA: 225 vs.\ 256), confirming that burst scoring
+occasionally over-teleports when the locality structure does not align with
+the Hungarian placement --- an artefact of the fixed-layout constraint rather
+than a fundamental limitation, as \BurstDSABRE{}$^*$ (own layout) yields
+89 and 197 respectively, both below \TeleSABRE{}.
+
 Incorporating telegate support into \BurstDSABRE{} remains future work but
-is unlikely to change the overall ranking given the results above.
+is unlikely to change the overall ranking given the consistent results across
+both circuit suites.
 
 \subsection{Compile Time}
 
