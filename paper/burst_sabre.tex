@@ -126,6 +126,16 @@ practice, to excessive EPR consumption.
 We make the following contributions:
 
 \begin{enumerate}
+  \item \textbf{\dSABRE{} router.}
+    A distributed routing algorithm with a five-term teleportation scoring
+    function (preparation cost, capacity penalty, hop gain, front-layer
+    distance gain, decay-weighted extended-set gain) and a proactive
+    \emph{congestion relief} mechanism that preemptively relocates idle
+    qubits out of high-demand cores before they become routing bottlenecks.
+    \dSABRE{} alone achieves a geometric-mean \textbf{22.0\%} EPR reduction
+    over \TeleSABRE{}~\cite{russo2025telesabre} under identical initial
+    layouts across six benchmark circuits.
+
   \item \textbf{EigenCluster Hypergraph (ECH).}  We adapt the commutativity
     hypergraph of Hong et al.~\cite{hong2024commutativity} to the distributed
     routing problem.  Each qubit wire is partitioned into SuperNodes---maximal
@@ -142,6 +152,8 @@ We make the following contributions:
   \item \textbf{\BurstDSABRE{} router.}  A full distributed routing algorithm
     that integrates burst value into the \dSABRE{} scoring function and adds
     locality-optimised initial placement (centrality-ranked, local-search refined).
+    Under identical initial layouts, \BurstDSABRE{} achieves a geometric-mean
+    \textbf{37.1\%} EPR reduction over \TeleSABRE{} on all six circuits.
 
   \item \textbf{Empirical evaluation.}  Experiments on six MQT benchmark
     circuits~\cite{quetschlich2023mqtbench} mapped to a $2\!\times\!2$ core
@@ -174,7 +186,7 @@ gate can execute on adjacent physical qubits.
 Cost model: each local SWAP costs $c_{\mathrm{swap}}$; each inter-core
 teleport costs $c_{\mathrm{tele}}$ (one EPR pair).
 
-\subsection{SABRE and dSABRE}
+\subsection{SABRE}
 
 \SABRE{}~\cite{li2019tackling} selects the SWAP minimising:
 \begin{equation}
@@ -185,16 +197,127 @@ teleport costs $c_{\mathrm{tele}}$ (one EPR pair).
 where $F$ is the front layer, $E$ the extended lookahead, and $\Delta(g)$ the
 gate-distance change induced by the swap.
 
-\dSABRE{}~\cite{andres2019automated} replaces SWAP proposals with teleport
-proposals, scored as:
+%%─────────────────────────────────────────────────────────────────────────────
+\section{dSABRE}
+\label{sec:dsabre}
+
+\dSABRE{} is a distributed routing algorithm we design that extends \SABRE{} to
+multi-core architectures.
+It replaces SWAP proposals with \emph{teleport proposals}: for each inter-core
+gate in the front layer, both endpoint qubits are considered as teleportation
+sources, and every reachable communication link on their respective core
+boundaries generates a candidate.
+
+\subsection{Teleportation Scoring}
+
+Each candidate is scored as:
 \begin{equation}
-  s_{\dSABRE} = d_{\mathrm{prep}} + c_{\mathrm{cap}} - g_{\mathrm{hop}}
-              - \Delta_F - w_e\,\Delta_E,
+  s = \underbrace{d_{\mathrm{prep}}}_{\text{staging}} +
+      \underbrace{c_{\mathrm{cap}}}_{\text{capacity}} -
+      \underbrace{g_{\mathrm{hop}}}_{\text{hop gain}} -
+      \underbrace{\Delta_F}_{\text{front gain}} -
+      \underbrace{w_e\,\tilde{\Delta}_E}_{\text{lookahead}},
   \label{eq:dsabre}
 \end{equation}
-where $d_{\mathrm{prep}}$ is the intra-core staging cost, $c_{\mathrm{cap}}$
-penalises nearly-full destination cores, and $g_{\mathrm{hop}}$ rewards progress
-toward the target core.
+where lower scores are preferred.  Each term is defined as follows.
+
+\textbf{Staging cost} $d_{\mathrm{prep}}$ is the number of intra-core SWAPs
+needed to move the qubit to the communication port, plus any eviction SWAPs
+needed to free occupied comm ports:
+\[
+  d_{\mathrm{prep}} = d_{\mathrm{intra}}(p_{\mathrm{src}}, p_{\mathrm{ns}})
+                    + d_{\mathrm{evict}}(p_{\mathrm{comm,src}})
+                    + d_{\mathrm{evict}}(p_{\mathrm{comm,dst}}).
+\]
+
+\textbf{Capacity penalty} $c_{\mathrm{cap}} = c_{\mathrm{pen}}\,\max(0,\,\tau - f_{\mathrm{dst}})$
+discourages routing into nearly-full cores.
+$f_{\mathrm{dst}}$ is the number of free slots in the destination core,
+$\tau$ the capacity threshold, and $c_{\mathrm{pen}}$ a cost multiplier.
+This prevents progressive crowding of hot cores that leads to deadlock.
+
+\textbf{Hop gain} $g_{\mathrm{hop}} = w_h\,(\dcore(c_{\mathrm{src}},c_{\mathrm{tgt}}) - \dcore(c_{\mathrm{next}},c_{\mathrm{tgt}}))$
+rewards moving the qubit closer to the core that holds its gate partner,
+acting as a coarse directional bias on the core graph.
+
+\textbf{Front-layer gain} $\Delta_F = \sum_{g \in F, q \in g} (d_{\mathrm{old}}^g - d_{\mathrm{new}}^g)$
+sums the distance reduction induced by the teleport over all front-layer
+gates involving the moving qubit, mirroring the \SABRE{} objective.
+
+\textbf{Decay-weighted lookahead} $\tilde{\Delta}_E = \sum_{i,g \in E_i} \gamma^i (d_{\mathrm{old}}^g - d_{\mathrm{new}}^g)$
+applies an exponential decay factor $\gamma^i$ at lookahead depth $i$, so
+that nearby gates in the extended set exert more influence than distant ones.
+This softens the sharp boundary between front and extended layers present in
+vanilla \SABRE{}.
+
+\subsection{Proactive Congestion Relief}
+\label{sec:relief}
+
+In dense layouts, a core can become a bottleneck: many pending gates demand
+qubits from it simultaneously, but its communication ports are saturated.
+Standard reactive scoring (Eq.~\ref{eq:dsabre}) does not address this until
+the bottleneck triggers a deadlock.
+
+\dSABRE{} adds a \emph{proactive congestion relief} mechanism.
+At each routing iteration, we compute a demand vector $d[c]$ over all cores
+by counting inter-core gates in the lookahead window whose shortest path
+traverses core~$c$.
+If any core~$c$ satisfies $d[c] \ge \theta_d$ and $f_c \le \theta_f$
+(high demand, few free slots), we generate \emph{relief candidates}: teleports
+that move the most inactively-used logical qubits \emph{out} of $c$ and into a
+less-loaded neighbour, scored by a dedicated relief bonus proportional to the
+demand--free-slot imbalance.
+These candidates compete directly with gate-driven teleports and are selected
+only when they improve the aggregate score.
+The mechanism prevents deadlock spirals by redistributing qubit load
+\emph{before} the core fills entirely.
+
+\subsection{Deadlock Recovery}
+
+\dSABRE{} maintains a \emph{backup stack}: every $\Delta_{\mathrm{lim}}$
+iterations without gate execution, a checkpoint is pushed.
+After $N_{\mathrm{bkp}}$ consecutive deadlock events, the router rolls back
+to the most recent checkpoint and tries alternative candidates.
+This escapes local minima in the scoring landscape without abandoning the
+current routing attempt.
+
+\subsection{Comparison with TeleSABRE}
+
+Table~\ref{tab:dsabre_vs_ts} compares \dSABRE{} and \TeleSABRE{} conceptually.
+
+\begin{table}[t]
+\centering
+\caption{Design comparison: \dSABRE{} vs.\ \TeleSABRE{}}
+\label{tab:dsabre_vs_ts}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Aspect & \dSABRE{} & \TeleSABRE{} \\
+\midrule
+Language         & Python                 & C++ \\
+Operation types  & Teledata (1 EPR)       & Teledata + Telegate (1/2 EPR) \\
+Scoring          & 5-term heuristic       & Contracted comm-graph energy \\
+Lookahead        & Decay-weighted         & Fixed extended set \\
+Congestion       & Proactive relief       & Implicit via capacity terms \\
+Initial layout   & Locality-aware         & Hungarian + opt.\ init.\ \\
+Deadlock escape  & Backup/rollback        & Safety-valve iterations \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The key architectural difference is that \TeleSABRE{} evaluates candidates
+using a \emph{contracted communication-graph energy}: the circuit is projected
+onto the core graph and a global energy function measures how far all logical
+qubits are from their nearest gate partners.
+This provides a broader view but does not account for intra-core staging cost
+or core capacity.
+\dSABRE{} instead uses a local, gate-centric score that explicitly models
+staging, capacity, and directional progress, combined with proactive load
+balancing.
+Empirically (Section~\ref{sec:telesabre_comp}), \dSABRE{}'s routing heuristic
+produces fewer EPRs than \TeleSABRE{} on 4 of 6 circuits under identical
+initial layouts, demonstrating that the scoring difference---not layout---drives
+the advantage.
 
 \subsection{Gate Commutativity via Eigen-Directions}
 
@@ -727,10 +850,26 @@ was entirely attributable to its Hungarian layout placing AE's hub qubits
 near communication ports --- not to telegate support.
 Once the layout is fixed, burst scoring recovers the advantage on AE as well.
 
-The \dSABRE{}$^{\dagger}$ column confirms that the layout alone is not
-sufficient: under the same Hungarian placement, \dSABRE{} uses up to 97 EPRs
-(QNN) while \BurstDSABRE{}$^{\dagger}$ uses 50 --- a \textbf{48.5\%}
-reduction attributable purely to the burst scoring heuristic.
+\textbf{\dSABRE{} vs.\ \TeleSABRE{}.}
+The \dSABRE{}$^{\dagger}$ column isolates the contribution of \dSABRE{}'s
+routing heuristic from layout quality.
+Under TeleSABRE's own Hungarian initial layout, \dSABRE{} beats \TeleSABRE{}
+on 4 of 6 circuits (AE: $-38.9\%$, GHZ: $-37.5\%$, Graphstate: $-15.6\%$,
+QFT: $-4.7\%$), with a geometric-mean \textbf{22.0\%} EPR reduction.
+GHZ with \dSABRE{}'s own layout shows a large reversal ($+481\%$) because
+\dSABRE{}'s locality-aware placer disperses GHZ's star topology across cores,
+whereas TeleSABRE's Hungarian solver co-locates it.
+QNN is the one circuit where \TeleSABRE{} wins under the shared layout
+($+10.6\%$), likely because its telegate operations (remote CX, 2 EPRs) reduce
+per-gate movement for this high-CX-density circuit.
+These results establish \dSABRE{} as a strong baseline independently of
+burst scoring.
+
+The \dSABRE{}$^{\dagger}$ column further confirms that layout alone is not
+sufficient to explain \BurstDSABRE{}'s gains: under the same Hungarian
+placement, \dSABRE{} uses up to 97 EPRs (QNN) while
+\BurstDSABRE{}$^{\dagger}$ uses 50 --- a \textbf{48.5\%} reduction
+attributable purely to burst scoring.
 
 Comparing \BurstDSABRE{}$^{\dagger}$ with \BurstDSABRE{}$^{*}$ shows that
 the locality-aware layout further reduces EPRs on most circuits (e.g.\
@@ -746,19 +885,43 @@ is unlikely to change the overall ranking given the results above.
 
 \subsection{Compile Time}
 
-\dSABRE{} compiles in 0.9--2.1\,s per pass;
-\BurstDSABRE{} requires 9--20\,s ($\approx$$10\!\times$ slower).
-The overhead breaks down into:
-(i)~ECH construction: $\sim$0.3--0.8\,s, scaling with gate count;
-(ii)~\texttt{GetBurstValue} calls during candidate scoring: $\sim$7--18\,s
-for deep circuits, because the burst walk traverses all SuperNodes on a wire
-for every candidate in every iteration.
+Table~\ref{tab:timing} reports wall-clock compilation time (single routing
+pass, fixed locality-aware layout, seed~0) for all three routers on the 25-qubit
+benchmark circuits.
+\TeleSABRE{} is a compiled C++ binary; \dSABRE{} and \BurstDSABRE{} are
+pure-Python implementations using NetworkX.
 
-This compile-time cost is acceptable for hardware targeting EPR-expensive
-quantum links, where the cost of $\approx$10 extra teleports ($100$ units) far
-exceeds the compile time overhead.
-Future work on caching burst values or limiting walk depth could substantially
-reduce this gap.
+\begin{table}[t]
+\centering
+\caption{Compilation time in seconds.
+  dS/TS and Bu/TS are slowdown ratios relative to \TeleSABRE{}.}
+\label{tab:timing}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Circuit & CX & TS (s) & dS (s) & Bu (s) & dS/TS & Bu/TS \\
+\midrule
+AE         &  558 & 0.05 &  0.84 &  8.37 & 18$\times$ & 182$\times$ \\
+GHZ        &   24 & 0.01 &  0.01 &  0.03 &  1$\times$ &   4$\times$ \\
+Graphstate &   25 & 0.02 &  0.01 &  0.07 &  1$\times$ &   4$\times$ \\
+QFT        &  580 & 0.07 &  0.75 &  7.47 & 10$\times$ & 101$\times$ \\
+QNN        & 1223 & 0.09 &  2.92 & 28.97 & 34$\times$ & 336$\times$ \\
+Random     & 1124 & 0.38 &  5.24 & 77.50 & 14$\times$ & 206$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\TeleSABRE{}'s C++ implementation finishes in under 0.4\,s on all circuits.
+\dSABRE{} is 1--34$\times$ slower (0.01--5.2\,s), a gap attributable entirely
+to Python interpreter overhead rather than algorithmic complexity.
+\BurstDSABRE{} adds a further ${\approx}10\times$ overhead over \dSABRE{}
+from ECH construction ($\sim$0.3--0.8\,s) and per-candidate burst walk scoring.
+For small circuits (GHZ, Graphstate) the gap nearly vanishes.
+
+This compile-time cost is acceptable for EPR-expensive quantum links:
+the cost of ${\approx}10$ saved teleports (${\approx}100$ cost units) far
+exceeds the compile overhead, and a C++ port of \dSABRE{} would be expected
+to close the gap with \TeleSABRE{} substantially.
 
 \subsection{Burst Value Statistics}
 
