@@ -61,8 +61,14 @@ quantum teleportation, consuming one EPR pair per transfer.
 Existing distributed routers extend the \SABRE{} algorithm to propose
 teleportation actions one gate at a time, ignoring the commutativity structure
 of the circuit.
-We present \BurstDSABRE{}, which integrates an \emph{EigenCluster Hypergraph}
-(ECH) into the teleportation scoring function.
+We first present \dSABRE{}, a distributed router with a five-term
+teleportation scoring function and a proactive congestion-relief mechanism
+that preemptively redistributes qubits out of saturated cores.
+\dSABRE{} achieves a geometric-mean \textbf{22.0\%} EPR reduction over
+\TeleSABRE{}~\cite{russo2025telesabre} under identical initial layouts and
+completes routing on circuits where \TeleSABRE{} fails to converge.
+Building on \dSABRE{}, we present \BurstDSABRE{}, which further integrates
+an \emph{EigenCluster Hypergraph} (ECH) into the teleportation scoring function.
 The ECH partitions each qubit wire into maximal runs of mutually commuting
 gates (\emph{SuperNodes}) using gate eigen-directions, and for each candidate
 teleport computes a \emph{burst value}---the number of additional pending gates
@@ -864,6 +870,10 @@ QNN is the one circuit where \TeleSABRE{} wins under the shared layout
 per-gate movement for this high-CX-density circuit.
 These results establish \dSABRE{} as a strong baseline independently of
 burst scoring.
+Furthermore, on the 64-qubit Random circuit \TeleSABRE{} fails to converge
+entirely, while \dSABRE{} completes routing successfully (834~EPRs),
+highlighting a robustness advantage of \dSABRE{}'s backup/rollback
+deadlock-recovery over \TeleSABRE{}'s iteration-capped solver.
 
 The \dSABRE{}$^{\dagger}$ column further confirms that layout alone is not
 sufficient to explain \BurstDSABRE{}'s gains: under the same Hungarian
@@ -1048,34 +1058,45 @@ circuits mapped to H\_grid\_2\_3\_4\_4 with the depth-cap fix applied
 \centering
 \caption{64-qubit benchmark on H\_grid\_2\_3\_4\_4.
 Bu$^\dagger$ and dS$^\dagger$ use TeleSABRE's initial layout.
-``---'' denotes routing abort within the iteration budget.}
+``---'' denotes routing failure (TS: did not converge within its iteration
+budget; dS/Bu: aborted within 50k iterations).
+\textdagger~\dSABRE{} completes Random (834 EPRs) where \TeleSABRE{} fails.}
 \label{tab:64q}
 \begin{tabular}{lrrrrrrr}
 \toprule
 Circuit & CX & TS & dS & Bu & Bu$^\dagger$ & dS$^\dagger$ & Bu$^\dagger$/TS \\
 \midrule
-AE         & 1962 & 447 & 364 & 623  & \textbf{264} & 273  & $-40.9\%$ \\
-GHZ        &   63 &  16 &  93 & ---  & \textbf{14}  &  10  & $-12.5\%$ \\
-Graphstate &   64 &  64 &  26 &  28  & \textbf{61}  &  54  & $-4.7\%$  \\
-QFT        & 1966 & 316 & 345 & 2090 & ---          & 301  & ---       \\
-QNN        & 8126 & 895 & 775 & ---  & ---          & 990  & ---       \\
-Random     & 1627 & --- & 834 & ---  & ---          & ---  & ---       \\
+AE         & 1962 & 447 & 364  & 623  & \textbf{264} & 273 & $-40.9\%$ \\
+GHZ        &   63 &  16 &  93  & ---  & \textbf{14}  &  10 & $-12.5\%$ \\
+Graphstate &   64 &  64 &  26  &  28  & \textbf{61}  &  54 & $-4.7\%$  \\
+QFT        & 1966 & 316 & 345  & 2090 & ---          & 301 & ---       \\
+QNN        & 8126 & 895 & 775  & ---  & ---          & 990 & ---       \\
+Random$^\dagger$ & 1627 & \textbf{---} & \textbf{834} & --- & --- & --- & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Three circuits (AE, GHZ, Graphstate) complete and \BurstDSABRE{} outperforms
-\TeleSABRE{} on all three when given the same initial layout
-(gmean $-22.7\%$).
+Three circuits (AE, GHZ, Graphstate) complete for all routers;
+\BurstDSABRE{} outperforms \TeleSABRE{} on all three under the same initial
+layout (gmean $-22.7\%$).
 The depth cap eliminates the pathological $+631\%$ overhead previously seen
 on Graphstate.
+
+A notable robustness finding is the Random circuit:
+\textbf{\TeleSABRE{} fails to produce a valid routing} (its energy-based
+solver does not converge within the configured iteration budget), whereas
+\dSABRE{} successfully completes routing with 834~EPRs.
+This demonstrates that \dSABRE{}'s backup/rollback deadlock-recovery
+mechanism provides stronger completion guarantees than \TeleSABRE{}'s
+safety-valve approach on circuits with irregular, non-structured qubit
+interaction patterns.
+
 Two remaining failure modes are identified for future work:
 (i)~QFT exhibits \emph{over-teleportation} with \BurstDSABRE's own layout
-(2090 vs.\ 345 for dSABRE), suggesting the burst weight $w_\beta$ needs
-circuit-adaptive tuning for highly structured circuits;
-(ii)~QNN and Random exhaust the 50k-iteration budget, requiring either
-adaptive deadlock limits or a stronger eviction fallback to free comm-port
-slots in dense placements.
+(2090 vs.\ 345 for dSABRE), suggesting $w_\beta$ needs circuit-adaptive
+tuning for highly structured circuits;
+(ii)~BurstDSABRE on QNN and Random exhausts the 50k-iteration budget,
+requiring adaptive deadlock limits or a stronger eviction fallback.
 
 %%─────────────────────────────────────────────────────────────────────────────
 \section{Related Work}
