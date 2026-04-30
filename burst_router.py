@@ -170,9 +170,11 @@ class BurstDSABRE:
 
     def _apply_teleport(self, cand: BurstCandidate, l2p, p2l, metrics, idx2lq):
         self._evict(cand.pcomm_src, cand.src_core, l2p, p2l, metrics)
-        assert p2l[cand.pcomm_src] is None
+        if p2l[cand.pcomm_src] is not None:
+            return   # eviction failed (core full) — skip this teleport
         self._evict(cand.pcomm_dst, cand.next_core, l2p, p2l, metrics)
-        assert p2l[cand.pcomm_dst] is None
+        if p2l[cand.pcomm_dst] is not None:
+            return   # eviction failed — skip
         virt = idx2lq[cand.virt_idx]
         self._local_swap_path(l2p[virt], cand.ns, cand.src_core, l2p, p2l, metrics,
                               forbidden={cand.pcomm_src})
@@ -247,7 +249,10 @@ class BurstDSABRE:
                         ns = min(neighbors_s,
                                  key=lambda n, _p=psrc: self._idist(srcc, _p, n))
 
-                        raw_count = hg.get_tele_gain_block(v_idx, lqdst, psrc, idx2phys, arch)
+                        raw_count = hg.get_tele_gain_block(
+                            v_idx, lqdst, psrc, idx2phys, arch,
+                            max_depth=config.max_burst_walk_depth,
+                        )
                         burst_count = min(raw_count, self.max_burst_norm)
 
                         d_prep = (self._idist(srcc, psrc, ns)

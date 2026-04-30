@@ -327,6 +327,7 @@ class EigenClusterHypergraph:
         old_phys: int,
         idx2phys: Dict[int, int],
         arch:     "DistributedArchitecture",
+        max_depth: int = 30,
     ) -> int:
         """
         Count pending 2q gates on lq_idx's wire whose distance δ = d(old,partner) -
@@ -366,9 +367,11 @@ class EigenClusterHypergraph:
             return all(sn.is_ready for sn in self._g2sn[g.gate_id])
 
         count = 0
+        depth = 0
 
-        while cur is not None:
+        while cur is not None and depth < max_depth:
             found_bad = False
+            depth += 1
 
             for g in cur.pending_gates:
                 if len(g.qubits) < 2:

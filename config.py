@@ -33,3 +33,7 @@ class HardwareConfig:
     max_iterations: int = 10000
     deadlock_limit: int = 50
     max_backup_attempts: int = 50
+
+    # Scalability: cap the SN-chain walk depth in get_tele_gain_block()
+    # Keeps burst scoring O(max_burst_walk_depth) instead of O(circuit_depth)
+    max_burst_walk_depth: int = 30

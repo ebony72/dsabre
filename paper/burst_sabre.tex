@@ -850,6 +850,71 @@ Beyond $\sim\!1600$ nodes, lazy/sparse alternatives to the precomputed table
 should be considered.
 
 %%─────────────────────────────────────────────────────────────────────────────
+\subsection{Scalability Limitations and Future Work}
+\label{sec:scalability}
+
+The current implementation exposes two scalability bottlenecks when applied to
+larger circuits on wider architectures such as the $2\!\times\!3$ H-grid
+(96 physical qubits, 64-qubit logical circuits).
+
+\paragraph{Burst walk depth.}
+\texttt{get\_tele\_gain\_block} walks the SuperNode chain from the ready
+frontier without a depth bound.
+On deep circuits (e.g., QNN with $8126$ CX gates), this walk is
+$\mathcal{O}(\text{circuit depth})$ \emph{per teleport candidate per routing
+iteration}, making each iteration prohibitively slow.
+The fix---already integrated in the codebase---caps the walk at a configurable
+\texttt{max\_burst\_walk\_depth} (default 30 gates), restoring $\mathcal{O}(1)$
+scoring complexity per candidate.
+
+\paragraph{Intra-core eviction.}
+With 64 logical qubits distributed across six 16-slot cores
+(${\approx}10$--$11$ qubits per core), all comm-port slots can be occupied
+simultaneously.
+When \texttt{\_evict()} finds no free intra-core slot, the teleport is
+silently skipped rather than triggering an assertion failure.
+A stronger remedy---routing an intra-core SWAP to free the comm port instead
+of skipping the teleport---is left for future work.
+
+\paragraph{Observed 64-qubit results.}
+Table~\ref{tab:64q} summarises a preliminary evaluation on six 64-qubit MQT
+circuits mapped to H\_grid\_2\_3\_4\_4 with the depth-cap fix applied
+(\texttt{max\_burst\_walk\_depth}$=20$, \texttt{max\_iterations}$=50{,}000$).
+
+\begin{table}[h]
+\centering
+\caption{64-qubit benchmark on H\_grid\_2\_3\_4\_4.
+Bu$^\dagger$ and dS$^\dagger$ use TeleSABRE's initial layout.
+``---'' denotes routing abort within the iteration budget.}
+\label{tab:64q}
+\begin{tabular}{lrrrrrrr}
+\toprule
+Circuit & CX & TS & dS & Bu & Bu$^\dagger$ & dS$^\dagger$ & Bu$^\dagger$/TS \\
+\midrule
+AE         & 1962 & 447 & 364 & 623  & \textbf{264} & 273  & $-40.9\%$ \\
+GHZ        &   63 &  16 &  93 & ---  & \textbf{14}  &  10  & $-12.5\%$ \\
+Graphstate &   64 &  64 &  26 &  28  & \textbf{61}  &  54  & $-4.7\%$  \\
+QFT        & 1966 & 316 & 345 & 2090 & ---          & 301  & ---       \\
+QNN        & 8126 & 895 & 775 & ---  & ---          & 990  & ---       \\
+Random     & 1627 & --- & 834 & ---  & ---          & ---  & ---       \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three circuits (AE, GHZ, Graphstate) complete and \BurstDSABRE{} outperforms
+\TeleSABRE{} on all three when given the same initial layout
+(gmean $-22.7\%$).
+The depth cap eliminates the pathological $+631\%$ overhead previously seen
+on Graphstate.
+Two remaining failure modes are identified for future work:
+(i)~QFT exhibits \emph{over-teleportation} with \BurstDSABRE's own layout
+(2090 vs.\ 345 for dSABRE), suggesting the burst weight $w_\beta$ needs
+circuit-adaptive tuning for highly structured circuits;
+(ii)~QNN and Random exhaust the 50k-iteration budget, requiring either
+adaptive deadlock limits or a stronger eviction fallback to free comm-port
+slots in dense placements.
+
+%%─────────────────────────────────────────────────────────────────────────────
 \section{Related Work}
 \label{sec:related}
 
