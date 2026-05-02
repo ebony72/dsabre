@@ -154,7 +154,7 @@ def main():
         for seed in range(NUM_TS_SEEDS):
             td, tg, p2v, ok = run_telesabre(qf, seed)
             if ok:
-                epr = td + 2*tg
+                epr = td + tg  # 1 EPR pair per teledata; 1 EPR pair per telegate (cat-entangler protocol)
                 if best_ts is None or epr < best_ts:
                     best_ts, best_p2v = epr, p2v
 

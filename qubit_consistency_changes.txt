@@ -1,0 +1,118 @@
+Qubit Consistency & Efficiency Improvements
+============================================
+Date: 2026-04-11
+Files modified: eigen_cluster_hypergraph_v1.py, burst_router_v4.py
+
+Background
+----------
+The codebase uses three distinct qubit spaces:
+  1. Qiskit Qubit objects (lq)   — keys in l2p/p2l dicts, from dag.qubits / node.qargs
+  2. HG integer indices (lq_idx) — 0..n_qubits-1, used inside EigenClusterHypergraph
+  3. Physical qubits (p)         — integer node IDs in the architecture graph
+
+The bridge between space 1 and 2 is idx2lq (List[Qubit]), where idx2lq[i] is the
+Qiskit Qubit object for HG index i. Any code crossing these spaces must use this list.
+
+Issues found and fixed
+----------------------
+
+1. get_tele_gain_block crossed abstraction boundaries (eigen_cluster_hypergraph_v1.py)
+   -----------------------------------------------------------------------
+   OLD signature:
+       def get_tele_gain_block(self, lq_idx, pcomm_dst, l2p, idx2lq, arch)
+
+   The HG function accepted l2p (keyed on Qiskit Qubit objects) and idx2lq,
+   forcing the HG layer to perform the index→Qubit→physical translation itself.
+   This is wrong: the HG should operate purely in integer-index space.
+
+   NEW signature:
+       def get_tele_gain_block(self, lq_idx, new_phys, old_phys, idx2phys, arch)
+
+   - l2p + idx2lq replaced by old_phys: int  (already available as psrc at the call
+     site) and idx2phys: Dict[int, int]  (HG index → physical qubit, precomputed once
+     per _generate_burst_candidates call).
+   - pcomm_dst renamed to new_phys (clearer intent).
+   - delta_for() now uses idx2phys.get(partneridx) directly — no Qubit objects.
+
+2. Commented-out buggy code removed (eigen_cluster_hypergraph_v1.py, get_tele_gain_block)
+   -----------------------------------------------------------------------
+   The following dead code was removed. It was an earlier version that incorrectly
+   used a Qubit object (from space 1) as a key into l2p when g.qubits holds integer
+   indices (space 2) — the lookup would always return None silently:
+
+       # REMOVED:
+       #partner = g.qubits[1] if g.qubits[0] == lq else g.qubits[0]  #Achtung!
+       #partnerphys = l2p.get(partner)
+
+3. find_bit eliminated from _build_hg (burst_router_v4.py)
+   -----------------------------------------------------------------------
+   OLD (called find_bit per qubit per gate):
+       qubits = [wdag.find_bit(q).index for q in node.qargs]
+
+   NEW (O(1) dict lookup via precomputed inverse):
+       qubit_to_idx: Dict[object, int] = {q: i for i, q in enumerate(idx2lq)}
+       qubits = [qubit_to_idx[q] for q in node.qargs]
+
+   Also removed the O(n) startup assertion loop:
+       assert all(wdag.find_bit(idx2lq[i]).index == i for i in range(len(idx2lq)))
+   This was always true by Qiskit's own invariant (wdag.qubits[i] has index i).
+
+4. l2p re-keying simplified in route() (burst_router_v4.py)
+   -----------------------------------------------------------------------
+   initial_layout keys are Qiskit Qubit objects from the original dag.
+   After deepcopy(dag) → wdag, the Qubit objects may be different Python objects,
+   so l2p must be re-keyed to wdag's Qubit instances.
+
+   OLD (two O(n) find_bit loops, O(n^2) total):
+       wdag_qubit_map = {wdag.find_bit(q).index: q for q in wdag.qubits}
+       l2p = {wdag_qubit_map[dag.find_bit(lq).index]: p
+              for lq, p in initial_layout.items()}
+       #l2p = initial_layout.copy()   ← dead comment also removed
+
+   NEW (single zip, O(n) — deepcopy preserves positional order):
+       dag_to_wdag = dict(zip(dag.qubits, wdag.qubits))
+       l2p = {dag_to_wdag[lq]: p for lq, p in initial_layout.items()}
+
+5. hg_layout hoisted out of Phase 1 inner loop (burst_router_v4.py, route())
+   -----------------------------------------------------------------------
+   _make_hg_layout (qubit index → core id) was called on every pass of the
+   while progress: loop inside Phase 1. Phase 1 only removes gates — it never
+   moves qubits between cores — so hg_layout is identical on every pass.
+
+   OLD:
+       progress = True
+       while progress:
+           progress = False
+           hg_layout = self._make_hg_layout(idx2lq, l2p)   ← redundant repeats
+           for hg_gate in hg.get_local_front_layer(hg_layout):
+               ...
+
+   NEW:
+       hg_layout = self._make_hg_layout(idx2lq, l2p)       ← computed once
+       progress = True
+       while progress:
+           progress = False
+           for hg_gate in hg.get_local_front_layer(hg_layout):
+               ...
+
+6. idx2phys precomputed per candidate-generation call (burst_router_v4.py)
+   -----------------------------------------------------------------------
+   get_tele_gain_block is called once per (v_idx, lqdst) candidate pair inside
+   _generate_burst_candidates. Previously it recomputed the l2p[idx2lq[i]] lookup
+   inside itself on every call. Now idx2phys is built once at the top of
+   _generate_burst_candidates and passed in:
+
+       idx2phys: Dict[int, int] = {idx: l2p[lq] for idx, lq in enumerate(idx2lq)}
+
+7. catcomms metric added to BurstDSABRE (burst_router_v4.py, route())
+   -----------------------------------------------------------------------
+   General_dSABRE_Router.route() initialises "catcomms": 0 in its metrics dict.
+   BurstDSABRE.route() was missing this key. main.py uses m.get('catcomms', 0)
+   as a fallback so it did not crash, but the metric was never tracked.
+
+   OLD:
+       metrics = {"ls": 0, "teles": 0, "eprs": 0, "burst_saves": 0,
+                  "cost": 0, ...}
+   NEW:
+       metrics = {"ls": 0, "teles": 0, "eprs": 0, "burst_saves": 0,
+                  "catcomms": 0, "cost": 0, ...}
