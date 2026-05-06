@@ -1,55 +1,55 @@
 """
-Full 3-way benchmark on 64-qubit MQT circuits, H_grid_2_3_4_4 device
-(6 cores of 4×4 qubits = 96 physical slots).
+run_64q_bench.py — dS / dSf / dSE on 64q circuits, H_grid_2_3_4_4 device
+(6 cores × 16 qubits = 96 physical qubits; 32 qubits of slack for routing).
 
-Columns reported:
-  TS_EPR    — TeleSABRE best (teledata + 2×telegate), 3 seeds
-  dS_best   — dSABRE best across layouts A/B/C, 3 trials each
-  Bu_best   — BurstDSABRE best across layouts A/B/C, 3 trials each
-  Bu†       — BurstDSABRE with TeleSABRE's initial layout (fair comparison)
-  dS†       — dSABRE with TeleSABRE's initial layout
-  Δ(Bu/dS)  — Bu_best vs dS_best reduction %
-  Δ(Bu†/TS) — Bu† vs TS_EPR reduction %
+B_grid_2_2_4_4 (64 qubits) causes TeleSABRE segfaults and dSABRE deadlocks
+on 64q circuits — no routing slack.  H_grid_2_3_4_4 is the correct device.
+
+Protocol: same as run_summary_bench.py
+  1. Run TS with seeds 0-2; pick the seed that gives the fewest EPRs.
+  2. Extract TS's best initial layout (phys_to_virt from JSON report).
+  3. Run dS, dSf, dSE under that layout (LAYOUT_PASSES=2).
+  4. Print table + save results_64q.json.
 """
 
-import sys, os, json, glob, subprocess, tempfile, random, time
+import sys, os, json, glob, subprocess, tempfile, time
+from math import prod
 
 sys.setrecursionlimit(50000)
 sys.path.insert(0, os.path.dirname(__file__))
 
 from qiskit import QuantumCircuit
 from qiskit.converters import circuit_to_dag
+from qiskit.transpiler.passes import RemoveBarriers
+from qiskit.transpiler import PassManager
+
 from architecture import build_h_grid_architecture
 from config import HardwareConfig
-from router import General_dSABRE_Router
-from burst_router import BurstDSABRE
-from main import locality_aware_layout, sabre_locked_boundary_layout, _run_passes
+import router as _router_mod
+import router_test as _router_test_mod
+from burst_ext_router import dSABRE_BurstExt
+from main import _run_passes
 
-# ── Config ─────────────────────────────────────────────────────────────────
-TS_BIN      = os.path.expanduser("~/Documents/telesabre/telesabre")
-TS_DEV      = os.path.expanduser("~/Documents/telesabre/devices/H_grid_2_3_4_4.json")
-CIRCUIT_DIR = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64")
+TS_BIN = os.path.expanduser("~/Documents/telesabre/telesabre")
+TS_DEV = os.path.expanduser("~/Documents/telesabre/devices/H_grid_2_3_4_4.json")
 
-BURST_WEIGHT  = 2.0
-BURST_NORM    = 8
-LAYOUT_PASSES = 1   # single pass — 64q is slow
-NUM_TRIALS    = 2   # random / locality layout trials
-NUM_TS_SEEDS  = 2   # TeleSABRE seeds
+CIRCUIT_DIR   = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64")
+SUFFIX        = "_nativegates_ibm_qiskit_opt3_64.qasm"
+LAYOUT_PASSES = 2
+NUM_TS_SEEDS  = 3
 
-arch   = build_h_grid_architecture(r=2, s=3, m=4)
+arch = build_h_grid_architecture(r=2, s=3, m=4)
+hw   = HardwareConfig(deadlock_limit=100, max_backup_attempts=100,
+                      max_iterations=20000, max_burst_walk_depth=25)
 
-# Scale deadlock/backup limits for 64-qubit circuits (4× the 25q defaults)
-# max_burst_walk_depth=20 keeps burst scoring O(20) instead of O(circuit_depth)
-hw       = HardwareConfig()
-hw_large = HardwareConfig(deadlock_limit=200, max_backup_attempts=200,
-                          max_iterations=50000, max_burst_walk_depth=20)
-
-dsabre = General_dSABRE_Router(arch, hw_large)
-burst  = BurstDSABRE(arch, hw_large, weight_burst=BURST_WEIGHT,
-                      max_burst_normaliser=BURST_NORM)
+routers = {
+    "dS":  _router_mod.General_dSABRE_Router(arch, hw),
+    "dSf": _router_test_mod.General_dSABRE_Router(arch, hw),
+    "dSE": dSABRE_BurstExt(arch, hw),
+}
 
 
-def make_ts_config(seed: int, report_path: str) -> str:
+def _ts_config(seed, report_path):
     cfg = {"config": {
         "name": "bench64", "seed": seed,
         "energy_type": "extended-set",
@@ -74,29 +74,49 @@ def make_ts_config(seed: int, report_path: str) -> str:
     return f.name
 
 
-def run_telesabre(qasm_path, seed):
-    report_tmp = tempfile.mktemp(suffix=".json")
-    cfg_path   = make_ts_config(seed, report_tmp)
-    try:
-        proc = subprocess.run([TS_BIN, cfg_path, TS_DEV, qasm_path],
-                              capture_output=True, text=True, timeout=300)
+def run_telesabre(qasm_path):
+    best = None
+    for seed in range(NUM_TS_SEEDS):
+        rpt = tempfile.mktemp(suffix=".json")
+        cfg = _ts_config(seed, rpt)
+        t0  = time.perf_counter()
+        try:
+            proc = subprocess.run(
+                [TS_BIN, cfg, TS_DEV, qasm_path],
+                capture_output=True, text=True, timeout=300,
+            )
+        except subprocess.TimeoutExpired:
+            os.unlink(cfg)
+            continue
+        elapsed = time.perf_counter() - t0
+
         out = proc.stdout + proc.stderr
         td = tg = 0; ok = False
         for line in out.splitlines():
             s = line.strip()
-            if "Teledata:" in s:  td = int(s.split(":")[1])
+            if   "Teledata:" in s: td = int(s.split(":")[1])
             elif "Telegate:" in s: tg = int(s.split(":")[1])
             elif "Success: true" in s: ok = True
+
         p2v = None
-        if os.path.exists(report_tmp):
-            with open(report_tmp) as rf:
-                rep = json.load(rf)
-            if rep.get("iterations"):
-                p2v = rep["iterations"][0]["phys_to_virt"]
-        return td, tg, p2v, ok
-    finally:
-        os.unlink(cfg_path)
-        if os.path.exists(report_tmp): os.unlink(report_tmp)
+        if os.path.exists(rpt):
+            try:
+                with open(rpt) as rf:
+                    rep = json.load(rf)
+                if rep.get("iterations"):
+                    p2v = rep["iterations"][0]["phys_to_virt"]
+            except Exception:
+                pass
+
+        os.unlink(cfg)
+        if os.path.exists(rpt): os.unlink(rpt)
+
+        if ok and p2v is not None:
+            eprs = td + tg
+            if best is None or eprs < best["eprs"]:
+                best = {"eprs": eprs, "teledata": td, "telegate": tg,
+                        "seed": seed, "time_s": round(elapsed, 2), "p2v": p2v}
+    return best
 
 
 def p2v_to_layout(p2v, dag):
@@ -105,30 +125,11 @@ def p2v_to_layout(p2v, dag):
             if v != -1 and v < len(qubits)}
 
 
-def best_route(router, dag, qc, num_trials):
-    best = None
-
-    def _record(m):
-        nonlocal best
-        if m and not m.get("aborted") and (best is None or m["eprs"] < best):
-            best = m["eprs"]
-
-    # A: random
-    for t in range(num_trials):
-        ll = locality_aware_layout(dag, arch, rng=random.Random(t+100))
-        _record(_run_passes(router, dag, ll, LAYOUT_PASSES))
-    # B: SABRE-lock
-    try:
-        cands, _ = sabre_locked_boundary_layout(qc, dag, arch, seed=0)
-        for cl in cands:
-            _record(_run_passes(router, dag, cl, LAYOUT_PASSES))
-    except (Exception, RecursionError):
-        pass
-    # C: locality
-    for t in range(num_trials):
-        ll = locality_aware_layout(dag, arch, rng=random.Random(t))
-        _record(_run_passes(router, dag, ll, LAYOUT_PASSES))
-    return best
+def load_qasm(qf):
+    qc = QuantumCircuit.from_qasm_file(qf)
+    qc = qc.remove_final_measurements(inplace=False)
+    qc = PassManager([RemoveBarriers()]).run(qc)
+    return qc, circuit_to_dag(qc)
 
 
 def main():
@@ -136,57 +137,107 @@ def main():
     if not qasm_files:
         print(f"No .qasm files in {CIRCUIT_DIR}"); return
 
-    hdr = (f"{'circuit':<12}  {'cx':>5}  {'TS':>5}  "
-           f"{'dS':>5}  {'Bu':>5}  {'Bu†':>5}  {'dS†':>5}  "
-           f"{'Bu/dS%':>7}  {'Bu†/TS%':>8}")
-    print(hdr); print("-" * len(hdr))
+    rkeys = list(routers.keys())
+    col_w = 12
+    hdr   = f"{'circuit':<{col_w}}  {'q':>3}  {'cx':>5}  {'TS_epr':>7}  {'TS_t':>5}"
+    for k in rkeys:
+        hdr += f"  {k+'_epr':>8}  {k+'_ls':>7}  {k+'_t':>6}"
+    for k in rkeys:
+        hdr += f"  {k+'/TS%':>8}"
+    print(f"\n{'═'*len(hdr)}")
+    print("  64q — H_grid_2_3_4_4 (6 cores × 16 qubits = 96 physical)")
+    print(f"{'═'*len(hdr)}")
+    print(hdr)
+    print("─" * len(hdr))
+
+    records = []
 
     for qf in qasm_files:
-        cname = os.path.basename(qf).replace("_nativegates_ibm_qiskit_opt3_64.qasm","")
-        t0 = time.time()
+        cname  = os.path.basename(qf).replace(SUFFIX, "")
+        t_wall = time.time()
+        qc, dag = load_qasm(qf)
+        n_qubits = qc.num_qubits
+        n_cx     = sum(1 for _ in dag.two_qubit_ops())
 
-        qc  = QuantumCircuit.from_qasm_file(qf)
-        dag = circuit_to_dag(qc)
-        cx  = sum(1 for g in dag.two_qubit_ops())
+        ts_result = run_telesabre(qf)
 
-        # TeleSABRE
-        best_ts = best_p2v = None
-        for seed in range(NUM_TS_SEEDS):
-            td, tg, p2v, ok = run_telesabre(qf, seed)
-            if ok:
-                epr = td + tg  # 1 EPR pair per teledata; 1 EPR pair per telegate (cat-entangler protocol)
-                if best_ts is None or epr < best_ts:
-                    best_ts, best_p2v = epr, p2v
+        rec = {"circuit": cname, "qubits": n_qubits, "cx": n_cx,
+               "ts": ts_result, "routers": {}}
 
-        # dSABRE and BurstDSABRE — own layouts
-        best_ds = best_route(dsabre, dag, qc, NUM_TRIALS)
-        best_bu = best_route(burst,  dag, qc, NUM_TRIALS)
+        router_results = {}
+        if ts_result is not None:
+            layout = p2v_to_layout(ts_result["p2v"], dag)
+            if len(layout) >= n_qubits:
+                for k, router in routers.items():
+                    m = _run_passes(router, dag, layout, LAYOUT_PASSES)
+                    if m and not m.get("aborted"):
+                        router_results[k] = {"eprs": m["eprs"], "ls": m["ls"],
+                                             "time_s": round(m["compile_time"], 3),
+                                             "aborted": False}
+                    else:
+                        router_results[k] = {"aborted": True}
 
-        # Same-layout (TeleSABRE's Hungarian layout)
-        best_ds_same = best_bu_same = None
-        if best_p2v is not None:
-            layout = p2v_to_layout(best_p2v, dag)
-            if len(layout) >= qc.num_qubits:
-                md = _run_passes(dsabre, dag, layout, LAYOUT_PASSES)
-                mb = _run_passes(burst,  dag, layout, LAYOUT_PASSES)
-                if md and not md.get("aborted"): best_ds_same = md["eprs"]
-                if mb and not mb.get("aborted"): best_bu_same = mb["eprs"]
+        rec["routers"] = router_results
 
-        def fmt(v): return str(v) if v is not None else "---"
+        def fmt_int(v): return str(v) if v is not None else "---"
+        def fmt_f(v):   return f"{v:.2f}" if v is not None else "  ---"
         def pct(a, b):
             if a is None or b is None or b == 0: return "    ---"
             return f"{100*(a-b)/b:+.1f}%"
 
-        elapsed = time.time() - t0
-        print(f"{cname:<12}  {cx:>5}  {fmt(best_ts):>5}  "
-              f"{fmt(best_ds):>5}  {fmt(best_bu):>5}  "
-              f"{fmt(best_bu_same):>5}  {fmt(best_ds_same):>5}  "
-              f"{pct(best_bu, best_ds):>7}  {pct(best_bu_same, best_ts):>8}  "
-              f"({elapsed:.0f}s)")
+        ts_epr  = ts_result["eprs"]   if ts_result else None
+        ts_time = ts_result["time_s"] if ts_result else None
 
-    print()
-    print("Bu†/dS† = BurstDSABRE/dSABRE with TeleSABRE's initial layout")
-    print("Bu/dS   = each router's own best layout")
+        row = (f"{cname:<{col_w}}  {n_qubits:>3}  {n_cx:>5}"
+               f"  {fmt_int(ts_epr):>7}  {fmt_f(ts_time):>5}")
+        for k in rkeys:
+            r   = router_results.get(k, {})
+            epr = r.get("eprs")   if not r.get("aborted") else None
+            ls  = r.get("ls")     if not r.get("aborted") else None
+            t   = r.get("time_s") if not r.get("aborted") else None
+            row += f"  {fmt_int(epr):>8}  {fmt_int(ls):>7}  {fmt_f(t):>6}"
+        for k in rkeys:
+            r   = router_results.get(k, {})
+            epr = r.get("eprs") if not r.get("aborted") else None
+            row += f"  {pct(epr, ts_epr):>8}"
+
+        elapsed_wall = time.time() - t_wall
+        print(row + f"  ({elapsed_wall:.0f}s)")
+        records.append(rec)
+
+    def gmean(lst):
+        lst = [x for x in lst if x is not None and x > 0]
+        return prod(lst) ** (1/len(lst)) if lst else float("nan")
+
+    ts_eprs = [r["ts"]["eprs"] for r in records if r["ts"]]
+    print("─" * len(hdr))
+    summary = f"{'gmean':<{col_w}}  {'':>3}  {'':>5}  {gmean(ts_eprs):>7.1f}  {'':>5}"
+    for k in rkeys:
+        eprs = [r["routers"].get(k, {}).get("eprs") for r in records
+                if not r["routers"].get(k, {}).get("aborted")]
+        lss  = [r["routers"].get(k, {}).get("ls") for r in records
+                if not r["routers"].get(k, {}).get("aborted")]
+        ts   = [r["routers"].get(k, {}).get("time_s") for r in records
+                if not r["routers"].get(k, {}).get("aborted")]
+        summary += f"  {gmean(eprs):>8.1f}  {gmean(lss):>7.1f}  {gmean(ts):>6.2f}"
+    for k in rkeys:
+        eprs = [r["routers"].get(k, {}).get("eprs") for r in records
+                if not r["routers"].get(k, {}).get("aborted")]
+        summary += f"  {pct(gmean(eprs), gmean(ts_eprs)):>8}"
+    print(summary)
+
+    out_path = os.path.join(os.path.dirname(__file__), "results_64q.json")
+    payload = {
+        "meta": {"date": time.strftime("%Y-%m-%d"), "arch": "H-grid 2x3 4x4 (6 cores, 16 qubits/core)",
+                 "layout_passes": LAYOUT_PASSES, "ts_seeds": NUM_TS_SEEDS,
+                 "routers": {"dS": "General_dSABRE_Router (router.py)",
+                             "dSf": "General_dSABRE_Router (router_test.py, LightDAG)",
+                             "dSE": "dSABRE_BurstExt (burst_ext_router.py)"}},
+        "results": records,
+    }
+    with open(out_path, "w") as f:
+        json.dump(payload, f, indent=2)
+    print(f"\nResults saved → {out_path}")
 
 
 if __name__ == "__main__":
