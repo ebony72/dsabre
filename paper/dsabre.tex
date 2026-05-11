@@ -1100,6 +1100,184 @@ on photonic-link hardware where EPR cost dominates.  Code,
 benchmarks, and full per-circuit results accompany the paper.
 
 %%─────────────────────────────────────────────────────────────────────────────
+\appendices
+
+\section{Comparison with pytket-dqc}
+\label{app:pytketdqc}
+
+\textbf{Background.}
+\texttt{pytket-dqc}~\cite{pytketdqc2024} is a Python library from
+Quantinuum that distributes circuits over multiple QPUs using
+\emph{gate teleportation} (detached gates): a pre-shared e-bit allows
+a non-local controlled-unitary to be executed without moving the
+qubit, and consecutive non-local gates on the same wire can share the
+same e-bit (multi-gate amortisation).  This contrasts with
+\dSABRE{}'s \emph{state teleportation}, which physically moves a
+qubit into a target core so that all subsequent gates on it run
+locally.  Both primitives consume Bell pairs, so the e-bit/EPR metric
+is directly comparable.  pytket-dqc assigns qubits to QPUs
+\emph{statically} via KaHyPar hypergraph partitioning and does not
+model intra-QPU SWAP routing; its output is an e-bit count only.
+
+\textbf{Implementation notes.}
+We install \texttt{pytket-dqc} v0.0.1 from source and
+\texttt{kahypar} 1.3.5.  Two changes were required to run our
+benchmarks:
+
+\begin{enumerate}
+\item \emph{KaHyPar weight-0 patch.}  \texttt{pytket-dqc} represents
+  the circuit as a hypergraph whose qubit vertices carry weight~1 and
+  gate vertices weight~0.  KaHyPar~$\geq$1.3.5 rejects zero-weight
+  vertices.  We patched the allocator source file to
+  assign weight~1 to all vertices and increase each server's target
+  block size by $\lceil n_\mathrm{gates}/k \rceil$, so the capacity
+  constraint still effectively counts only qubit vertices.
+
+\item \emph{64-qubit QASM width.}  The pytket QASM loader defaults to
+  a 32-bit classical register maximum; the 64-qubit benchmarks carry
+  a 64-bit measurement register.  We pass \texttt{maxwidth=128} to
+  \texttt{circuit\_from\_qasm}.
+\end{enumerate}
+
+\noindent
+All other \texttt{pytket-dqc} internals are unmodified.  We use the
+\texttt{HypergraphPartitioning} allocator (KaHyPar connectivity
+metric), best of 5 random seeds.  The QPU topology matches the core
+graph of each architecture: a $2{\times}2$ grid (4 QPUs) for the
+25q/36q B-grid and a $2{\times}3$ grid (6 QPUs) for the 64q H-grid.
+
+\textbf{Experiment~1: own-mapping comparison.}
+Table~\ref{tab:pytket_own} reports, for each circuit suite, the
+geometric-mean e-bit/EPR costs when each tool uses its own best
+initial mapping: \TeleSABRE{} and \dSABRE{} with the Hungarian
+layout used in the main evaluation, pytket-dqc with its KaHyPar
+partition.
+
+\begin{table}[h]
+\centering
+\caption{Geometric-mean EPR/e-bit cost per suite (own best mapping).
+  \dSABRE{} and \TeleSABRE{} use the Hungarian initial layout from the
+  main evaluation; pytket-dqc uses its KaHyPar partition.}
+\label{tab:pytket_own}
+\setlength{\tabcolsep}{4pt}
+\small
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+Suite & TS & dS & py-dqc & $\Delta_{\mathrm{py/TS}}$ & $\Delta_{\mathrm{py/dS}}$ \\
+\midrule
+25q (6 circ.) & 31.1 & 23.8 & 48.1 & $+54.7\%$ & $+101.9\%$ \\
+36q (6 circ.) & 27.6 & 14.5 & 16.0 & $-42.0\%$ & $+10.1\%$ \\
+64q (5 circ.) & 157.6 & 119.0 & 107.3 & $-31.9\%$ & $-9.8\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On the 25q suite, which contains circuits with dense, scattered
+entanglement (ae, qft, qnn, random), pytket-dqc requires
+$2\times$ more e-bits than \dSABRE{}: gate teleportation cannot
+amortise across the core-changes that state teleportation handles by
+moving qubits once.  On the 36q suite the two tools are nearly tied
+(10\% apart); two circuits—\texttt{vqe\_su2} and \texttt{wstate}—are
+structurally sparse enough that KaHyPar's static partition already
+minimises inter-QPU edges, leaving little room for \dSABRE{} to
+improve.  On the 64q suite pytket-dqc has a slight edge in the
+gmean, driven by \texttt{graphstate} (9 vs.\ 52 e-bits) and
+\texttt{ghz} (7 vs.\ 10); both are maximally sparse circuits whose
+interaction graph is almost perfectly partitioned by KaHyPar.
+
+\textbf{Experiment~2: shared-mapping comparison.}
+To separate \emph{routing quality} from \emph{layout quality} we fix
+the initial qubit-to-core assignment to pytket-dqc's best KaHyPar
+partition and then run \dSABRE{} from the same layout.  Within each
+core the logical-to-physical slot assignment is determined by the
+topology-aware routine used in the main evaluation.
+Tables~\ref{tab:pytket_shared_25_36} and~\ref{tab:pytket_shared_64}
+report per-circuit results together with wall-clock compile times.
+
+\begin{table}[h]
+\centering
+\caption{Shared KaHyPar mapping: pytket-dqc e-bits vs.\ \dSABRE{}
+  EPR and compile time.  25q and 36q suites, B-grid $2{\times}2$
+  $4{\times}4$.  \dSABRE{} runs 2 forward passes from pytket-dqc's
+  best-seed partition.}
+\label{tab:pytket_shared_25_36}
+\setlength{\tabcolsep}{3pt}
+\small
+\begin{tabular}{@{}l r r r r r r@{}}
+\toprule
+ & & \multicolumn{2}{c}{pytket-dqc} & \multicolumn{2}{c}{\dSABRE} & \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Circuit & CX & e-bits & time & EPR & time & $\Delta$ \\
+\midrule
+\multicolumn{7}{@{}l}{\textit{25q}} \\
+ae         &  558 &  85 & 1.0\,s &  38 & 0.4\,s & $-55\%$ \\
+ghz        &   24 &   3 & 0.0\,s &   3 & 0.0\,s &   $0\%$ \\
+graphstate &   25 &   4 & 0.0\,s &   5 & 0.0\,s & $+25\%$ \\
+qft        &  580 & 120 & 1.1\,s &  49 & 0.5\,s & $-59\%$ \\
+qnn        & 1223 & 152 & 3.7\,s &  62 & 1.9\,s & $-59\%$ \\
+random     & 1124 & 665 & 2.9\,s & 181 & 2.3\,s & $-73\%$ \\
+\textbf{gmean} & & \textbf{48.1} & & \textbf{26.1} & & $\mathbf{-46\%}$ \\
+\midrule
+\multicolumn{7}{@{}l}{\textit{36q}} \\
+bv         &   17 &   3 & 0.0\,s &   3 & 0.0\,s &   $0\%$ \\
+dj         &   35 &   3 & 0.1\,s &  14 & 0.0\,s & $+367\%$ \\
+qaoa       & 1200 & 194 & 3.9\,s & 176 & 2.2\,s &  $-9\%$ \\
+qpeexact   & 1019 & 175 & 2.4\,s &  90 & 1.3\,s & $-49\%$ \\
+vqe\_su2   &  105 &   9 & 0.2\,s &  12 & 0.0\,s & $+33\%$ \\
+wstate     &   70 &   6 & 0.1\,s &   8 & 0.0\,s & $+33\%$ \\
+\textbf{gmean} & & \textbf{16.0} & & \textbf{20.0} & & $\mathbf{+25\%}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Shared KaHyPar mapping: 64q suite, H-grid $2{\times}3$
+  $4{\times}4$.}
+\label{tab:pytket_shared_64}
+\setlength{\tabcolsep}{3pt}
+\small
+\begin{tabular}{@{}l r r r r r r@{}}
+\toprule
+ & & \multicolumn{2}{c}{pytket-dqc} & \multicolumn{2}{c}{\dSABRE} & \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Circuit & CX & e-bits & time & EPR & time & $\Delta$ \\
+\midrule
+ae         & 1962 &  519 &   8.2\,s & 217 &   7.4\,s & $-58\%$ \\
+ghz        &   63 &    7 &   0.1\,s &   7 &   0.0\,s &   $0\%$ \\
+graphstate &   64 &    9 &   0.2\,s &  10 &   0.0\,s & $+11\%$ \\
+qft        & 1966 &  591 &   9.6\,s & 289 &   7.3\,s & $-51\%$ \\
+qnn        & 8126 &  736 & 136.5\,s & 534 & 151.2\,s & $-27\%$ \\
+random     & 1627 & 1181 &   6.5\,s & 814 &   8.2\,s & $-31\%$ \\
+\textbf{gmean} & & \textbf{160.0} & & \textbf{111.4} & & $\mathbf{-30\%}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Discussion.}
+Starting from an identical qubit-to-core partition, \dSABRE{} reduces
+EPR consumption over pytket-dqc by a geometric mean of $46\%$ on the
+25q suite and $30\%$ on the 64q suite.  The advantage is largest for
+circuits with high CX density (ae, qft, qnn, random): state
+teleportation moves a qubit once and then executes an arbitrary
+number of subsequent gates locally, whereas gate teleportation charges
+one e-bit per non-local gate regardless.  The 36q suite reverses this
+picture (pytket-dqc $-25\%$): \texttt{dj}, \texttt{vqe\_su2}, and
+\texttt{wstate} have sparse or highly structured interaction graphs
+whose KaHyPar partition already achieves near-zero cross-core
+communication; \dSABRE{}'s dynamic teleport decisions then disrupt this
+optimal static assignment.
+
+\textbf{Compile time.}
+pytket-dqc's wall time is dominated by KaHyPar and scales with the
+number of hyperedges (2-qubit gates): from $<0.1$\,s on tiny circuits
+to $136$\,s on qnn-64q (5 seeds).  \dSABRE{}'s routing time from a
+fixed initial layout is comparable for large circuits (151\,s for
+qnn-64q) and negligible ($<0.1$\,s) for small ones.  For circuits
+with few 2-qubit gates, pytket-dqc's KaHyPar overhead exceeds
+\dSABRE{}'s routing time by one to two orders of magnitude.
+
+%%─────────────────────────────────────────────────────────────────────────────
 \bibliographystyle{IEEEtran}
 \bibliography{dsabre}
 
