@@ -18,8 +18,9 @@ BFS contribution.
 import json, os
 from math import prod
 
-R = "/Users/sanjiangli/Documents/pyzoo/dsabre/paper/results"
-OUT = "/Users/sanjiangli/Documents/pyzoo/dsabre/paper/tables"
+_HERE = os.path.dirname(os.path.abspath(__file__))
+R = os.path.join(_HERE, "results")
+OUT = os.path.join(_HERE, "tables")
 os.makedirs(OUT, exist_ok=True)
 
 LS_COST   = 3
@@ -56,11 +57,13 @@ def main_table(suite, order):
     ts_e, ts_l = [], []
     de_e, de_l = [], []
 
+    # collect per-circuit, track matched set (both TS and dSE have EPRs)
+    matched_ts_e, matched_de_e = [], []
     for r in recs:
         ts  = r["ts"]
         dSE = r["routers"].get("dSE", {})
-        te  = ts["eprs"]      if ts else None
-        tl  = ts.get("ts_ls") if ts else None
+        te  = ts["eprs"]    if ts else None
+        tl  = ts.get("ls")  if ts else None   # TeleSABRE SWAP count
         ee  = dSE.get("eprs") if not dSE.get("aborted") else None
         el  = dSE.get("ls")   if not dSE.get("aborted") else None
 
@@ -76,12 +79,27 @@ def main_table(suite, order):
         lines.append(" & ".join(cells) + " \\\\")
         if te is not None: ts_e.append(te); ts_l.append(tl)
         if ee is not None: de_e.append(ee); de_l.append(el)
+        if te is not None and ee is not None:
+            matched_ts_e.append(te); matched_de_e.append(ee)
 
+    # For the gmean summary row use matched-only sets so TS and dSE cover
+    # identical circuits (relevant for 64q where TS fails on random).
+    matched_de_l = [r["routers"]["dSE"]["ls"]
+                    for r in recs
+                    if r["ts"] and r["ts"].get("eprs") is not None
+                    and not r["routers"].get("dSE", {}).get("aborted")
+                    and r["routers"]["dSE"].get("eprs") is not None]
+    matched_ts_l = [r["ts"]["ls"]
+                    for r in recs
+                    if r["ts"] and r["ts"].get("eprs") is not None
+                    and r["ts"].get("ls") is not None
+                    and not r["routers"].get("dSE", {}).get("aborted")
+                    and r["routers"]["dSE"].get("eprs") is not None]
     gm_cells = [
         "\\textbf{gmean}", "",
-        f"{gmean(ts_e):.1f}", f"{gmean(ts_l):.0f}",
-        f"{gmean(de_e):.1f}", f"{gmean(de_l):.0f}",
-        f"$\\mathbf{{{pct(gmean(de_e), gmean(ts_e))}}}$",
+        f"{gmean(matched_ts_e):.1f}", f"{gmean(matched_ts_l):.0f}" if matched_ts_l else "---",
+        f"{gmean(matched_de_e):.1f}", f"{gmean(matched_de_l):.0f}" if matched_de_l else "---",
+        f"$\\mathbf{{{pct(gmean(matched_de_e), gmean(matched_ts_e))}}}$",
     ]
     lines.append("\\midrule")
     lines.append(" & ".join(gm_cells) + " \\\\")
@@ -128,9 +146,9 @@ def cost_sens(suites_order):
             for r in recs:
                 ts  = r["ts"]
                 dSE = r["routers"].get("dSE", {})
-                if ts is None or ts.get("ts_ls") is None: continue
+                if ts is None or ts.get("ls") is None: continue
                 if dSE.get("aborted"): continue
-                ts_costs.append(ts["eprs"] * c + ts["ts_ls"] * LS_COST)
+                ts_costs.append(ts["eprs"] * c + ts["ls"] * LS_COST)
                 de_costs.append(dSE["eprs"] * c + dSE["ls"]   * LS_COST)
             ts_g, de_g = gmean(ts_costs), gmean(de_costs)
             cells.append(f"$\\mathbf{{{pct(de_g, ts_g)}}}$")

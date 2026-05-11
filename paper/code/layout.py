@@ -1,9 +1,11 @@
 """
 Initial layout strategies and multi-pass routing for dSABRE.
 
-locality_aware_layout  — partition circuit qubits by interaction graph
-                          community, then assign within each core by centrality.
-_run_passes            — run up to N forward routing passes with early stopping.
+sabre_locked_boundary_layout — SabreLayout on arch graph with corner nodes removed.
+locality_aware_layout        — partition circuit qubits by interaction graph
+                               community, then assign within each core by centrality.
+run_passes                   — run up to N forward routing passes with early stopping.
+run_sabre_passes             — fwd → bwd (reversed DAG) → fwd; pick best of pass1/pass3.
 """
 
 import random as _random
@@ -184,6 +186,66 @@ def locality_aware_layout(dag, arch: DistributedArchitecture, rng=None) -> dict:
     return layout
 
 
+# ── SabreLayout with locked boundary ──────────────────────────────────────────
+
+def sabre_locked_boundary_layout(qc, dag, arch: DistributedArchitecture, seed: int = 0):
+    """Run SabreLayout on the architecture graph with the four lowest-degree
+    (corner) nodes removed, using seeds [seed, seed+1, seed+2].
+
+    Removing corner nodes reserves them for teleportation communication slots
+    and prevents SabreLayout from placing frequently-interacting qubits there.
+
+    Returns a list of up to 3 candidate layouts ({logical_qubit: physical_qubit}).
+    """
+    from qiskit.transpiler import PassManager, CouplingMap
+    from qiskit.transpiler.passes import SabreLayout
+
+    degrees      = dict(arch.Gr.degree())
+    min_degree   = min(degrees.values())
+    corner_nodes = set(sorted(n for n, d in degrees.items() if d == min_degree)[:4])
+
+    reduced_nodes = [n for n in arch.Gr.nodes() if n not in corner_nodes]
+    reduced_G     = arch.Gr.subgraph(reduced_nodes)
+
+    node_to_idx   = {n: i for i, n in enumerate(reduced_nodes)}
+    reduced_edges  = [
+        (node_to_idx[u], node_to_idx[v])
+        for u, v in arch.Gr.edges()
+        if u not in corner_nodes and v not in corner_nodes
+    ]
+    directed = reduced_edges + [(v, u) for u, v in reduced_edges]
+    cm = CouplingMap(couplinglist=directed, description="dsabre_corners_removed")
+
+    layouts = []
+    for sd in [seed, seed + 1, seed + 2]:
+        try:
+            pm = PassManager([SabreLayout(cm, max_iterations=3, seed=sd, swap_trials=5)])
+            transpiled = pm.run(qc)
+            if transpiled.layout is None:
+                continue
+            tl = transpiled.layout
+            virt_layout = (tl.initial_virtual_layout(filter_ancillas=True)
+                           if hasattr(tl, "initial_virtual_layout") else tl.initial_layout)
+            result = {}
+            for virt_qubit, reduced_idx in virt_layout.get_virtual_bits().items():
+                try:
+                    bit_index = qc.find_bit(virt_qubit).index
+                except Exception:
+                    continue
+                result[dag.qubits[bit_index]] = reduced_nodes[reduced_idx]
+            assigned = set(result.values())
+            free = [p for p in arch.data_qubits if p not in assigned]
+            _random.Random(sd).shuffle(free)
+            fp = iter(free)
+            for lq in dag.qubits:
+                if lq not in result:
+                    result[lq] = next(fp)
+            layouts.append(result)
+        except Exception:
+            continue
+    return layouts
+
+
 # ── Multi-pass routing ─────────────────────────────────────────────────────────
 
 def run_passes(router, dag, initial_layout: dict, layout_passes: int):
@@ -216,3 +278,43 @@ def run_passes(router, dag, initial_layout: dict, layout_passes: int):
     if best_metrics is not None:
         best_metrics["compile_time"] = total_time
     return best_metrics
+
+
+def run_sabre_passes(router, dag, rev_dag, initial_layout: dict):
+    """SABRE-style fwd → bwd (reversed DAG) → fwd routing.
+
+    Pass 1: route `dag` from `initial_layout`        → fwd_final
+    Pass 2: route `rev_dag` from fwd_final           → rev_final  (layout refinement)
+    Pass 3: route `dag` from rev_final               → final
+
+    Returns the better of pass-1 and pass-3 metrics (by EPR count), with
+    `compile_time` set to the total wall-clock time across all three passes.
+    Returns None if any pass aborts.
+    """
+    total_time = 0.0
+
+    t0 = time.perf_counter()
+    m1, fwd_final = router.route(dag, initial_layout)
+    total_time += time.perf_counter() - t0
+    if m1["aborted"]:
+        return None
+
+    t0 = time.perf_counter()
+    m2, rev_final = router.route(rev_dag, fwd_final)
+    total_time += time.perf_counter() - t0
+    if m2["aborted"]:
+        layout3 = fwd_final
+    else:
+        layout3 = rev_final
+
+    t0 = time.perf_counter()
+    m3, _ = router.route(dag, layout3)
+    total_time += time.perf_counter() - t0
+    if m3["aborted"]:
+        best = m1
+    else:
+        best = m1 if m1["eprs"] <= m3["eprs"] else m3
+
+    best = dict(best)
+    best["compile_time"] = total_time
+    return best

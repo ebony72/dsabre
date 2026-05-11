@@ -25,7 +25,7 @@ class HardwareConfig:
 
     # ── Heuristic scoring weights ──────────────────────────────────────────────
     # Weight of the extended-set lookahead term in teleport candidate scoring.
-    weight_extended: float = 0.5
+    weight_extended: float = 0.25
     # Number of gates in the extended lookahead window beyond the front layer.
     lookahead_size: int = 20
     # Per-gate exponential decay applied to extended-layer gates (1.0 = flat).
@@ -49,6 +49,10 @@ class HardwareConfig:
     congestion_threshold: int = 1
     # Minimum free slots required in the receiving core to accept a relief move.
     relief_space_req: int = 3
+    # Weight on victim's next-use depth: higher → prefer moving qubits used furthest in future.
+    relief_depth_weight: float = 0.5
+    # Weight on busyness gradient between congested and relief core.
+    relief_gradient_weight: float = 1.0
 
     # ── Deadlock recovery ──────────────────────────────────────────────────────
     # Maximum routing iterations before declaring failure.

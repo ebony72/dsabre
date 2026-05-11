@@ -1,0 +1,64 @@
+\begin{tikzpicture}[
+  node distance=4.5mm and 6mm,
+  every node/.style={font=\footnotesize},
+  block/.style={draw, rounded corners=1.5pt, align=center,
+                minimum height=8mm, minimum width=22mm,
+                fill=blue!4, inner sep=2pt},
+  decision/.style={draw, diamond, aspect=2.4, align=center,
+                   fill=orange!10, inner sep=1pt},
+  formula/.style={draw, dashed, rounded corners=1.5pt, align=left,
+                  fill=gray!5, inner sep=3pt, font=\scriptsize},
+  arrow/.style={-{Stealth[length=2mm]}, thick},
+]
+% top row: input → drain → classify
+\node[block] (input) {Working DAG $W$\\layout $\ell$};
+\node[block, below=8mm of input] (drain)
+   {\textbf{P1.}~Drain front\\(remove 1Q gates,\\adjacent intra-2Q gates)};
+\node[decision, right=10mm of drain] (cls) {\textbf{P2.}~$F_\mathrm{intra}$\\empty?};
+% intra branch (top)
+\node[block, above=8mm of cls, yshift=0mm] (intra)
+   {\textbf{P3a.}~Best intra-core SWAP\\$\arg\min H_\mathrm{intra}$ \tiny(Eq.\,\ref{eq:intra})};
+% inter branch (bottom)
+\node[block, right=17mm of cls, yshift=-10mm] (inter)
+   {\textbf{P3b.}~Best teleport\\$\arg\min s$ \tiny(Eq.\,\ref{eq:dsabre})\\+\,relief candidates};
+% merge
+\node[decision, right=12mm of intra, yshift=-10mm] (prog) {\textbf{P4.}~$|W|$ shrank?};
+\node[block, below=20 mm of prog, xshift = -70mm, yshift=5mm] (recovery)
+   {Restore checkpoint;\\force-hop stuck gate};
+\node[decision, right =18 mm of recovery] (deadlock)
+   {$L_\mathrm{deadlock}$\\ reached?};
+% loop back
+\node[decision, right=0mm of prog, yshift=-30mm, fill=green!8] (done) {Done?};
+% arrows
+\draw[arrow] (input)  -- (drain);
+\draw[arrow] (drain)  -- (cls);
+\draw[arrow] (cls.north) -- (intra.south) node[midway,right,font=\scriptsize] {no};
+\draw[arrow] (cls.south) -- ++(0,0mm) |- (inter.west) node[midway,right,yshift=2mm,font=\scriptsize] {yes};
+\draw[arrow] (intra.east) -| (prog.north);
+\draw[arrow] (inter.north) -| (prog.south);
+\draw[arrow] (prog.east) -- ++(7mm,0) node[right,yshift=2mm,font=\scriptsize] {yes} -| (done.north);
+\draw[arrow] (prog.west) -- ++(-3mm,0) -| (deadlock.north) node[midway,left,font=\scriptsize] {no};
+\draw[arrow] (recovery.west) -| ([xshift=-3mm]drain.south);
+\draw[arrow] (deadlock.west) -- (recovery.east)node[midway,above,font=\scriptsize] {yes};
+\draw[arrow] (deadlock.south) -- ++ (0mm,-2mm) -| (inter.south)node[midway,right,font=\scriptsize] {no};
+\draw[arrow] (done.south) -- ++(0mm,-3mm) -| ([xshift=-3mm]drain.south) node[midway,left,font=\scriptsize] {no};
+% formula callouts
+\node[formula, below=18mm of inter, anchor=north west, xshift=-110mm,
+      text width=130mm] (form-tele)
+{
+\textbf{Inter-core teleport score} (Eq.\,\ref{eq:dsabre}):\\[1pt]
+$s = \underbrace{d_\mathrm{prep}}_{\text{stage SWAPs + comm-port eviction}}
+  + \underbrace{c_\mathrm{cap}}_{\text{capacity penalty}}
+  - \underbrace{g_\mathrm{hop}}_{\text{move toward target core}}
+  - \underbrace{\Delta_F}_{\text{front-layer distance gain}}
+  - w_e\,\underbrace{\tilde{\Delta}_E}_{\text{decay-weighted lookahead, BFS-layer}\,E}$
+};
+\node[formula, below=2mm of form-tele,
+      text width=130mm] (form-relief)
+{
+\textbf{Proactive relief} \,(Sec.\,\ref{sec:relief}):\\[1pt]
+For cores with $\mathrm{demand}\!\ge\!\theta_d$ and $\mathrm{free}\!\le\!\theta_f$,
+generate teleports of \emph{idle} qubits with bonus
+$-r\!\cdot\!(\mathrm{demand}{-}\mathrm{free}{+}1)$.
+};
+\end{tikzpicture}

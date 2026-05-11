@@ -8,9 +8,9 @@ Covers three circuit suites:
 
 Protocol (same for all suites):
   1. Run TeleSABRE with seeds 0–2; pick the seed with fewest EPRs.
-  2. Extract TS's initial layout (phys_to_virt from the JSON report).
-  3. Route with dS and dSE under that layout (LAYOUT_PASSES=2).
-  4. Print a formatted table and save results/results_<suite>.json.
+  2. Build SabreLayout (corners removed) for 3 seeds; route each with
+     SABRE-style fwd→bwd→fwd passes; keep the best-EPR result.
+  3. Print a formatted table and save results/results_<suite>.json.
 
 Usage:
   python benchmark.py                # all suites
@@ -34,16 +34,16 @@ from architecture import build_b_grid_architecture, build_h_grid_architecture
 from config import HardwareConfig
 from router import General_dSABRE_Router
 from dsabre_ext import dSABRE_BurstExt
-from layout import locality_aware_layout, run_passes
+from layout import sabre_locked_boundary_layout, run_sabre_passes
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-TS_BIN      = os.path.expanduser("~/Documents/telesabre/telesabre")
+TS_BIN       = os.path.expanduser("~/Documents/telesabre/telesabre")
 _RESULTS_DIR = os.path.join(os.path.dirname(__file__), "results")
 os.makedirs(_RESULTS_DIR, exist_ok=True)
 
 # ── Hardware configs ───────────────────────────────────────────────────────────
-_HW_SMALL = HardwareConfig()                          # 25q default
-_HW_LARGE = HardwareConfig(                           # 36q / 64q
+_HW_SMALL = HardwareConfig()
+_HW_LARGE = HardwareConfig(
     deadlock_limit=100, max_backup_attempts=100, max_iterations=20000
 )
 
@@ -72,8 +72,8 @@ SUITES = {
     ),
 }
 
-LAYOUT_PASSES = 2
-NUM_TS_SEEDS  = 3
+NUM_TS_SEEDS    = 3
+NUM_SL_SEEDS    = 3   # number of SabreLayout seeds to try
 
 # ── TeleSABRE helpers ──────────────────────────────────────────────────────────
 
@@ -91,7 +91,7 @@ def _ts_config(seed: int, report_path: str, ts_name: str) -> str:
         "max_solving_deadlock_iterations": 1000,
         "gate_usage_penalty": 0.0, "swap_usage_penalty": 0.002,
         "teledata_usage_penaly": 0.005, "telegate_usage_penalty": 0.005,
-        "init_layout_hun_min_free_gate": 5, "init_layout_hun_min_free_qubit": 4,
+        "init_layout_hun_min_free_gate": 5, "init_layout_hun_free_qubit": 4,
         "enable_passing_core_emptying_teleport_possibility": False,
         "max_iterations": 200000,
         "save_report": True, "report_filename": report_path,
@@ -120,38 +120,23 @@ def run_telesabre(qasm_path: str, ts_dev: str) -> dict | None:
         elapsed = time.perf_counter() - t0
 
         out = proc.stdout + proc.stderr
-        td = tg = 0; ok = False
+        td = tg = ls_ts = 0; ok = False
         for line in out.splitlines():
             s = line.strip()
-            if   "Teledata:" in s: td = int(s.split(":")[1])
-            elif "Telegate:" in s: tg = int(s.split(":")[1])
+            if   "Teledata:" in s: td    = int(s.split(":")[1])
+            elif "Telegate:" in s: tg    = int(s.split(":")[1])
+            elif "Swaps:"    in s: ls_ts = int(s.split(":")[1])
             elif "Success: true" in s: ok = True
-
-        p2v = None
-        if os.path.exists(rpt):
-            try:
-                with open(rpt) as rf:
-                    rep = json.load(rf)
-                if rep.get("iterations"):
-                    p2v = rep["iterations"][0]["phys_to_virt"]
-            except Exception:
-                pass
 
         os.unlink(cfg)
         if os.path.exists(rpt): os.unlink(rpt)
 
-        if ok and p2v is not None:
+        if ok:
             eprs = td + tg
             if best is None or eprs < best["eprs"]:
-                best = dict(eprs=eprs, teledata=td, telegate=tg,
-                            seed=seed, time_s=round(elapsed, 2), p2v=p2v)
+                best = dict(eprs=eprs, teledata=td, telegate=tg, ls=ls_ts,
+                            seed=seed, time_s=round(elapsed, 2))
     return best
-
-
-def p2v_to_layout(p2v: list, dag) -> dict:
-    qubits = dag.qubits
-    return {qubits[v]: p for p, v in enumerate(p2v)
-            if v != -1 and v < len(qubits)}
 
 
 def load_qasm(path: str):
@@ -164,10 +149,10 @@ def load_qasm(path: str):
 # ── Per-suite benchmark ────────────────────────────────────────────────────────
 
 def bench_suite(suite_name: str, s: dict) -> list:
-    arch    = s["arch"]
-    hw      = s["hw"]
-    ts_dev  = s["ts_dev"]
-    suffix  = s["suffix"]
+    arch   = s["arch"]
+    hw     = s["hw"]
+    ts_dev = s["ts_dev"]
+    suffix = s["suffix"]
 
     routers = {
         "dS":  General_dSABRE_Router(arch, hw),
@@ -177,7 +162,7 @@ def bench_suite(suite_name: str, s: dict) -> list:
 
     qasm_files = sorted(glob.glob(os.path.join(s["circuit_dir"], "*.qasm")))
     if not qasm_files:
-        print(f"  [no .qasm files in {s['circuit_dir']}]")
+        print(f"  [no .qasm files in {s['circuit_dir']}]", flush=True)
         return []
 
     col_w = 12
@@ -186,43 +171,48 @@ def bench_suite(suite_name: str, s: dict) -> list:
         hdr += f"  {k+'_epr':>8}  {k+'_ls':>7}  {k+'_t':>6}"
     for k in rkeys:
         hdr += f"  {k+'/TS%':>8}"
-    print(f"\n{'═'*len(hdr)}")
-    print(f"  {suite_name}")
-    print(f"{'═'*len(hdr)}")
-    print(hdr)
-    print("─" * len(hdr))
+    print(f"\n{'═'*len(hdr)}", flush=True)
+    print(f"  {suite_name}", flush=True)
+    print(f"{'═'*len(hdr)}", flush=True)
+    print(hdr, flush=True)
+    print("─" * len(hdr), flush=True)
 
     records = []
 
     for qf in qasm_files:
-        cname     = os.path.basename(qf).replace(suffix, "")
-        t_wall    = time.time()
-        qc, dag   = load_qasm(qf)
-        n_qubits  = qc.num_qubits
-        n_cx      = sum(1 for _ in dag.two_qubit_ops())
+        cname    = os.path.basename(qf).replace(suffix, "")
+        t_wall   = time.time()
+        qc, dag  = load_qasm(qf)
+        rev_dag  = circuit_to_dag(qc.reverse_ops())
+        n_qubits = qc.num_qubits
+        n_cx     = sum(1 for _ in dag.two_qubit_ops())
 
         ts_result = run_telesabre(qf, ts_dev)
 
-        router_results = {}
-        if ts_result is not None:
-            layout = p2v_to_layout(ts_result["p2v"], dag)
-            if len(layout) >= n_qubits:
-                for k, router in routers.items():
-                    m = run_passes(router, dag, layout, LAYOUT_PASSES)
-                    if m and not m.get("aborted"):
-                        router_results[k] = dict(
-                            eprs=m["eprs"], ls=m["ls"],
-                            time_s=round(m["compile_time"], 3), aborted=False,
-                            # Mechanism instrumentation:
-                            relief_candidates  = m.get("relief_candidates", 0),
-                            relief_picks       = m.get("relief_picks", 0),
-                            backup_activations = m.get("backup_activations", 0),
-                            force_make_room    = m.get("force_make_room", 0),
-                        )
-                    else:
-                        router_results[k] = {"aborted": True}
+        # SabreLayout (corners removed) × 3 seeds → pick best per router
+        sl_layouts = sabre_locked_boundary_layout(qc, dag, arch, seed=0)
 
-        def fmt_i(v): return str(v)   if v is not None else "---"
+        router_results = {}
+        for k, router in routers.items():
+            best_m = None
+            for layout in sl_layouts:
+                m = run_sabre_passes(router, dag, rev_dag, layout)
+                if m and not m.get("aborted"):
+                    if best_m is None or m["eprs"] < best_m["eprs"]:
+                        best_m = m
+            if best_m is not None:
+                router_results[k] = dict(
+                    eprs=best_m["eprs"], ls=best_m["ls"],
+                    time_s=round(best_m["compile_time"], 3), aborted=False,
+                    relief_candidates  = best_m.get("relief_candidates", 0),
+                    relief_picks       = best_m.get("relief_picks", 0),
+                    backup_activations = best_m.get("backup_activations", 0),
+                    force_make_room    = best_m.get("force_make_room", 0),
+                )
+            else:
+                router_results[k] = {"aborted": True}
+
+        def fmt_i(v): return str(v)    if v is not None else "---"
         def fmt_f(v): return f"{v:.2f}" if v is not None else "  ---"
         def pct(a, b):
             if a is None or b is None or b == 0: return "    ---"
@@ -245,7 +235,7 @@ def bench_suite(suite_name: str, s: dict) -> list:
             row += f"  {pct(epr, ts_epr):>8}"
 
         elapsed_wall = time.time() - t_wall
-        print(row + f"  ({elapsed_wall:.0f}s)")
+        print(row + f"  ({elapsed_wall:.0f}s)", flush=True)
 
         records.append(dict(
             suite=suite_name, circuit=cname, qubits=n_qubits, cx=n_cx,
@@ -258,7 +248,7 @@ def bench_suite(suite_name: str, s: dict) -> list:
         return prod(lst) ** (1 / len(lst)) if lst else float("nan")
 
     ts_eprs = [r["ts"]["eprs"] for r in records if r["ts"]]
-    print("─" * len(hdr))
+    print("─" * len(hdr), flush=True)
     summary = f"{'gmean':<{col_w}}  {'':>3}  {'':>5}  {gmean(ts_eprs):>7.1f}  {'':>5}"
     for k in rkeys:
         eprs = [r["routers"].get(k, {}).get("eprs") for r in records
@@ -272,7 +262,7 @@ def bench_suite(suite_name: str, s: dict) -> list:
         eprs = [r["routers"].get(k, {}).get("eprs") for r in records
                 if not r["routers"].get(k, {}).get("aborted")]
         summary += f"  {pct(gmean(eprs), gmean(ts_eprs)):>8}"
-    print(summary)
+    print(summary, flush=True)
 
     return records
 
@@ -297,13 +287,15 @@ def main():
         out_path = os.path.join(_RESULTS_DIR, f"results_{sname}.json")
         payload = dict(
             meta=dict(
-                date          = time.strftime("%Y-%m-%d"),
-                suite         = sname,
-                arch          = ("B-grid 2x2 4x4 (64 qubits)" if sname != "64q"
-                                 else "H-grid 2x3 4x4 (96 qubits)"),
-                layout_passes = LAYOUT_PASSES,
-                ts_seeds      = NUM_TS_SEEDS,
-                routers       = {
+                date         = time.strftime("%Y-%m-%d"),
+                suite        = sname,
+                arch         = ("B-grid 2x2 4x4 (64 qubits)" if sname != "64q"
+                                else "H-grid 2x3 4x4 (96 qubits)"),
+                layout       = "SabreLayout corners-removed, best of 3 seeds",
+                pass_strategy= "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+                ts_seeds     = NUM_TS_SEEDS,
+                sl_seeds     = NUM_SL_SEEDS,
+                routers      = {
                     "dS":  "General_dSABRE_Router  (router.py)",
                     "dSE": "dSABRE_BurstExt        (dsabre_ext.py)",
                 },
@@ -312,9 +304,9 @@ def main():
         )
         with open(out_path, "w") as f:
             json.dump(payload, f, indent=2)
-        print(f"\nSaved → {out_path}")
+        print(f"\nSaved → {out_path}", flush=True)
 
-    print(f"\nTotal wall time: {time.time() - t_total:.0f}s")
+    print(f"\nTotal wall time: {time.time() - t_total:.0f}s", flush=True)
 
 
 if __name__ == "__main__":

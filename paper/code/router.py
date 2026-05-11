@@ -214,8 +214,8 @@ class General_dSABRE_Router:
                                                     decay=cfg.lookahead_decay)
                             score = (d_prep + cap - cfg.weight_extended * dE
                                      - cfg.relief_bonus * (d - free + 1)
-                                     - 0.5 * depth_score
-                                     - 1.0 * gradient)
+                                     - cfg.relief_depth_weight * depth_score
+                                     - cfg.relief_gradient_weight * gradient)
                             candidates.append(
                                 TeleportAction(None, virt, v_phys, n_s,
                                                lq_src, lq_dst, c_cong, c_relief, c_relief, score)
@@ -289,13 +289,20 @@ class General_dSABRE_Router:
     def _front_2q(dag):
         return [n for n in dag.front_layer() if len(n.qargs) == 2]
 
-    def _get_local_extended(self, wdag, front, core_id, l2p):
-        """Intra-core lookahead: 2q gates in core_id not blocked by inter-core gates."""
+    def _get_local_extended(self, wdag, front, core_ids, l2p):
+        """Single-pass intra-core lookahead for a collection of cores.
+
+        Returns dict mapping core_id -> list of lookahead gates (up to lookahead_size each).
+        Tainted-qubit propagation is shared across all cores in one DAG traversal.
+        """
         arch = self.arch
         tainted = set()
         front_ids = {id(n) for n in front}
-        ext = []
+        ext = {ci: [] for ci in core_ids}
+        remaining = set(core_ids)
         for n in wdag.topological_op_nodes():
+            if not remaining:
+                break
             if len(n.qargs) < 2:
                 continue
             q1, q2 = n.qargs[0], n.qargs[1]
@@ -308,10 +315,10 @@ class General_dSABRE_Router:
                 continue
             if id(n) in front_ids:
                 continue
-            if c1 == core_id:
-                ext.append(n)
-                if len(ext) >= self.config.lookahead_size:
-                    break
+            if c1 in remaining:
+                ext[c1].append(n)
+                if len(ext[c1]) >= self.config.lookahead_size:
+                    remaining.discard(c1)
         return ext
 
     def _fallback_local_swap(self, front_inter, wdag, l2p, p2l, metrics, node_decay):
@@ -319,11 +326,8 @@ class General_dSABRE_Router:
         arch = self.arch
         involved = {l2p[n.qargs[0]] for n in front_inter} | {l2p[n.qargs[1]] for n in front_inter}
 
-        local_ext_cache = {}
-        for u in involved:
-            ci = arch.core_of(u)
-            if ci not in local_ext_cache:
-                local_ext_cache[ci] = self._get_local_extended(wdag, front_inter, ci, l2p)
+        core_ids = {arch.core_of(u) for u in involved}
+        local_ext_cache = self._get_local_extended(wdag, front_inter, core_ids, l2p)
 
         best_swap, min_H = None, float("inf")
         for u in involved:
@@ -579,56 +583,60 @@ class General_dSABRE_Router:
             front_inter = [n for n in front if n not in front_intra]
 
             if front_intra:
-                # Intra-core SABRE: pick the best SWAP for pending same-core gates.
-                involved = {l2p[n.qargs[0]] for n in front_intra} | {l2p[n.qargs[1]] for n in front_intra}
-                local_ext_cache = {
-                    ci: self._get_local_extended(wdag, front, ci, l2p)
-                    for ci in range(arch.num_cores)
-                }
-                best_swap, min_score = None, float("inf")
-                for u in involved:
-                    ci = arch.core_of(u)
-                    local_front = [n for n in front_intra
-                                   if arch.core_of(l2p[n.qargs[0]]) == ci]
+                # Intra-core SABRE: route each active core independently and in parallel.
+                core_to_gates = {}
+                for n in front_intra:
+                    ci = arch.core_of(l2p[n.qargs[0]])
+                    core_to_gates.setdefault(ci, []).append(n)
+
+                local_ext_cache = self._get_local_extended(wdag, front, core_to_gates.keys(), l2p)
+
+                for ci, local_front in core_to_gates.items():
+                    involved = set()
+                    for n in local_front:
+                        involved.update([l2p[n.qargs[0]], l2p[n.qargs[1]]])
                     local_ext = local_ext_cache[ci]
-                    for v in arch.Gr.neighbors(u):
-                        if arch.core_of(v) != ci:
-                            continue
-                        delta_Hf = sum(
-                            self._idist(ci,
-                                        v if l2p[n.qargs[0]] == u else (u if l2p[n.qargs[0]] == v else l2p[n.qargs[0]]),
-                                        v if l2p[n.qargs[1]] == u else (u if l2p[n.qargs[1]] == v else l2p[n.qargs[1]]))
-                            - self._idist(ci, l2p[n.qargs[0]], l2p[n.qargs[1]])
-                            for n in local_front
-                        )
-                        delta_He = sum(
-                            (self.config.lookahead_decay ** i) * (
+
+                    best_swap, min_score = None, float("inf")
+                    for u in involved:
+                        for v in arch.Gr.neighbors(u):
+                            if arch.core_of(v) != ci:
+                                continue
+                            delta_Hf = sum(
                                 self._idist(ci,
                                             v if l2p[n.qargs[0]] == u else (u if l2p[n.qargs[0]] == v else l2p[n.qargs[0]]),
                                             v if l2p[n.qargs[1]] == u else (u if l2p[n.qargs[1]] == v else l2p[n.qargs[1]]))
                                 - self._idist(ci, l2p[n.qargs[0]], l2p[n.qargs[1]])
+                                for n in local_front
                             )
-                            for i, n in enumerate(local_ext)
-                        )
-                        score = max(node_decay[u], node_decay[v]) * (
-                            (delta_Hf / max(len(local_front), 1))
-                            + self.config.weight_extended * (delta_He / max(len(local_ext), 1))
-                        )
-                        if score < min_score:
-                            min_score, best_swap = score, (u, v)
+                            delta_He = sum(
+                                (self.config.lookahead_decay ** i) * (
+                                    self._idist(ci,
+                                                v if l2p[n.qargs[0]] == u else (u if l2p[n.qargs[0]] == v else l2p[n.qargs[0]]),
+                                                v if l2p[n.qargs[1]] == u else (u if l2p[n.qargs[1]] == v else l2p[n.qargs[1]]))
+                                    - self._idist(ci, l2p[n.qargs[0]], l2p[n.qargs[1]])
+                                )
+                                for i, n in enumerate(local_ext)
+                            )
+                            score = max(node_decay[u], node_decay[v]) * (
+                                (delta_Hf / max(len(local_front), 1))
+                                + self.config.weight_extended * (delta_He / max(len(local_ext), 1))
+                            )
+                            if score < min_score:
+                                min_score, best_swap = score, (u, v)
 
-                if best_swap:
-                    u, v = best_swap
-                    qu, qv = p2l[u], p2l[v]
-                    if qu is not None: l2p[qu] = v
-                    if qv is not None: l2p[qv] = u
-                    p2l[u], p2l[v] = qv, qu
-                    metrics["ls"]   += 1
-                    metrics["cost"] += self.config.cost_local_swap
-                    if self.config.trace_routing:
-                        metrics["trace"].append(("SWAP", u, v, arch.core_of(u)))
-                    node_decay[u] += 0.1
-                    node_decay[v] += 0.1
+                    if best_swap:
+                        u, v = best_swap
+                        qu, qv = p2l[u], p2l[v]
+                        if qu is not None: l2p[qu] = v
+                        if qv is not None: l2p[qv] = u
+                        p2l[u], p2l[v] = qv, qu
+                        metrics["ls"]   += 1
+                        metrics["cost"] += self.config.cost_local_swap
+                        if self.config.trace_routing:
+                            metrics["trace"].append(("SWAP", u, v, ci))
+                        node_decay[u] += 0.1
+                        node_decay[v] += 0.1
 
             elif front_inter:
                 # Inter-core teleportation: score candidates, execute best.
