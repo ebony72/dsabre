@@ -1278,6 +1278,129 @@ with few 2-qubit gates, pytket-dqc's KaHyPar overhead exceeds
 \dSABRE{}'s routing time by one to two orders of magnitude.
 
 %%─────────────────────────────────────────────────────────────────────────────
+\section{Large-Circuit Scalability}
+\label{app:large}
+
+To stress-test dSABRE beyond the 25–64 qubit range of the main
+evaluation, we run \dSABRE{} (BFS extended set) and \TeleSABRE{} on
+three larger suites: 100, 200, and 360 logical qubits.  Each suite
+contains two MQT-Bench circuits (QFT and QPEexact, IBM native-gate set,
+Qiskit opt3, measurements and barriers removed).  The architectures scale
+the H-grid topology used for the 64q suite:
+
+\begin{itemize}
+  \item \textbf{100q}: H-grid $2{\times}3$ $5{\times}5$ — 6 cores,
+        25 physical qubits per core, 150 physical qubits total.
+  \item \textbf{200q}: H-grid $4{\times}3$ $5{\times}5$ — 12 cores,
+        25 physical qubits per core, 300 physical qubits total.
+  \item \textbf{360q}: H-grid $2{\times}3$ $9{\times}9$ — 6 cores,
+        81 physical qubits per core, 486 physical qubits total.
+\end{itemize}
+
+\noindent
+The experimental protocol matches the main evaluation: best EPR across
+3 TeleSABRE seeds; \dSABRE{} runs 2 forward passes from TeleSABRE's best
+initial layout plus locality-aware layouts (3 seeds), and reports the
+overall best EPR.
+
+Tables~\ref{tab:large100}--\ref{tab:large360} give per-circuit results.
+
+\begin{table}[h]
+\centering
+\caption{100-qubit suite (H-grid $2{\times}3$ $5{\times}5$, 150 physical
+  qubits).  Notation as Table~\ref{tab:main25} in the main body.}
+\label{tab:large100}
+\setlength{\tabcolsep}{4pt}
+\small
+\begin{tabular}{@{}l r rr rr r@{}}
+\toprule
+ & & \multicolumn{2}{c}{\TeleSABRE}
+ & \multicolumn{2}{c}{\dSABRE}
+ & $\Delta$EPR \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-7}
+Circuit & CX & EPR & SWAP & EPR & SWAP & (\%) \\
+\midrule
+qft      & 3420 & 248 & 2414 & 268 & 3303 & $+8.1$ \\
+qpeexact & 3579 & 586 & 3485 & 306 & 3944 & $-47.8$ \\
+\midrule
+\textbf{gmean} & & 381.2 & 2900 & 286.4 & 3609 & $\mathbf{-24.9}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{200-qubit suite (H-grid $4{\times}3$ $5{\times}5$, 300 physical
+  qubits).  \TeleSABRE{} did not converge within the 600\,s timeout on
+  either circuit; \dSABRE{} results are from locality-aware initial
+  layouts.}
+\label{tab:large200}
+\setlength{\tabcolsep}{4pt}
+\small
+\begin{tabular}{@{}l r rr rr r@{}}
+\toprule
+ & & \multicolumn{2}{c}{\TeleSABRE}
+ & \multicolumn{2}{c}{\dSABRE}
+ & $\Delta$EPR \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-7}
+Circuit & CX & EPR & SWAP & EPR & SWAP & (\%) \\
+\midrule
+qft      & 7220 & --- & --- & 1006 &  9238 & --- \\
+qpeexact & 7579 & --- & --- & 4015 & 15952 & --- \\
+\midrule
+\textbf{gmean} & & --- & --- & 2009.7 & 12140 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{360-qubit suite (H-grid $2{\times}3$ $9{\times}9$, 486 physical
+  qubits).  Notation as Table~\ref{tab:main25}.}
+\label{tab:large360}
+\setlength{\tabcolsep}{4pt}
+\small
+\begin{tabular}{@{}l r rr rr r@{}}
+\toprule
+ & & \multicolumn{2}{c}{\TeleSABRE}
+ & \multicolumn{2}{c}{\dSABRE}
+ & $\Delta$EPR \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-7}
+Circuit & CX & EPR & SWAP & EPR & SWAP & (\%) \\
+\midrule
+qft      & 13300 & 1109 & 15098 &  800 & 20384 & $-27.9$ \\
+qpeexact & 13979 & 1071 & 14348 & 2359 & 27964 & $+120.3$ \\
+\midrule
+\textbf{gmean} & & 1089.8 & 14718 & 1373.8 & 23875 & $\mathbf{+26.1}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Discussion.}
+At 100 qubits \dSABRE{} retains its advantage over \TeleSABRE{},
+reducing geometric-mean EPRs by \textbf{24.9\%}.  The pattern on
+individual circuits mirrors the main results: QPEexact benefits strongly
+($-47.8\%$) because its hierarchical structure creates predictable
+inter-core traffic that state teleportation handles in bulk, while QFT
+shows a modest regression ($+8.1\%$) due to its deep, sequential
+two-qubit chain.
+
+At 200 qubits \TeleSABRE{} does not converge within the 600\,s timeout
+on either benchmark, whereas \dSABRE{} completes successfully.  This
+robustness is consistent with the Random-64q result in the main paper
+and reflects the deadlock-recovery mechanism that \dSABRE{} inherits from
+SABRE.
+
+At 360 qubits \dSABRE{}'s geometric mean is \textbf{26.1\%} worse than
+\TeleSABRE{}.  The gap is driven entirely by QPEexact ($+120.3\%$):
+at this scale the hierarchical phase-estimation structure produces
+long inter-core chains that dSABRE{}'s greedy teleport decisions do not
+resolve as efficiently as \TeleSABRE{}'s global optimisation.  QFT at
+360 qubits, by contrast, improves by $27.9\%$.  Addressing the
+large-circuit regression in QPEexact-class workloads is a direction for
+future work.
+
+%%─────────────────────────────────────────────────────────────────────────────
 \bibliographystyle{IEEEtran}
 \bibliography{dsabre}
 
