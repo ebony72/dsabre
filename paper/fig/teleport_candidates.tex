@@ -1,0 +1,116 @@
+% Teleportation candidate illustration (Sec. III-C)
+% Gate g = (q1, q2) with q1 in c_src, q2 in c_tgt.
+% Each candidate: (1) SWAP q1 from p1 to staging slot n_s,
+%                 (2) teleport q1 via EPR link (pi_s, pi_d) -> lands at pi_d.
+% All (qubit, c_next, comm-link) triples are enumerated; c_bot shows another direction.
+\begin{tikzpicture}[
+  every node/.style={font=\scriptsize},
+  q/.style   ={circle, draw=gray!65,   fill=white,     minimum size=4.2mm, inner sep=0pt},
+  qsrc/.style={circle, draw=blue!75,   fill=blue!22,   minimum size=4.2mm, inner sep=0pt},
+  qstg/.style={circle, draw=orange!90, fill=orange!33, minimum size=4.2mm, inner sep=0pt},
+  qcm/.style ={circle, draw=teal!80,   fill=teal!20,   minimum size=4.2mm, inner sep=0pt},
+  qcmg/.style={circle, draw=teal!45,   fill=teal!10,   minimum size=4.2mm, inner sep=0pt},
+  qpt/.style ={circle, draw=red!70,    fill=red!20,    minimum size=4.2mm, inner sep=0pt},
+  ie/.style  ={draw=gray!45, thin},
+  cl/.style  ={draw=black!75, line width=0.6pt},
+  clg/.style ={draw=gray!55, line width=0.6pt, densely dashed},
+  cba/.style ={draw=black!70, rounded corners=3pt, fill=gray!5, line width=0.7pt},
+  cbg/.style ={draw=gray!50,  rounded corners=3pt, fill=gray!2, line width=0.5pt},
+  sa/.style  ={-{Stealth[length=1.8mm,width=1.4mm]}, thick, red!80},
+  ta/.style  ={-{Stealth[length=1.8mm,width=1.4mm]}, line width=0.85pt, teal!75, densely dashed},
+  ca/.style  ={-{Stealth[length=1.5mm,width=1.2mm]}, gray!60, densely dashed},
+]
+
+%% Coordinates (hardcoded):
+%%   qubit spacing  s = 0.72,  core-box margin m = 0.28
+%%   comm-port gap  g = 0.85   (space between adjacent comm ports)
+%%   c_src origin: (0, 0)
+%%   c_tgt origin: (2s+g, 0)   = (2.29, 0)
+%%   c_bot origin: (0, -(2s+g))= (0, -2.29)
+%%
+%% Key qubits:
+%%   p1  (q1 current) = (0,    0.72)  col=0,row=1 of c_src
+%%   n_s (staging)    = (0.72, 0.72)  col=1,row=1 of c_src
+%%   pi_s (comm src)  = (1.44, 0.72)  col=2,row=1 of c_src
+%%   pi_sb (comm bot) = (0.72, 0)     col=1,row=0 of c_src  -> c_bot
+%%   pi_d (comm dst)  = (2.29, 0.72)  col=0,row=1 of c_tgt
+%%   q2               = (3.73, 1.44)  col=2,row=2 of c_tgt
+%%   pi_db (top c_bot)= (0.72,-0.85)  col=1,row=2 of c_bot
+
+%% ─── Source core c_src ───────────────────────────────────────────────────────
+\draw[cba] (-0.28,-0.28) rectangle (1.72,1.72);
+\node[above, font=\footnotesize\bfseries] at (0.72,1.82) {$c_\mathrm{src}$};
+
+\foreach \y in {0, 0.72, 1.44} { \draw[ie] (0,\y)   -- (1.44,\y); }
+\foreach \x in {0, 0.72, 1.44} { \draw[ie] (\x,0)   -- (\x,1.44); }
+
+% Regular qubits (not highlighted)
+\foreach \x/\y in {0/0, 0/1.44, 0.72/1.44, 1.44/0, 1.44/1.44} { \node[q] at (\x,\y) {}; }
+
+% Special qubits in c_src
+\node[qsrc] (P1)  at (0,    0.72) {};   % q1 at p1
+\node[qstg] (NS)  at (0.72, 0.72) {};   % staging slot n_s
+\node[qcm]  (PS)  at (1.44, 0.72) {};   % comm port pi_s  -> c_tgt
+\node[qcm]  (PSb) at (0.72, 0)    {};   % comm port pi_sb -> c_bot
+
+\node[left=0.8mm,  blue!70]  at (P1)  {$p_1$};
+\node[below=0.7mm, blue!60,  font=\tiny] at (P1)  {$(q_1)$};
+\node[above=0.8mm]            at (NS)  {$n_s$};
+\node[right=0.8mm, teal!70]  at (PS)  {$\pi_s$};
+
+%% ─── Target core c_tgt ───────────────────────────────────────────────────────
+\draw[cba] (2.01,-0.28) rectangle (4.01,1.72);
+\node[above, font=\footnotesize\bfseries] at (3.01,1.82) {$c_\mathrm{tgt}$};
+
+\foreach \y in {0, 0.72, 1.44} { \draw[ie] (2.29,\y) -- (3.73,\y); }
+\foreach \x in {2.29, 3.01, 3.73} { \draw[ie] (\x,0)  -- (\x,1.44); }
+
+\foreach \x/\y in {2.29/0, 2.29/1.44, 3.01/0, 3.01/0.72, 3.01/1.44, 3.73/0, 3.73/0.72} {
+  \node[q] at (\x,\y) {};
+}
+
+\node[qcm] (PD) at (2.29,0.72) {};   % comm port pi_d
+\node[qpt] (Q2) at (3.73,1.44) {};   % q2
+
+\node[left=0.8mm,  teal!70] at (PD) {$\pi_d$};
+\node[right=0.8mm, red!70]  at (Q2) {$q_2$};
+
+%% Comm link c_src <-> c_tgt (EPR channel, bold)
+\draw[cl] (PS) -- (PD);
+
+%% ─── Bottom core c_bot (another candidate direction, greyed) ─────────────────
+\draw[cbg] (-0.28,-2.57) rectangle (1.72,-0.57);
+\node[below, font=\scriptsize, gray!65] at (0.72,-2.62) {$c_\mathrm{bot}$};
+
+\foreach \y in {-2.29,-1.57,-0.85} { \draw[ie, draw=gray!35] (0,\y) -- (1.44,\y); }
+\foreach \x in {0,0.72,1.44}       { \draw[ie, draw=gray!35] (\x,-2.29) -- (\x,-0.85); }
+
+\foreach \x/\y in {0/-2.29, 0/-1.57, 0/-0.85, 0.72/-2.29, 0.72/-1.57,
+                   1.44/-2.29, 1.44/-1.57, 1.44/-0.85} {
+  \node[q, draw=gray!40] at (\x,\y) {};
+}
+\node[qcmg] (PDb) at (0.72,-0.85) {};   % top comm port of c_bot
+
+%% Comm link c_src <-> c_bot (another candidate, dashed grey)
+\draw[clg] (PSb) -- (PDb);
+
+%% ─── Step arrows ─────────────────────────────────────────────────────────────
+% (1) Local SWAPs: q1 moves from p1 to n_s within c_src
+\draw[sa] (P1) -- (NS)
+  node[midway, above=0.6mm, red!80] {\textbf{(1)} local SWAPs};
+
+% (2) Teleport: q1 moves from n_s through (pi_s, pi_d) and lands at pi_d
+\draw[ta] (NS.east) to[out=35, in=145] (PD.west)
+  node[midway, above=4mm, teal!75] {\textbf{(2)} teleport};
+
+%% ─── Other-direction annotation ──────────────────────────────────────────────
+\node[right=1.2mm, gray!70, align=left] at (1.72,-0.42)
+  {other $c_\mathrm{next}\!\in\!N(c_\mathrm{src})$};
+
+%% ─── Gate label ──────────────────────────────────────────────────────────────
+\node[draw=black!40, rounded corners=2pt, fill=yellow!12, inner sep=2.5pt,
+      font=\scriptsize, align=center]
+  at (3.01,-0.62)
+  {gate $g\!=\!(q_1,q_2)$;\ also try $q_2$ as source};
+
+\end{tikzpicture}

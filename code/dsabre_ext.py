@@ -68,6 +68,7 @@ class dSABRE_BurstExt(General_dSABRE_Router):
 
         ext     = []
         current = list(front)
+        layer_depth = 1  # front layer = depth 0; first extended layer = depth 1
 
         while len(ext) < size:
             # Collect all nodes whose remaining in-degree just reached zero.
@@ -99,8 +100,9 @@ class dSABRE_BurstExt(General_dSABRE_Router):
             for n in priority + rest:
                 if len(ext) >= size:
                     break
-                ext.append(n)
+                ext.append((n, layer_depth))  # all gates in same BFS layer share depth
 
             current = next_layer
+            layer_depth += 1
 
         return ext

@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "date": "2026-05-12",
+    "suite": "360q",
+    "layout": "SabreLayout corners-removed, best of 3 seeds",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+    "ts_seeds": 3,
+    "sl_seeds": 3,
+    "routers": {
+      "dS": "General_dSABRE_Router  (router.py)",
+      "dSE": "dSABRE_BurstExt        (dsabre_ext.py)"
+    }
+  },
+  "results": [
+    {
+      "suite": "360q",
+      "circuit": "qft",
+      "qubits": 360,
+      "cx": 13300,
+      "ts": {
+        "eprs": 1109,
+        "teledata": null,
+        "telegate": null,
+        "ts_ls": 15098,
+        "seed": 0,
+        "time_s": 280.6,
+        "p2v": null
+      },
+      "routers": {
+        "dS": {
+          "eprs": 7443,
+          "ls": 42784,
+          "layout": "sl_seed0",
+          "time_s": 1168.2,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 579,
+          "ls": 27489,
+          "layout": "sl_seed2",
+          "time_s": 800.9,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "360q",
+      "circuit": "qpeexact",
+      "qubits": 360,
+      "cx": 13979,
+      "ts": {
+        "eprs": 1071,
+        "teledata": null,
+        "telegate": null,
+        "ts_ls": 14348,
+        "seed": 0,
+        "time_s": 137.0,
+        "p2v": null
+      },
+      "routers": {
+        "dS": {
+          "eprs": 3421,
+          "ls": 42997,
+          "layout": "sl_seed2",
+          "time_s": 967.1,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 863,
+          "ls": 26779,
+          "layout": "sl_seed1",
+          "time_s": 861.6,
+          "aborted": false
+        }
+      }
+    }
+  ]
+}

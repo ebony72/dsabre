@@ -6,10 +6,10 @@ Suites:
   200q  ~/Documents/telesabre/circuits/qasm_200/  H-grid 4x3 5x5 (300 physical qubits)
   360q  ~/Documents/telesabre/circuits/qasm_360/  H-grid 2x3 9x9 (486 physical qubits)
 
-Protocol (same for all suites):
+Protocol (same for all suites, matching benchmark.py):
   1. Run TeleSABRE with seeds 0-2 (timeout 600s each); pick best-EPR seed.
-  2. For dS and dSE: run from TS layout (if TS converged) + locality layouts (seeds 0-2).
-  3. Report best EPR across all layout attempts for each router.
+  2. For dS and dSE: run SabreLayout (corners removed, seeds 0-2) + SABRE fwd/bwd/fwd passes.
+  3. Report best EPR across all 3 SL seeds for each router.
   4. Save paper/results/results_{suite}.json in the same format as results_64q.json.
 
 Usage:
@@ -34,7 +34,7 @@ from architecture import build_h_grid_architecture
 from config import HardwareConfig
 from router import General_dSABRE_Router
 from dsabre_ext import dSABRE_BurstExt
-from layout import locality_aware_layout, run_passes
+from layout import sabre_locked_boundary_layout, run_sabre_passes
 
 
 def p2v_to_layout(p2v, dag):
@@ -76,9 +76,8 @@ SUITES = {
     ),
 }
 
-NUM_TS_SEEDS      = 3
-NUM_LAYOUT_SEEDS  = 3
-LAYOUT_PASSES     = 2
+NUM_TS_SEEDS  = 3
+NUM_SL_SEEDS  = 3
 
 
 def _ts_config(seed, report_path, ts_name, max_iter=200000):
@@ -156,29 +155,22 @@ def run_telesabre(qasm_path, ts_dev, timeout=300):
     return best
 
 
-def run_dsabre(router_key, router, dag, arch, ts_result, label):
-    """Try TS layout (if available) + locality layouts; return best (eprs, ls) result."""
-    layouts = []
-    if ts_result is not None:
-        layouts.append(("ts_layout", p2v_to_layout(ts_result["p2v"], dag)))
-    for seed in range(NUM_LAYOUT_SEEDS):
-        rng = random.Random(seed)
-        loc = locality_aware_layout(dag, arch, rng=rng)
-        layouts.append((f"locality_seed{seed}", loc))
-
+def run_dsabre(router_key, router, qc, dag, rev_dag, arch, label):
+    """SabreLayout (corners removed, seeds 0-2) + SABRE fwd/bwd/fwd; return best result."""
+    sl_layouts = sabre_locked_boundary_layout(qc, dag, arch, seed=0)
     best = None
-    for layout_name, layout in layouts:
+    for i, layout in enumerate(sl_layouts):
         t0 = time.perf_counter()
-        m  = run_passes(router, dag, layout, LAYOUT_PASSES)
+        m  = run_sabre_passes(router, dag, rev_dag, layout)
         elapsed = time.perf_counter() - t0
         if m and not m.get("aborted"):
             eprs = m["eprs"]; ls = m["ls"]
-            print(f"    {label} {layout_name}: EPR={eprs}, SWAP={ls} ({elapsed:.1f}s)")
+            print(f"    {label} sl_seed{i}: EPR={eprs}, SWAP={ls} ({elapsed:.1f}s)", flush=True)
             if best is None or eprs < best["eprs"]:
-                best = dict(eprs=eprs, ls=ls, layout=layout_name,
+                best = dict(eprs=eprs, ls=ls, layout=f"sl_seed{i}",
                             time_s=round(elapsed, 2), aborted=False)
         else:
-            print(f"    {label} {layout_name}: ABORTED ({elapsed:.1f}s)")
+            print(f"    {label} sl_seed{i}: ABORTED ({elapsed:.1f}s)", flush=True)
     if best is None:
         best = dict(aborted=True)
     return best
@@ -197,7 +189,7 @@ def bench_suite(suite_name, s):
     }
 
     records = []
-    print(f"\n{'═'*60}\n  {suite_name}\n{'═'*60}")
+    print(f"\n{'═'*60}\n  {suite_name}\n{'═'*60}", flush=True)
 
     for cname in target_circuits:
         pattern = os.path.join(s["circuit_dir"], f"{cname}{suffix}")
@@ -207,22 +199,23 @@ def bench_suite(suite_name, s):
             continue
         qasm_path = matches[0]
 
-        print(f"\n  Circuit: {cname}")
+        print(f"\n  Circuit: {cname}", flush=True)
         qc  = QuantumCircuit.from_qasm_file(qasm_path)
         qc  = qc.remove_final_measurements(inplace=False)
         qc  = PassManager([RemoveBarriers()]).run(qc)
-        dag = circuit_to_dag(qc)
+        dag     = circuit_to_dag(qc)
+        rev_dag = circuit_to_dag(qc.reverse_ops())
         n_qubits = qc.num_qubits
         n_cx     = sum(1 for _ in dag.two_qubit_ops())
-        print(f"    n={n_qubits}, CX={n_cx}")
+        print(f"    n={n_qubits}, CX={n_cx}", flush=True)
 
-        print("  → TeleSABRE")
+        print("  → TeleSABRE", flush=True)
         ts_result = run_telesabre(qasm_path, ts_dev, timeout=ts_timeout)
 
         router_results = {}
         for rkey, router in routers.items():
-            print(f"  → {rkey}")
-            router_results[rkey] = run_dsabre(rkey, router, dag, arch, ts_result, rkey)
+            print(f"  → {rkey}", flush=True)
+            router_results[rkey] = run_dsabre(rkey, router, qc, dag, rev_dag, arch, rkey)
 
         # Build record matching results_64q.json format
         rec = dict(
@@ -238,7 +231,7 @@ def bench_suite(suite_name, s):
             r = router_results.get(rkey, {})
             if not r.get("aborted") and ts_epr:
                 delta = 100 * (r["eprs"] - ts_epr) / ts_epr
-                print(f"    {rkey}: EPR={r['eprs']} ({delta:+.1f}% vs TS)")
+                print(f"    {rkey}: EPR={r['eprs']} ({delta:+.1f}% vs TS)", flush=True)
 
     return records
 
@@ -264,9 +257,10 @@ def main():
             meta=dict(
                 date=time.strftime("%Y-%m-%d"),
                 suite=sname,
-                layout_passes=LAYOUT_PASSES,
+                layout="SabreLayout corners-removed, best of 3 seeds",
+                pass_strategy="fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
                 ts_seeds=NUM_TS_SEEDS,
-                locality_seeds=NUM_LAYOUT_SEEDS,
+                sl_seeds=NUM_SL_SEEDS,
                 routers={
                     "dS":  "General_dSABRE_Router  (router.py)",
                     "dSE": "dSABRE_BurstExt        (dsabre_ext.py)",
@@ -276,9 +270,9 @@ def main():
         )
         with open(out_path, "w") as f:
             json.dump(payload, f, indent=2)
-        print(f"\nSaved → {out_path}")
+        print(f"\nSaved → {out_path}", flush=True)
 
-    print(f"\nTotal wall time: {time.time() - t_total:.0f}s")
+    print(f"\nTotal wall time: {time.time() - t_total:.0f}s", flush=True)
 
 
 if __name__ == "__main__":

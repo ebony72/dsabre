@@ -58,14 +58,16 @@ class General_dSABRE_Router:
     def _delta_front(self, virt, new_phys, gates, l2p, decay=1.0) -> float:
         """Sum of distance reductions for gates involving `virt` if it moves to new_phys.
 
-        Gates deeper in the list are discounted by decay^i (decay=1.0 → flat).
+        Each gate is discounted by decay^depth, where depth is its DAG distance
+        from the front layer (stored as the second element of each (gate, depth)
+        pair in `gates`).  decay=1.0 gives a flat sum.
         """
         arch = self.arch
         old_phys = l2p[virt]
         old_core = arch.core_of(old_phys)
         new_core = arch.core_of(new_phys)
         delta = 0.0
-        for i, g in enumerate(gates):
+        for g, depth in gates:
             if len(g.qargs) < 2:
                 continue
             q1, q2 = g.qargs[0], g.qargs[1]
@@ -85,23 +87,38 @@ class General_dSABRE_Router:
             else:
                 new_dist = arch.phys_dist.get(new_phys, {}).get(partner, 999)
                 if new_dist == 999: continue
-            delta += (decay ** i) * (old_dist - new_dist)
+            delta += (decay ** depth) * (old_dist - new_dist)
         return delta
 
     # ── Candidate generation ───────────────────────────────────────────────────
 
     def _extended_2q(self, dag, front, size):
-        """Return up to `size` 2-qubit gates from the DAG beyond the front layer.
+        """Return up to `size` (gate, depth) pairs beyond the front layer.
 
-        Base implementation uses topological order.  dSABRE_BurstExt overrides
-        this with a BFS-layer expansion that respects DAG dependency order and
-        prioritises gates that share qubits with the front layer.
+        depth is the gate's DAG distance from the front layer (front = depth 0;
+        immediate successors = depth 1).  Base implementation computes depths
+        via a single topological pass tracking the longest predecessor chain.
+        dSABRE_BurstExt overrides this with a BFS-layer expansion.
         """
         front_nids = {n._node_id for n in front}
+        # depth[nid] = DAG distance from the nearest front-layer ancestor
+        node_depth: dict[int, int] = {n._node_id: 0 for n in front}
         ext = []
         for n in dag.topological_op_nodes():
-            if len(n.qargs) == 2 and n._node_id not in front_nids:
-                ext.append(n)
+            nid = n._node_id
+            if nid not in node_depth:
+                d = max(
+                    (node_depth[p._node_id] for p in dag.predecessors(n)
+                     if getattr(p, '_node_id', None) in node_depth),
+                    default=None,
+                )
+                if d is None:
+                    continue  # not reachable from front
+                node_depth[nid] = d + 1
+            if nid in front_nids:
+                continue
+            if len(n.qargs) == 2:
+                ext.append((n, node_depth[nid]))
                 if len(ext) >= size:
                     break
         return ext
@@ -139,24 +156,24 @@ class General_dSABRE_Router:
                 for next_c in arch.core_graph.neighbors(src_c):
                     if free_cache[next_c] < 1:
                         continue
-                    for (lq_src, lq_dst) in arch.inter_links_between(src_c, next_c):
+                    for (p_comm_src, p_comm_dst) in arch.inter_links_between(src_c, next_c):
                         n_s = min(
-                            arch.intra[src_c].neighbors(lq_src),
+                            arch.intra[src_c].neighbors(p_comm_src),
                             key=lambda n: self._idist(src_c, p_src, n),
                         )
                         d_prep   = (self._idist(src_c, p_src, n_s)
-                                    + self._evict_cost(lq_src, arch, p2l)
-                                    + self._evict_cost(lq_dst, arch, p2l))
+                                    + self._evict_cost(p_comm_src, arch, p2l)
+                                    + self._evict_cost(p_comm_dst, arch, p2l))
                         cap      = cfg.cap_penalty * max(0, cfg.capacity_threshold - free_cache[next_c])
                         hop_gain = cfg.hop_gain * (arch.core_dist[src_c][tgt_c]
                                                    - arch.core_dist[next_c][tgt_c])
-                        dF = self._delta_front(virt, lq_dst, front_inter, l2p)
-                        dE = self._delta_front(virt, lq_dst, extended, l2p,
+                        dF = self._delta_front(virt, p_comm_dst, [(g, 0) for g in front_inter], l2p)
+                        dE = self._delta_front(virt, p_comm_dst, extended, l2p,
                                                decay=cfg.lookahead_decay)
                         score = d_prep + cap - hop_gain - dF - cfg.weight_extended * dE
                         candidates.append(
                             TeleportAction(node, virt, p_src, n_s,
-                                           lq_src, lq_dst, src_c, next_c, tgt_c, score)
+                                           p_comm_src, p_comm_dst, src_c, next_c, tgt_c, score)
                         )
 
         # ── Proactive congestion relief ────────────────────────────────────────
@@ -165,7 +182,8 @@ class General_dSABRE_Router:
             return candidates
         demand = {c: 0 for c in range(arch.num_cores)}
         horizon = min(len(extended), cfg.demand_lookahead)
-        for node in front_inter + extended[:horizon]:
+        ext_nodes = [g for g, _ in extended]  # plain gate list for demand/depth accounting
+        for node in front_inter + ext_nodes[:horizon]:
             c1b = arch.core_of(l2p[node.qargs[0]])
             c2b = arch.core_of(l2p[node.qargs[1]])
             if c1b != c2b:
@@ -173,10 +191,10 @@ class General_dSABRE_Router:
                 demand[arch.core_path[c2b][c1b][1]] += 1
 
         next_use_depth = {}
-        for depth, node in enumerate(front_inter + extended):
+        for pos, node in enumerate(front_inter + ext_nodes):
             for q in node.qargs:
                 if q not in next_use_depth:
-                    next_use_depth[q] = depth
+                    next_use_depth[q] = pos
         max_depth = len(front_inter) + len(extended) + 1
 
         core_busyness = {
@@ -201,16 +219,16 @@ class General_dSABRE_Router:
                     for v_phys in victims:
                         virt = p2l[v_phys]
                         depth_score = next_use_depth.get(virt, max_depth)
-                        for (lq_src, lq_dst) in arch.inter_links_between(c_cong, c_relief):
+                        for (p_comm_src, p_comm_dst) in arch.inter_links_between(c_cong, c_relief):
                             n_s = min(
-                                arch.intra[c_cong].neighbors(lq_src),
+                                arch.intra[c_cong].neighbors(p_comm_src),
                                 key=lambda n: self._idist(c_cong, v_phys, n),
                             )
                             d_prep = (self._idist(c_cong, v_phys, n_s)
-                                      + self._evict_cost(lq_src, arch, p2l)
-                                      + self._evict_cost(lq_dst, arch, p2l))
+                                      + self._evict_cost(p_comm_src, arch, p2l)
+                                      + self._evict_cost(p_comm_dst, arch, p2l))
                             cap = cfg.cap_penalty * max(0, cfg.capacity_threshold - free_cache[c_relief])
-                            dE  = self._delta_front(virt, lq_dst, extended, l2p,
+                            dE  = self._delta_front(virt, p_comm_dst, extended, l2p,
                                                     decay=cfg.lookahead_decay)
                             score = (d_prep + cap - cfg.weight_extended * dE
                                      - cfg.relief_bonus * (d - free + 1)
@@ -218,7 +236,7 @@ class General_dSABRE_Router:
                                      - cfg.relief_gradient_weight * gradient)
                             candidates.append(
                                 TeleportAction(None, virt, v_phys, n_s,
-                                               lq_src, lq_dst, c_cong, c_relief, c_relief, score)
+                                               p_comm_src, p_comm_dst, c_cong, c_relief, c_relief, score)
                             )
 
         candidates.sort(key=lambda a: a.score)
@@ -292,14 +310,19 @@ class General_dSABRE_Router:
     def _get_local_extended(self, wdag, front, core_ids, l2p):
         """Single-pass intra-core lookahead for a collection of cores.
 
-        Returns dict mapping core_id -> list of lookahead gates (up to lookahead_size each).
-        Tainted-qubit propagation is shared across all cores in one DAG traversal.
+        Returns dict mapping core_id -> list of (gate, depth) pairs
+        (up to lookahead_size each).  depth is the gate's DAG distance from
+        the front layer, tracked per qubit as the number of intra-core gates
+        on that qubit's path since the front.  Tainted-qubit propagation is
+        shared across all cores in one traversal.
         """
         arch = self.arch
         tainted = set()
         front_ids = {id(n) for n in front}
         ext = {ci: [] for ci in core_ids}
         remaining = set(core_ids)
+        # qubit_depth[q] = depth of the last gate seen on qubit q (0 for front)
+        qubit_depth: dict = {q: 0 for n in front for q in n.qargs}
         for n in wdag.topological_op_nodes():
             if not remaining:
                 break
@@ -316,7 +339,9 @@ class General_dSABRE_Router:
             if id(n) in front_ids:
                 continue
             if c1 in remaining:
-                ext[c1].append(n)
+                depth = max(qubit_depth.get(q1, 0), qubit_depth.get(q2, 0)) + 1
+                ext[c1].append((n, depth))
+                qubit_depth[q1] = qubit_depth[q2] = depth
                 if len(ext[c1]) >= self.config.lookahead_size:
                     remaining.discard(c1)
         return ext
@@ -341,13 +366,13 @@ class General_dSABRE_Router:
                 d_after  = min(self._idist(ci, v, cp) for cp in comm_ports)
                 delta_Hf = d_after - d_before
                 delta_He = sum(
-                    (self.config.lookahead_decay ** i) * (
+                    (self.config.lookahead_decay ** depth) * (
                         self._idist(ci,
                                     v if l2p[n.qargs[0]] == u else (u if l2p[n.qargs[0]] == v else l2p[n.qargs[0]]),
                                     v if l2p[n.qargs[1]] == u else (u if l2p[n.qargs[1]] == v else l2p[n.qargs[1]]))
                         - self._idist(ci, l2p[n.qargs[0]], l2p[n.qargs[1]])
                     )
-                    for i, n in enumerate(local_ext)
+                    for n, depth in local_ext
                 )
                 H = max(node_decay.get(u, 1.0), node_decay.get(v, 1.0)) * (
                     delta_Hf + self.config.weight_extended * (delta_He / max(len(local_ext), 1))
@@ -445,16 +470,16 @@ class General_dSABRE_Router:
             if cur_core == c2:
                 break
             hopped = False
-            for lq_src, lq_dst in arch.inter_links_between(cur_core, next_core):
+            for p_comm_src, p_comm_dst in arch.inter_links_between(cur_core, next_core):
                 if (self._free_slots(next_core, arch, p2l) < 1
                         and not self._force_make_room(next_core, l2p, p2l, metrics)):
                     continue
                 n_s = min(
-                    list(arch.intra[cur_core].neighbors(lq_src)),
+                    list(arch.intra[cur_core].neighbors(p_comm_src)),
                     key=lambda n: self._idist(cur_core, l2p[q1], n),
                 )
                 self._apply_teleport(
-                    TeleportAction(stuck, q1, l2p[q1], n_s, lq_src, lq_dst,
+                    TeleportAction(stuck, q1, l2p[q1], n_s, p_comm_src, p_comm_dst,
                                    cur_core, next_core, c2, score=0.0),
                     l2p, p2l, metrics,
                 )
@@ -610,13 +635,13 @@ class General_dSABRE_Router:
                                 for n in local_front
                             )
                             delta_He = sum(
-                                (self.config.lookahead_decay ** i) * (
+                                (self.config.lookahead_decay ** depth) * (
                                     self._idist(ci,
                                                 v if l2p[n.qargs[0]] == u else (u if l2p[n.qargs[0]] == v else l2p[n.qargs[0]]),
                                                 v if l2p[n.qargs[1]] == u else (u if l2p[n.qargs[1]] == v else l2p[n.qargs[1]]))
                                     - self._idist(ci, l2p[n.qargs[0]], l2p[n.qargs[1]])
                                 )
-                                for i, n in enumerate(local_ext)
+                                for n, depth in local_ext
                             )
                             score = max(node_decay[u], node_decay[v]) * (
                                 (delta_Hf / max(len(local_front), 1))
