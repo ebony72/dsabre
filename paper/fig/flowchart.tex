@@ -13,7 +13,7 @@
 % top row: input → drain → classify
 \node[block] (input) {Working DAG $W$\\layout $\ell$};
 \node[block, below=8mm of input] (drain)
-   {\textbf{P1.}~Drain front\\(remove 1Q gates,\\adjacent intra-2Q gates)};
+   {\textbf{P1.}~Drain front\\(execute 1Q gates,\\adjacent intra-2Q gates)};
 \node[decision, right=10mm of drain] (cls) {\textbf{P2.}~$F_\mathrm{intra}$\\empty?};
 % intra branch (top)
 \node[block, above=8mm of cls, yshift=0mm] (intra)

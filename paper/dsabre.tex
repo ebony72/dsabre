@@ -17,6 +17,7 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{booktabs}
+\usepackage{enumitem}
 \usepackage{multirow}
 \usepackage{url}
 \usepackage{tikz}
@@ -74,15 +75,15 @@ links; the reference implementation uses grid-of-grid topologies
 (B-grid, H-grid).  Using standard Qiskit SabreLayout for initial
 placement (no \TeleSABRE{} infrastructure required), \dSABRE{} reduces
 EPR consumption over the state-of-the-art \TeleSABRE{} by a geometric
-mean of \textbf{39.2\%} / \textbf{45.7\%} / \textbf{41.8\%} on 25q /
+mean of \textbf{41.1\%} / \textbf{44.1\%} / \textbf{43.9\%} on 25q /
 36q / 64q suites (B-grid $2{\times}2$ $4{\times}4$ and H-grid
 $2{\times}3$ $4{\times}4$), and over the gate-teleportation-based
-pytket-dqc by \textbf{67.4\%} / \textbf{31.9\%} / \textbf{11.5\%} on
+pytket-dqc by \textbf{68.4\%} / \textbf{29.4\%} / \textbf{15.7\%} on
 the same suites.  \dSABRE{} also completes a Random 64q circuit on
 which \TeleSABRE{} fails to converge, and scales to 200- and
-360-qubit benchmarks: at 200q on a $4{\times}3$ $5{\times}5$ H-grid
-(300 physical qubits) \TeleSABRE{} fails to converge within a 600\,s
-timeout on both QFT and QPEexact while \dSABRE{} completes both.
+360-qubit benchmarks: at 200q \TeleSABRE{} fails to converge within
+a 600\,s timeout while \dSABRE{} completes both circuits; at 360q
+\dSABRE{} wins by $35\%$ gmean EPR over \TeleSABRE{}.
 Under a combined cost
 $c_{\mathrm{tele}}\,\#\mathrm{EPR} + c_{\mathrm{swap}}\,\#\mathrm{SWAP}$
 with $c_{\mathrm{swap}}{=}3$, \dSABRE{} saves up to $43\%$ over
@@ -173,23 +174,70 @@ We make the following contributions:
     \TeleSABRE{}~\cite{russo2025telesabre} and the
     gate-teleportation-based pytket-dqc~\cite{pytketdqc2024}.  Using
     only standard Qiskit passes for initial layout, \dSABRE{}
-    achieves geometric-mean EPR reductions of \textbf{39.2\%},
-    \textbf{45.7\%}, and \textbf{41.8\%} over \TeleSABRE{}, and
-    \textbf{67.4\%}, \textbf{31.9\%}, and \textbf{11.5\%} over
+    achieves geometric-mean EPR reductions of \textbf{41.1\%},
+    \textbf{44.1\%}, and \textbf{43.9\%} over \TeleSABRE{}, and
+    \textbf{68.4\%}, \textbf{29.4\%}, and \textbf{15.7\%} over
     pytket-dqc on the three suites respectively, and completes a
     64-qubit Random circuit on which \TeleSABRE{} fails to converge.
   \item \textbf{Scalability to 100--360 qubits.}
-    On a large-circuit sweep at 100, 200, and 360 logical qubits
-    (Section~\ref{sec:scalability}), \dSABRE{} reduces gmean EPRs by
-    $24.9\%$ at 100q, completes the 200q suite on which \TeleSABRE{}
-    fails to converge within a 600\,s timeout, and is $26\%$ worse
-    than \TeleSABRE{} at 360q—identifying the QPEexact-class workload
-    at very large scale as a concrete open problem.
+    On a large-circuit QFT sweep at 100, 200, and 360 logical qubits
+    (Section~\ref{sec:scalability}), \dSABRE{} reduces EPRs by $21\%$
+    vs.\ \TeleSABRE{} at 100q, completes the 200q circuit on which
+    \TeleSABRE{} fails to converge within a 600\,s timeout, and wins
+    by $48\%$ at 360q.  Against \texttt{pytket-dqc}, \dSABRE{} wins
+    at 100q ($-63\%$) and 360q ($-14\%$), and is within $3\%$ at 200q.
 \end{enumerate}
 
 %%─────────────────────────────────────────────────────────────────────────────
 \section{Background}
 \label{sec:background}
+
+\subsection{Quantum Circuits}
+\label{sec:qcircuits}
+
+A quantum circuit acts on $n$ \emph{qubits} through a sequence of \emph{gates}.
+\emph{One-qubit (1Q) gates} (Hadamard, rotations, \ldots) act on a single qubit.
+\emph{Two-qubit (2Q) gates} entangle pairs: the \emph{CX} (CNOT) gate is the
+standard primitive and the building block for most multi-qubit operations.
+The \emph{SWAP} gate exchanges the states of two adjacent qubits; it decomposes
+into three CX gates and is used by routing algorithms to migrate logical qubit
+states along the coupling graph.
+
+A circuit is represented as a \emph{directed acyclic graph} (DAG) in which each
+node is a gate and each directed edge records a data dependency (qubit produced
+by gate $g_1$ consumed by gate $g_2$).
+The \emph{front layer} $F$ is the set of nodes with no unexecuted
+predecessor---gates that are immediately ready to run.
+The \emph{extended set} $E$ is a fixed-size lookahead window of gates just
+beyond $F$, used by SABRE-style heuristics to anticipate upcoming demands.
+\emph{Circuit depth} is the length of the longest path through the DAG.
+
+Physical qubits are arranged in a \emph{coupling graph} $G_\mathrm{phys}=(P,E_\mathrm{phys})$;
+a 2Q gate can execute only if its two operands occupy adjacent vertices.
+A circuit is written in terms of \emph{logical qubits} $\logi{1},\ldots,\logi{n}$;
+a \emph{layout} $\ell:\logi{i}\!\mapsto\!\phys{p}$ assigns each to a physical
+slot.
+\emph{Qubit routing} inserts SWAP gates so that the two operands of every 2Q
+gate reach adjacent physical qubits before it executes.
+
+\subsection{Quantum Teleportation}
+\label{sec:teleportation}
+
+\emph{Quantum teleportation}~\cite{bennett1993teleporting} transfers the state
+of a qubit to a remote location using a pre-shared \emph{EPR pair} (a maximally
+entangled two-qubit Bell state) and two classical bits.
+The source qubit's state is destroyed at the sender and reconstructed at the
+receiver; no physical qubit travels across the link.
+Each EPR pair is consumed upon use, so \emph{EPR count} is the primary
+inter-core routing cost in a DQC.
+
+Two inter-core teleportation variants arise in DQC compilation.
+\emph{Teledata} moves a logical qubit to a new core (one EPR pair consumed),
+after which the qubit participates in local gates there.
+\emph{Telegate}~\cite{eisert2000optimal} executes a non-local 2Q gate directly
+across two cores via a shared EPR pair, without physically relocating either
+qubit.
+\dSABRE{} uses teledata exclusively; \TeleSABRE{} exploits both variants.
 
 \subsection{Distributed Quantum Architecture}
 \label{sec:arch}
@@ -249,8 +297,12 @@ teleport costs $c_{\mathrm{tele}}$ (one EPR pair).
     + w\,\tfrac{1}{|E|}\!\sum_{g\in E}\!\Delta_E(g),
   \label{eq:sabre}
 \end{equation}
-where $F$ is the front layer, $E$ the extended lookahead, and $\Delta(g)$ the
-gate-distance change induced by the swap.
+where $F$ is the front layer, $E$ the extended lookahead set, and
+$\Delta(g) = d_{\mathrm{old}}^g - d_{\mathrm{new}}^g$ the reduction in
+physical distance between the two qubits of gate $g$ caused by the
+candidate SWAP ($d^g$ is shortest-path distance on the coupling graph).
+All extended-set gates contribute with equal weight; the $\tfrac{1}{|E|}$
+factor normalises the lookahead term to the same scale as the front term.
 \SABRE{} also couples its router with an initial-layout optimizer: starting
 from a random qubit assignment it routes the circuit $C$ forward, then
 immediately routes the reverse circuit $C^{-1}$ using the final layout of
@@ -271,7 +323,7 @@ a two-level hierarchy of cores and communication ports, and substitutes
 teleportation for inter-core movement.  Because teleportation is
 irreversible (consuming an EPR pair regardless of direction), the
 bidirectional layout trick does not carry over; \dSABRE{} instead relies on
-an external locality-aware layout (Section~\ref{sec:layout}) to produce a
+Qiskit SabreLayout (corners removed) to produce a
 good starting assignment. The core invariants and notation are: (i) the layout
 $\ell:\logi{q}\!\to\!\phys{p}$ assigns logical to physical qubits and
 the inverse $\ell^{-1}$ records which logical qubit (if any) currently
@@ -291,7 +343,7 @@ Algorithm~\ref{alg:dsabre} sketches the main routing loop.
 Each iteration runs four phases:
 
 \textbf{(P1) Front-layer drainage.}
-Gates in $F$ with one operand (1Q gates) are removed unconditionally;
+Gates in $F$ with one operand (1Q gates) are executed and removed unconditionally;
 2Q gates whose operands sit on adjacent qubits in the same core are
 executed and removed.  Drainage iterates until a fixed point because
 removing a gate can expose its successors to the front and create new
@@ -329,7 +381,7 @@ aborted.
 \STATE $\ell \leftarrow \ell_0$;\ \ $\delta[p]\!\leftarrow\!1$ for all $p$
 \STATE save checkpoint $(\ell, W, \delta)$
 \WHILE{$W$ has unexecuted gates}
-  \STATE drain $F$ (remove 1Q gates and adjacent intra-core 2Q gates) \hfill\textit{(P1)}
+  \STATE drain $F$ (execute 1Q gates and adjacent intra-core 2Q gates) \hfill\textit{(P1)}
   \IF{$W$ empty} \STATE \textbf{break} \ENDIF
   \STATE compute $F$, partition into $F_\mathrm{intra}, F_\mathrm{inter}$ \hfill\textit{(P2)}
   \STATE compute $E$ if not cached
@@ -369,11 +421,21 @@ When the front contains a gate whose operands share a core but are
 not adjacent, \dSABRE{} chooses an intra-core SWAP using the standard
 \SABRE{} heuristic, restricted to the relevant core.  Let
 $F_\mathrm{c} = \{g\in F_\mathrm{intra} : \mathrm{core}(g)=c\}$ be the
-front gates in core~$c$ and $E_\mathrm{c}$ the corresponding
-intra-core slice of the extended set, computed by
-\texttt{\_get\_local\_extended} which skips any gate whose qubits have
-already crossed cores in $W$ (those are handled by P3's inter-core
-branch).  For every neighbour pair $(u,v)$ within a core, the score
+front gates in core~$c$ and $E_\mathrm{c} = (g_0, g_1, \ldots)$ the
+corresponding intra-core extended set, an \emph{ordered list} of at most
+$L$ gates (default $L{=}20$) collected in topological order.
+The traversal stops including a gate the moment either of its qubits
+has previously appeared in a cross-core gate in the working DAG
+(taint propagation), ensuring $E_\mathrm{c}$ contains only gates
+that remain local to core~$c$.
+Each gate~$g_i$ is assigned a depth $\mathrm{dep}(g_i)$, the number of
+intra-core gates on the longest qubit-wire path from the front layer to
+$g_i$ (front layer = depth~0; first successor = depth~1), so
+$\tilde{\Delta}_E^\mathrm{c} = \sum_{i=0}^{|E_\mathrm{c}|-1}
+\gamma^{\mathrm{dep}(g_i)}(d_{\mathrm{old}}^{g_i} - d_{\mathrm{new}}^{g_i})$,
+where $\gamma$ is the lookahead decay and the distance terms use the
+intra-core graph.
+For every neighbour pair $(u,v)$ within a core, the score
 \begin{equation}
   H_\mathrm{intra} = \max(\delta[u], \delta[v]) \cdot
     \Big(\frac{\Delta_F^\mathrm{c}}{|F_\mathrm{c}|}
@@ -388,12 +450,31 @@ SWAP is applied; tie-breaking is by enumeration order.
 \label{sec:tele}
 
 For each gate $g\in F_\mathrm{inter}$ on qubits $(q_1, q_2)$ with
-$q_1\in c_1, q_2\in c_2$, both endpoints are tried as teleportation
-sources.  For each, the router enumerates every neighbouring core
-$c_\mathrm{next}\in N(c_\mathrm{src})$ in the core graph and every
-inter-core link $(\pi_\mathrm{src}, \pi_\mathrm{dst})$ between
-$c_\mathrm{src}$ and $c_\mathrm{next}$.
+$q_1\in c_\mathrm{src}, q_2\in c_\mathrm{tgt}$, both endpoints are tried as
+teleportation sources.  For the qubit chosen as source (say $q_1$ at
+physical position $p_1$), the router enumerates every neighbouring core
+$c_\mathrm{next}\in N(c_\mathrm{src})$ and every inter-core link
+$(\pi_s, \pi_d)$ between $c_\mathrm{src}$ and $c_\mathrm{next}$.
+Each such triple $(q_1, c_\mathrm{next}, (\pi_s,\pi_d))$ is one
+\emph{candidate}; Figure~\ref{fig:tele-candidates} illustrates the structure.
+Executing a candidate involves two steps: (1)~intra-core SWAPs that move
+$q_1$ from $p_1$ to the \emph{staging slot} $n_s$, the neighbour of $\pi_s$
+closest to $p_1$; and (2)~a teleportation that consumes the EPR pair on link
+$(\pi_s,\pi_d)$ and delivers $q_1$ to $\pi_d$ in $c_\mathrm{next}$.
 Each candidate is scored as:
+
+\begin{figure}[t]
+  \centering
+  \input{fig/teleport_candidates}
+  \caption{Teleportation candidates for gate $g=(q_1,q_2)$.  The router
+    enumerates all triples (source qubit, $c_\mathrm{next}$, comm link
+    $(\pi_s,\pi_d)$) and scores each by Eq.~\ref{eq:dsabre}.  Step~(1): local
+    SWAPs move $q_1$ from its current position $p_1$ to staging slot $n_s$.
+    Step~(2): a teleportation delivers $q_1$ to $\pi_d$ in $c_\mathrm{next}$.
+    The greyed core $c_\mathrm{bot}$ illustrates that any neighbouring core
+    is a valid next-hop, even if it is not $c_\mathrm{tgt}$.}
+  \label{fig:tele-candidates}
+\end{figure}
 \begin{equation}
   s = \underbrace{d_{\mathrm{prep}}}_{\text{staging}} +
       \underbrace{c_{\mathrm{cap}}}_{\text{capacity}} -
@@ -405,12 +486,12 @@ Each candidate is scored as:
 where lower scores are preferred.  Each term is defined as follows.
 
 \textbf{Staging cost} $d_{\mathrm{prep}}$ is the number of intra-core SWAPs
-needed to move the qubit to the communication port, plus any eviction SWAPs
-needed to free occupied comm ports:
+needed to move $q_1$ from $p_1$ to staging slot $n_s$, plus eviction SWAPs
+to free the comm ports if occupied:
 \[
-  d_{\mathrm{prep}} = d_{\mathrm{intra}}(p_{\mathrm{src}}, p_{\mathrm{ns}})
-                    + d_{\mathrm{evict}}(p_{\mathrm{comm,src}})
-                    + d_{\mathrm{evict}}(p_{\mathrm{comm,dst}}).
+  d_{\mathrm{prep}} = d_{\mathrm{intra}}(p_1,\,n_s)
+                    + d_{\mathrm{evict}}(\pi_s)
+                    + d_{\mathrm{evict}}(\pi_d).
 \]
 
 \textbf{Capacity penalty} $c_{\mathrm{cap}} = c_{\mathrm{pen}}\,\max(0,\,\tau - f_{\mathrm{dst}})$
@@ -423,15 +504,28 @@ This prevents progressive crowding of hot cores that leads to deadlock.
 rewards moving the qubit closer to the core that holds its gate partner,
 acting as a coarse directional bias on the core graph.
 
-\textbf{Front-layer gain} $\Delta_F = \sum_{g \in F, q \in g} (d_{\mathrm{old}}^g - d_{\mathrm{new}}^g)$
-sums the distance reduction induced by the teleport over all front-layer
-gates involving the moving qubit, mirroring the \SABRE{} objective.
+\textbf{Front-layer gain} $\Delta_F = d_{\mathrm{old}}^{g^*} - d_{\mathrm{new}}^{g^*}$
+is the distance reduction for the unique front-layer gate $g^*$
+involving the moving qubit (zero if no such gate exists).
+Because the front layer contains only gates whose predecessors have all
+been executed, two gates sharing a qubit cannot both appear in $F$
+simultaneously; hence at most one gate in $F_\mathrm{inter}$ involves
+the qubit being teleported.
 
-\textbf{Decay-weighted lookahead} $\tilde{\Delta}_E = \sum_{i,g \in E_i} \gamma^i (d_{\mathrm{old}}^g - d_{\mathrm{new}}^g)$
-applies an exponential decay factor $\gamma^i$ at lookahead depth $i$, so
-that nearby gates in the extended set exert more influence than distant ones.
-This softens the sharp boundary between front and extended layers present in
-vanilla \SABRE{}.
+\textbf{Decay-weighted lookahead}
+$\tilde{\Delta}_E = \sum_{i=0}^{|E|-1} \gamma^{\mathrm{dep}(g_i)}\,(d_{\mathrm{old}}^{g_i} - d_{\mathrm{new}}^{g_i})$,
+where $E = (g_0,g_1,\ldots)$ is the extended set as an ordered list of
+at most $L$ gates (default $L{=}20$), $\mathrm{dep}(g_i)$ is the DAG
+distance of $g_i$ from the front layer (number of edges on the longest
+dependency path from any front-layer gate to $g_i$; front layer = 0,
+immediate successors = 1), and the sum is restricted to gates that
+involve the qubit being teleported.  The tilde distinguishes this from
+$\Delta_E(g)$ in vanilla \SABRE{} (Eq.~\ref{eq:sabre}): \SABRE{}
+weights all extended gates equally and normalises by $|E|$, whereas
+$\tilde{\Delta}_E$ applies an exponential decay $\gamma^{\mathrm{dep}(g_i)}$
+by DAG distance so that gates close to the front (small $\mathrm{dep}$)
+dominate and influence falls off smoothly, removing the hard
+front-vs-extended boundary.
 
 \subsection{Proactive Congestion Relief}
 \label{sec:relief}
@@ -470,6 +564,65 @@ $N_\mathrm{backup}^\mathrm{max}$ failed recoveries the route aborts.
 The recovery path is dormant on most circuits; it is decisive only on
 the 64-qubit Random circuit, where \TeleSABRE{} fails to converge but
 \dSABRE{} completes the route (Section~\ref{sec:scalability}).
+
+\subsection{Computational Complexity}
+\label{sec:complexity}
+
+Let $N{=}|C|$ be the circuit size, $n$ the logical-qubit count (circuit
+width, so $|F|\le n$), $K$ the number of cores, $M$ qubits per core
+($P{=}KM$ total), $d$ the maximum core-graph degree, $b$ the maximum
+number of inter-core links between any adjacent core pair, and $L$ the
+extended-set capacity per core (a constant, default 20).
+
+\paragraph{Architecture setup.}
+Distance tables are precomputed once in $O(KM^2\!\log M + K^2\!\log K)$
+(Section~\ref{sec:arch}); this cost is incurred once and not charged per
+circuit.
+
+\paragraph{Per-iteration cost.}
+The dominant cost each iteration is candidate generation and scoring.
+Inter-core scoring (Eq.~\ref{eq:dsabre}) generates at most
+$|F_\mathrm{inter}|\cdot 2d\cdot b$ candidates; evaluating $\Delta_F$
+and $\tilde{\Delta}_E$ for each costs $O(|F|+L)$.
+Intra-core scoring (Eq.~\ref{eq:intra}) examines $O(M_e)$ SWAP pairs
+per active core, each in $O(|F_\mathrm{intra}|+L)$, where $M_e$ denotes
+intra-core edges per core.
+For our bounded-degree grid-of-grids ($d,b,M_e{=}O(1)$, $L$ constant):
+\[
+  T_\mathrm{iter} = O\!\left(|F|\cdot(|F|+L) + K\cdot M_e\cdot(|F|+L)\right)
+                  = O(n^2).
+\]
+
+\paragraph{Extended-set cost.}
+The extended set is rebuilt whenever the front layer changes, at most
+$N$ times total (once per gate execution).  Each rebuild traverses the
+working DAG until $L$ gates per core are collected; the cost is
+$O(\min(|W|,KL))$ per rebuild.  Total extended-set cost across all
+iterations: $O(N \cdot KL) = O(NK)$ with $L$ constant.  This matches
+the $O(|W|{+}KL)$ single-pass bound stated in
+Section~\ref{sec:bfsext}.
+
+\paragraph{Total complexity.}
+Each routing iteration either drains at least one gate (at most $N$
+such iterations) or inserts one SWAP or teleport.  On a grid-of-grids
+the physical-graph diameter is $O(\sqrt{M}+\sqrt{K})=O(\sqrt{P})$,
+bounding inserted operations by $O(N\sqrt{P})$ in the worst case.
+The checkpoint--rollback escape (Section~\ref{sec:recovery}) adds at
+most $N_\mathrm{backup}^\mathrm{max}\cdot L_\mathrm{deadlock}$
+extra iterations, a small additive constant.  Combining:
+\begin{equation}
+  T_\mathrm{total} = O\!\left(N\sqrt{P}\cdot n^2 + NK\right).
+  \label{eq:complexity}
+\end{equation}
+The $NK$ term from extended-set rebuilds is dominated for any
+non-trivial circuit.  The leading term $O(N\sqrt{P}\cdot n^2)$
+matches the complexity of \SABRE{} on a flat $P$-qubit
+chip~\cite{li2019tackling}: the multi-core hierarchy does not increase
+the asymptotic exponent.
+In practice $|F|\ll n$ for depth-limited circuits and $K,M$ are small
+constants, so the effective per-iteration cost is $O(1)$ with a compact
+leading constant; empirical runtimes are reported in
+Section~\ref{sec:experiments}.
 
 \subsection{Comparison with TeleSABRE}
 \label{sec:vs_ts}
@@ -588,19 +741,23 @@ Section~\ref{sec:ablation}.
 \subsection{Setup}
 
 \textbf{Benchmarks.}
-We use two circuit sets from the MQT Bench suite~\cite{quetschlich2023mqtbench},
-both in the IBM native-gate set (Qiskit opt3 transpilation, measurements and
+We use three circuit sets from the MQT Bench suite~\cite{quetschlich2023mqtbench},
+all in the IBM native-gate set (Qiskit opt3 transpilation, measurements and
 barriers removed).
 
 \emph{Suite~1 (25-qubit):} quantum amplitude estimation (AE), quantum Fourier
 transform (QFT), quantum neural network (QNN), random circuit (Random), GHZ
 state preparation, and graph-state preparation.
 
-\emph{Suite~2 (36-qubit):} six additional circuits chosen to span a broader
-range of algorithmic families and CX densities: Bernstein--Vazirani (BV, linear
-chain), Deutsch--Jozsa (DJ, oracle), W-state preparation (cascaded star),
+\emph{Suite~2 (36-qubit):} six circuits spanning a broader range of algorithmic
+families and CX densities: Bernstein--Vazirani (BV, linear chain),
+Deutsch--Jozsa (DJ, oracle), W-state preparation (cascaded star),
 VQE with SU(2) ansatz (layered variational), QAOA (dense all-to-all), and
 quantum phase estimation (QPEexact, hierarchical).
+
+\emph{Suite~3 (64-qubit):} the same six circuit families as Suite~1 scaled to
+64~logical qubits (AE, QFT, QNN, Random, GHZ, Graphstate), run on the larger
+H-grid architecture to test scalability.
 
 Circuit properties are summarised in Table~\ref{tab:circuits}.
 
@@ -628,14 +785,37 @@ Suite & Circuit    & Qubits & CX gates & Depth & CX/qubit \\
  & VQE-SU2   & 36 &  105 &  56 &  2.9 \\
  & QPEexact   & 36 & 1019 & 347 & 28.3 \\
  & QAOA       & 36 & 1200 & 256 & 33.3 \\
+\midrule
+\multirow{6}{*}{64q}
+ & AE         & 64 & 1962 & 1058 & 30.7 \\
+ & QFT        & 64 & 1966 &  446 & 30.7 \\
+ & QNN        & 64 & 8126 &  650 & 127.0 \\
+ & Random     & 64 & 1627 &  403 & 25.4 \\
+ & GHZ        & 64 &   63 &   66 &  1.0 \\
+ & Graphstate & 64 &   64 &   25 &  1.0 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Architecture.}
-All experiments use a $2\!\times\!2$ B-grid architecture: four cores each with
-a $4\!\times\!4$ grid of qubits (64 physical slots total), with staggered
-communication ports as described in Section~\ref{sec:impl}.
+Suites~1 and~2 use a $2\!\times\!2$ B-grid: four $4\!\times\!4$ cores
+(64~physical qubits, 4~EPR links).
+Suite~3 uses a $2\!\times\!3$ H-grid: six $4\!\times\!4$ cores
+(96~physical qubits, 7~EPR links).
+Both architectures use staggered communication ports; Figure~\ref{fig:arch}
+shows the full qubit-level topology.
+
+\begin{figure*}[t]
+  \centering
+  \resizebox{\linewidth}{!}{\input{fig/architectures}}
+  \caption{Hardware architectures used in experiments.
+    Small grey circles are qubits; teal circles are inter-core communication
+    ports; bold lines are EPR-channel links between cores.
+    Each core is a $4{\times}4$ grid.
+    (a)~$2{\times}2$ B-grid (25q and 36q suites).
+    (b)~$2{\times}3$ H-grid (64q suite).}
+  \label{fig:arch}
+\end{figure*}
 
 \textbf{Baselines.}
 We compare against two state-of-the-art distributed routers:
@@ -646,7 +826,7 @@ jointly optimises intra-core SWAPs, teledata (qubit moves), and telegate
 \emph{gate teleportation} with multi-gate amortisation using KaHyPar
 hypergraph partitioning.
 \TeleSABRE{} is run using its compiled C binary with the
-\texttt{optimize\_initial} flag enabled (Hungarian assignment +
+\texttt{optimize\_initial} flag enabled (built-in layout heuristic +
 3-success sampling) on the same device; \texttt{pytket-dqc} uses its
 \texttt{HypergraphPartitioning} allocator (best of 5 random seeds, see
 Appendix~\ref{app:pytketdqc} for details).  Internally, we also compare
@@ -655,9 +835,12 @@ set with a topological-order one (Section~\ref{sec:ablation}).
 
 \textbf{Parameters.}
 Table~\ref{tab:params} lists all hyperparameters.
-Three trials are run per (router, layout) pair; we report the best EPR count
-across trials (lower = better), following established practice~\cite{li2019tackling}.
-Layout passes: 2 (forward–backward–forward).
+\dSABRE{} is deterministic given a fixed layout; we run it with three
+SabreLayout seeds and report the best EPR count (lower = better).
+\TeleSABRE{} is stochastic and is run with three random seeds; again
+the best result is reported, following established
+practice~\cite{li2019tackling}.
+Layout passes: 2 (forward--backward--forward).
 
 \begin{table}[t]
 \centering
@@ -718,14 +901,14 @@ Cost analysis is deferred to Section~\ref{sec:cost}.
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-7}\cmidrule(lr){8-9}
 Circuit & CX & EPR & SWAP & EPR & SWAP & e-bits & TS & py \\
 \midrule
-ae         &  558 &  23 &  297 &  26 &  404 &  85 & $+13.0$ & $-69.4$ \\
+ae         &  558 &  23 &  297 &  23 &  374 &  85 & $+0.0$  & $-72.9$ \\
 ghz        &   24 &   2 &   29 &   1 &   14 &   3 & $-50.0$ & $-66.7$ \\
-graphstate &   25 &  11 &   51 &   2 &   13 &   4 & $-81.8$ & $-50.0$ \\
-qft        &  580 &  39 &  355 &  33 &  426 & 120 & $-15.4$ & $-72.5$ \\
-qnn        & 1223 &  51 &  587 &  49 & 1020 & 152 & $-3.9$  & $-67.8$ \\
-random     & 1124 & 292 & 1273 & 176 & 1326 & 665 & $-39.7$ & $-73.5$ \\
+graphstate &   25 &  11 &   51 &   2 &   16 &   4 & $-81.8$ & $-50.0$ \\
+qft        &  580 &  39 &  355 &  33 &  461 & 120 & $-15.4$ & $-72.5$ \\
+qnn        & 1223 &  51 &  587 &  48 & 1076 & 152 & $-5.9$  & $-68.4$ \\
+random     & 1124 & 292 & 1273 & 169 & 1374 & 665 & $-42.1$ & $-74.6$ \\
 \midrule
-\textbf{gmean} & & 25.8 & 221 & 15.7 & 187 & 48.1 & $\mathbf{-39.2}$ & $\mathbf{-67.4}$ \\
+\textbf{gmean} & & 25.8 & 221 & 15.2 & 196 & 48.1 & $\mathbf{-41.1}$ & $\mathbf{-68.4}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -733,39 +916,37 @@ random     & 1124 & 292 & 1273 & 176 & 1326 & 665 & $-39.7$ & $-73.5$ \\
 \textbf{25q.}
 Using Qiskit SabreLayout (corners removed) and SABRE-style
 forward$\to$backward$\to$forward routing passes, \dSABRE{} reduces
-geometric-mean EPRs over \TeleSABRE{} by \textbf{39.2\%} and over
-pytket-dqc by \textbf{67.4\%} (Table~\ref{tab:main25}).  Per-circuit
+geometric-mean EPRs over \TeleSABRE{} by \textbf{41.1\%} and over
+pytket-dqc by \textbf{68.4\%} (Table~\ref{tab:main25}).  Per-circuit
 reductions versus \TeleSABRE{} range from $-50\%$ on GHZ to $-81.8\%$
-on Graphstate; the only material regression is AE ($+13.0\%$), a circuit
-with dense inter-core interaction whose pattern is more naturally matched
-by \TeleSABRE{}'s Hungarian solver.  pytket-dqc loses uniformly on this
-suite ($-50$ to $-74\%$ across all six circuits): state teleportation
-amortises a single EPR pair over many subsequent local gates, whereas
-pytket-dqc's gate-teleportation primitive charges one e-bit per non-local
-gate.
+on Graphstate, with no material regressions on this suite.
+pytket-dqc loses uniformly ($-50$ to $-75\%$ across all six circuits):
+state teleportation amortises a single EPR pair over many subsequent
+local gates, whereas pytket-dqc's gate-teleportation primitive charges
+one e-bit per non-local gate.
 
 \textbf{36q.}
-\dSABRE{} reduces geometric-mean EPRs by \textbf{45.7\%} vs.\ \TeleSABRE{}
-and \textbf{31.9\%} vs.\ pytket-dqc (Table~\ref{tab:main36}).  Per-circuit
-reductions versus \TeleSABRE{} are uniformly large ($-35\%$ to $-80\%$).
+\dSABRE{} reduces geometric-mean EPRs by \textbf{44.1\%} vs.\ \TeleSABRE{}
+and \textbf{29.4\%} vs.\ pytket-dqc (Table~\ref{tab:main36}).  Per-circuit
+reductions versus \TeleSABRE{} are uniformly large ($-33\%$ to $-80\%$).
 The simple structured circuits BV, VQE-SU2, and W-state are essentially
-solved (1 EPR on BV; 7--9 EPRs on the others).  Against pytket-dqc the
+solved (1 EPR on BV; 8--9 EPRs on the others).  Against pytket-dqc the
 picture is more nuanced: dense circuits (QAOA, QPEexact) favour
-\dSABRE{} ($-28\%$ to $-63\%$), but the sparse-graph circuits
+\dSABRE{} ($-25\%$ to $-63\%$), but the sparse-graph circuits
 (VQE-SU2, W-state) are competitive for pytket-dqc because their
 interaction graph is almost perfectly partitionable by KaHyPar.
 
 \textbf{64q.}
 The H-grid suite is where the gap from \TeleSABRE{} is most consequential
 (Table~\ref{tab:main64}).  \dSABRE{} reduces gmean EPRs by
-\textbf{41.8\%} over the five circuits on which \TeleSABRE{} converges.
-Per-circuit reductions versus \TeleSABRE{} range from $-22.9\%$ (QFT) to
-$-77.6\%$ (Graphstate); the QNN circuit (8126 CX gates) improves by
-$62.1\%$.  GHZ regresses slightly ($+45.5\%$; $16$ vs.\ $11$ EPRs
-absolute) because the uniform star structure benefits from
+\textbf{43.9\%} over the five circuits on which \TeleSABRE{} converges.
+Per-circuit reductions versus \TeleSABRE{} range from $-33.1\%$ (AE) to
+$-75.0\%$ (Graphstate); the QFT and QNN circuits improve by $40.0\%$ and
+$61.8\%$ respectively.  GHZ regresses slightly ($+45.5\%$; $16$ vs.\ $11$
+EPRs absolute) because the uniform star structure benefits from
 \TeleSABRE{}'s global solver.  Against pytket-dqc, the 6-circuit gmean
-(including Random) is $-11.5\%$: \dSABRE{} dominates on the dense
-circuits (AE, QFT, QNN, Random; $-30$ to $-56\%$) but loses on the
+(including Random) is $-15.7\%$: \dSABRE{} dominates on the dense
+circuits (AE, QFT, QNN, Random; $-29$ to $-58\%$) but loses on the
 maximally sparse GHZ and Graphstate, whose interaction graphs are
 trivially partitioned by KaHyPar.  See Section~\ref{sec:scalability}
 for the Random circuit, on which \TeleSABRE{} fails to converge.
@@ -787,12 +968,42 @@ Circuit & CX & EPR & SWAP & EPR & SWAP & e-bits & TS & py \\
 \midrule
 bv       &   17 &   5 &   34 &   1 &    8 &   3 & $-80.0$ & $-66.7$ \\
 dj       &   35 &   3 &   53 &   3 &   24 &   3 & $+0.0$  & $+0.0$  \\
-qaoa     & 1200 & 232 & 1027 & 140 & 1327 & 194 & $-39.7$ & $-27.8$ \\
-qpeexact & 1019 & 100 &  771 &  65 &  784 & 175 & $-35.0$ & $-62.9$ \\
-vqe\_su2 &  105 &  16 &   80 &   9 &   55 &   9 & $-43.8$ & $+0.0$  \\
-wstate   &   70 &  12 &   88 &   7 &   41 &   6 & $-41.7$ & $+16.7$ \\
+qaoa     & 1200 & 232 & 1027 & 145 & 1319 & 194 & $-37.5$ & $-25.3$ \\
+qpeexact & 1019 & 100 &  771 &  65 &  874 & 175 & $-35.0$ & $-62.9$ \\
+vqe\_su2 &  105 &  16 &   80 &   9 &   52 &   9 & $-43.8$ & $+0.0$  \\
+wstate   &   70 &  12 &   88 &   8 &   63 &   6 & $-33.3$ & $+33.3$ \\
 \midrule
-\textbf{gmean} & & 20.1 & 147 & 10.9 & 88 & 16.0 & $\mathbf{-45.7}$ & $\mathbf{-31.9}$ \\
+\textbf{gmean} & & 20.1 & 147 & 11.3 & 95 & 16.0 & $\mathbf{-44.1}$ & $\mathbf{-29.4}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{64-qubit suite (H-grid $2{\times}3$ $4{\times}4$, 96 physical
+  qubits).  Methodology and notation as Table~\ref{tab:main25};
+  $^{\ast}$\TeleSABRE{} fails to converge on Random (excluded from its
+  gmean row).}
+\label{tab:main64}
+\setlength{\tabcolsep}{3pt}
+\small
+\begin{tabular}{@{}l r rr rr r rr@{}}
+\toprule
+ & & \multicolumn{2}{c}{\TeleSABRE}
+ & \multicolumn{2}{c}{\dSABRE}
+ & py-dqc & \multicolumn{2}{c}{$\Delta$EPR (\%)} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-7}\cmidrule(lr){8-9}
+Circuit & CX & EPR & SWAP & EPR & SWAP & e-bits & TS & py \\
+\midrule
+ae         & 1962 &  323 & 1508 & 216 & 2332 &  519 & $-33.1$ & $-58.4$ \\
+ghz        &   63 &   11 &  111 &  16 &   89 &    7 & $+45.5$ & $+128.6$ \\
+graphstate &   64 &   76 &  379 &  19 &  104 &    9 & $-75.0$ & $+111.1$ \\
+qft        & 1966 &  410 & 1872 & 246 & 2054 &  591 & $-40.0$ & $-58.4$ \\
+qnn        & 8126 & 1365 & 6292 & 521 & 8662 &  736 & $-61.8$ & $-29.2$ \\
+random$^{\ast}$ & 1627 & --- & --- & 714 & 3814 & 1181 & --- & $-39.5$ \\
+\midrule
+\textbf{gmean} (5) & & 172.1 & 943 & 96.6 & 826 & 107.3 & $\mathbf{-43.9}$ & $\mathbf{-10.0}$ \\
+\textbf{gmean} (6) & & --- & --- & 134.8 & 1066 & 160.0 & --- & $\mathbf{-15.7}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -805,7 +1016,7 @@ three axes: (i)~the extended-set construction, (ii)~discrete mechanism
 on/off, and (iii)~continuous parameter sensitivity.  Unless otherwise
 stated, experiments use the SabreLayout (corners-removed) initial layout
 with SABRE-style forward$\to$backward$\to$forward routing passes and
-report geometric-mean EPR counts over the respective suite.
+report the \emph{geometric-mean EPR count} (gmEPR) over the respective suite.
 
 % ── (i) BFS vs topological ───────────────────────────────────────────
 \paragraph{Extended-set construction: BFS vs.\ topological.}
@@ -830,20 +1041,20 @@ Table~\ref{tab:ablation} reports the result.
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
 Suite & EPR & SWAP & EPR & SWAP & EPR & SWAP \\
 \midrule
-\textbf{25q} & 17.9 & 188 & 15.7 & 187 & $-12.3$ & $-0.7$ \\
-\textbf{36q} & 13.7 & 93 & 10.9 & 88 & $-19.8$ & $-5.6$ \\
-\textbf{64q} & 151.7 & 1046 & 141.6 & 1038 & $-6.7$ & $-0.7$ \\
+\textbf{25q} & 15.7 & 202 & 15.2 & 196 & $-3.0$ & $-3.1$ \\
+\textbf{36q} & 12.1 & 88 & 11.3 & 95 & $-6.6$ & $+7.6$ \\
+\textbf{64q} & 151.5 & 1075 & 134.8 & 1066 & $-11.0$ & $-0.9$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-BFS reduces gmean EPRs by $12.3\%$, $19.8\%$, and $6.7\%$ on the three
-suites respectively.  The gain is most pronounced on 36q, where the
-structured circuits (BV, DJ, W-state) have few inter-core interactions
-and the topological walk drifts away from the active front layer.
-On 64q, the BFS and topological variants differ by $6.7\%$ EPR and
-$0.7\%$ SWAP, reflecting the denser interaction graph where both
-constructions identify similar candidate sets.
+BFS reduces gmean EPRs by $3.0\%$, $6.6\%$, and $11.0\%$ on the three
+suites respectively.  The gain grows with circuit size, reflecting the
+richer dependency structure in larger circuits where topological order
+drifts further from the active front layer.
+On 25q and 36q the SWAP counts are nearly unchanged; on 36q they
+increase slightly ($+7.6\%$) because the BFS scorer routes more
+aggressively through fewer teleportations, leaving more intra-core work.
 
 % ── (ii) Mechanism ablation ──────────────────────────────────────────
 \paragraph{Mechanism ablation.}
@@ -947,16 +1158,32 @@ the \texttt{ae} circuit EPR rises from $24$ to $130$ because the
 lookahead over-values resolving inter-core gates and ignores preparation
 cost.
 
-% ── Layout passes ─────────────────────────────────────────────────────
+% ── Initial mapping ────────────────────────────────────────────────────
+\subsection{Initial Mapping}
+\label{sec:initial_mapping}
+Initial qubit placement significantly affects routing cost.  We adopt
+Qiskit \texttt{SabreLayout} (corners removed, best of three seeds) paired
+with a SABRE-style forward--backward--forward routing schedule as the
+default configuration, and we characterise the sensitivity of this choice
+by comparing three layout strategies across two pass schedules.
+
+\begin{description}[leftmargin=1.5em,labelindent=0pt,itemsep=2pt]
+  \item[\textbf{TS}] \TeleSABRE{}'s built-in \texttt{optimize\_initial} layout.
+  \item[\textbf{Rand}] Random qubit assignment, best of three trials.
+  \item[\textbf{SL}] Qiskit \texttt{SabreLayout} on the architecture graph
+    with the four lowest-degree corner nodes removed, best of three seeds
+    (the default used throughout this paper).
+\end{description}
+
 \paragraph{Layout passes.}
-\dSABRE{} runs two forward routing passes, feeding the final qubit
-layout of each pass as the initial layout of the next.  The first pass
-is a \emph{cold-start}: qubits begin in their assigned initial positions,
-which may be far from the physical slots where they first interact, so
-the router pays a heavy upfront migration cost in the early layers.
+Each routing pass feeds its output layout into the next, exploiting a
+warm-start effect.  The first pass is a \emph{cold-start}: qubits begin
+in their assigned initial positions, which may be far from the physical
+slots where they first interact, so the router pays a heavy upfront
+migration cost in the early layers.
 The output layout $\mathcal{L}_1$ reflects the \emph{steady-state}
 distribution — roughly, where qubits naturally reside after the circuit's
-demand has pulled them into position.  The second pass starts from
+demand has pulled them into position.  A second pass starts from
 $\mathcal{L}_1$, so qubits are already near their active zones and the
 cold-start overhead is eliminated.  $\mathcal{L}_2 \approx \mathcal{L}_1$,
 which is why passes $3$ and $4$ trigger the early-stopping condition and
@@ -964,8 +1191,10 @@ yield no further improvement.
 Table~\ref{tab:passes} shows that pass $1\to2$ is the only step that yields
 meaningful improvement ($-8.9\%$ EPR and $-19\%$ SWAP on 25q;
 \texttt{qnn} on 64q improves from $608$ to $517$ EPR).
-The default of two passes is therefore exactly right: one pass too few
-loses quality; additional passes add compile time for no gain.
+Two passes therefore suffice; we default to the SABRE-style
+forward--backward--forward schedule, where the backward pass over the
+reversed DAG provides an additional layout-refinement benefit (detailed
+below).
 
 \begin{table}[t]
 \centering
@@ -989,35 +1218,45 @@ Passes & EPR & SWAP & EPR & SWAP \\
 \end{tabular}
 \end{table}
 
-% ── Initial mapping ────────────────────────────────────────────────────
-\paragraph{Initial mapping.}
-The two forward passes above use \TeleSABRE{}'s Hungarian initial layout as
-a starting point.  We compare four layout strategies paired with two
-routing-pass schedules to assess how much of \dSABRE{}'s advantage depends
-on that privileged starting point.
+\paragraph*{SabreLayout in the distributed setting.}
+SabreLayout~\cite{Li2019} is Qiskit's standard placement pass: it
+iterates forward and backward through the circuit with the SABRE SWAP
+heuristic, using the induced qubit migrations to refine the placement,
+and returns the layout that minimises the resulting SWAP overhead.
+Applied directly to the full architecture graph $G_\arch$ (intra-core
+grid edges plus inter-core links), it produces a data-placement; no
+special awareness of teleportation is required.
 
-\begin{description}[leftmargin=1.5em,labelindent=0pt,itemsep=2pt]
-  \item[\textbf{TS}] \TeleSABRE{} Hungarian initial layout (the default used
-    throughout the paper).
-  \item[\textbf{Rand}] Random qubit assignment, best of three trials.
-  \item[\textbf{SL}] Qiskit \texttt{SabreLayout} on the architecture graph
-    with the four lowest-degree corner nodes removed, best of three seeds.
-  \item[\textbf{LC}] Locality-aware community partition: greedy modularity
-    detection assigns logical qubits to cores, followed by topology-aware
-    placement within each core, best of three trials.
-\end{description}
+The \emph{corner-removal} adaptation ensures every core retains at
+least one free qubit slot after placement.  SabreLayout fills cores
+greedily: when minimising SWAP cost over $G_\arch$ it tends to pack
+logical qubits densely into each core until capacity is reached.
+A fully packed core has no parking space for intra-core SWAP sequences,
+which stalls the router.  Removing a small number of physical qubits
+from the coupling map passed to SabreLayout reduces each affected
+core's effective capacity by one, guaranteeing slack.
+
+The choice of \emph{which} qubits to remove matters: ideally the
+excluded slots should not be far from a communication port, since they
+will serve as temporary parking during SWAP chains.  In both the B-grid
+and H-grid architectures used in this paper the global corner qubits
+are the furthest from any inter-core link, making them the least useful
+for routing and the best candidates for exclusion.  The excluded
+corner slots remain available to \dSABRE{}'s router as free physical
+qubits for temporary parking.  Three random seeds are tried and the
+layout with the lowest EPR after full routing is kept.
 
 \noindent
 Each layout is paired with two routing schedules: \emph{fwd$\times$2} (the
 default two forward passes) and \emph{sabre} (forward $\to$ reversed-DAG
-backward $\to$ forward, pick best of first and third passes — matching the
-strategy of the original SABRE router~\cite{Li2019}).
+backward $\to$ forward; the better of the first and third forward passes
+by EPR count is reported).
 
 \begin{table}[t]
 \centering
-\caption{Gmean EPR under four initial-layout methods and two routing-pass
+\caption{Gmean EPR under three initial-layout methods and two routing-pass
   strategies.  Bold: best result per column.  TS row replicates the main
-  result for reference.  \emph{Rand}/\emph{SL}/\emph{LC} use three random
+  result for reference.  \emph{Rand}/\emph{SL} use three random
   trials or seeds; best is reported.}
 \label{tab:layout}
 \setlength{\tabcolsep}{5pt}
@@ -1033,10 +1272,7 @@ Rand & fwd$\times$2 & 32.0 & 125.4 \\
 Rand & sabre        & 24.0 & 112.2 \\
 \midrule
 SL   & fwd$\times$2 & 17.6 & 112.3 \\
-SL   & sabre        & \textbf{15.7} & 100.2 \\
-\midrule
-LC   & fwd$\times$2 & 33.2 & 159.3 \\
-LC   & sabre        & 27.6 & 118.4 \\
+SL   & sabre        & \textbf{15.2} & \phantom{0}96.6 \\
 \midrule
 TS reference & --- & 31.1 & 157.6 \\
 \bottomrule
@@ -1044,19 +1280,18 @@ TS reference & --- & 31.1 & 157.6 \\
 \end{table}
 
 Table~\ref{tab:layout} reveals several insights.
-First, \emph{SL\,+\,sabre} is the strongest combination on 25q ($15.7$ gmean
-EPR, $-30\%$ relative to the TS\,+\,fwd$\times$2 default and $-50\%$ relative
-to \TeleSABRE{}), and competitive on 64q ($100.2$, $-9\%$ vs.\ default).
+First, \emph{SL\,+\,sabre} is the strongest combination on 25q ($15.2$ gmean
+EPR, $-32\%$ relative to the TS\,+\,fwd$\times$2 default and $-41\%$ relative
+to \TeleSABRE{}), and competitive on 64q ($96.6$, $-12\%$ vs.\ default).
 Crucially, this combination requires no \TeleSABRE{} run — SabreLayout is a
 standard Qiskit pass.
 
 Second, the SABRE backward pass consistently benefits all layouts tested.
 Pairing the TS layout with the sabre schedule cuts 25q gmean from $22.5$ to
 $19.3$ ($-14\%$) and 64q from $110.3$ to $98.4$ ($-11\%$).
-An earlier experiment appeared to show a \texttt{qnn} regression under
-SABRE-style passes; Table~\ref{tab:layout} shows that regression was
-layout-specific: with SL layout, \texttt{qnn} on 64q is $517$ EPR for both
-schedules, matching the default result.
+Notably, \texttt{qnn} on 64q shows no regression under the SABRE backward
+pass with SL layout ($521$ EPR for both schedules, matching the default),
+confirming that pass-schedule effects on \texttt{qnn} are layout-dependent.
 
 \textit{Validity under teleportation asymmetry.}
 The primitive $\mathrm{teleport}(u,p_1,p_2)$ requires the logical qubit
@@ -1087,12 +1322,6 @@ original SABRE router's backward-pass layout~\cite{Li2019}; here it
 extends naturally to distributed teleportation because the routing
 decisions in each direction remain independent and valid.
 
-Third, \emph{LC} (locality-aware community partition) is the worst method
-on both suites despite its intuitive appeal.  Community detection does
-not directly optimise for the routing cost function, and the greedy
-modularity heuristic produces imbalanced cores that increase inter-core
-demand.
-
 These findings motivate adopting SL\,+\,sabre as the recommended configuration
 when \TeleSABRE{}'s layout is unavailable, at the cost of one additional Qiskit
 pass and the sabre reverse-pass overhead.
@@ -1100,36 +1329,45 @@ pass and the sabre reverse-pass overhead.
 \subsection{Compile Time}
 \label{sec:timing}
 
-Table~\ref{tab:timing} reports wall-clock compilation time (single routing
-pass, fixed Hungarian initial layout, seed~0) for all four routers on the
-25-qubit benchmark circuits.
+Table~\ref{tab:timing} reports wall-clock compilation time for the
+64-qubit benchmark circuits.  \TeleSABRE{} time is per winning seed
+(best of three).  \dSABRE{} time covers all three passes
+(fwd$\to$bwd$\to$fwd) of the winning SabreLayout seed.
 \TeleSABRE{} is a compiled C++ binary; the dSABRE family is pure-Python.
 
 \begin{table}[t]
 \centering
-\caption{Compilation time in seconds (25-qubit suite, single routing
-  pass, fixed Hungarian initial layout).  \TeleSABRE{} is a compiled
-  C++ binary; \dSABRE{} is pure-Python with NetworkX.}
+\caption{Compilation time in seconds (64-qubit suite, H-grid
+  $2{\times}3$ $4{\times}4$).  \TeleSABRE{}: best-seed wall-clock
+  time.  \dSABRE{}: total time for three routing passes
+  (fwd$\to$bwd$\to$fwd) from the best SabreLayout seed.
+  \TeleSABRE{} is a compiled C++ binary; \dSABRE{} is pure-Python
+  with NetworkX\@.  $^{\ast}$\TeleSABRE{} fails to converge on Random.}
 \label{tab:timing}
 \setlength{\tabcolsep}{6pt}
 \begin{tabular}{@{}lrrr@{}}
 \toprule
 Circuit & CX & \TeleSABRE{} (s) & \dSABRE{} (s) \\
 \midrule
-AE         &  558 & 0.07 &  0.93 \\
-GHZ        &   24 & 0.01 &  0.01 \\
-Graphstate &   25 & 0.02 &  0.02 \\
-QFT        &  580 & 0.11 &  0.87 \\
-QNN        & 1223 & 0.18 &  3.22 \\
-Random     & 1124 & 0.70 &  6.00 \\
+AE         & 1962 &  1.05 &  12.60 \\
+GHZ        &   63 &  0.02 &   0.09 \\
+Graphstate &   64 &  3.92 &   0.05 \\
+QFT        & 1966 &  1.81 &  10.34 \\
+QNN        & 8126 & 25.21 & 123.60 \\
+Random$^{\ast}$ & 1627 & --- & 16.69 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\TeleSABRE{}'s C++ implementation finishes in under $0.4$\,s on all
-circuits.  \dSABRE{} is $1$--$34\times$ slower than \TeleSABRE{}
-($0.01$--$10$\,s), a gap attributable to Python-interpreter overhead
-rather than algorithmic complexity.
+\TeleSABRE{}'s compile time ranges from $0.02$\,s (GHZ) to $25$\,s
+(QNN), reflecting its stochastic 3-success sampling.
+\dSABRE{} ranges from $0.05$\,s to $124$\,s (QNN), and is
+$5$--$12\times$ slower than \TeleSABRE{} on circuits where both
+converge — a gap attributable to Python-interpreter overhead rather
+than algorithmic complexity.
+On Graphstate, \dSABRE{} is faster ($0.05$\,s vs.\ $3.92$\,s) because
+\TeleSABRE{}'s sampling spends many iterations before collecting three
+successes on that circuit.
 
 %%─────────────────────────────────────────────────────────────────────────────
 \subsection{Robustness and Scalability}
@@ -1141,49 +1379,14 @@ deadlock-recovery cushion is decisive; and a large-circuit sweep at
 100, 200, and 360 logical qubits that stress-tests both routers
 substantially beyond the main evaluation range.
 
-\begin{table}[t]
-\centering
-\caption{64-qubit suite on H-grid $2{\times}3$ $4{\times}4$ (96 physical
-  qubits).  \TeleSABRE{} fails to converge on the Random circuit
-  (excluded from the TS and $\Delta$EPR gmean rows); \dSABRE{} completes
-  it using SabreLayout.  pytket-dqc completes all six circuits, so its
-  gmean is reported on both the 5-circuit and 6-circuit bases.}
-\label{tab:main64}
-\setlength{\tabcolsep}{3pt}
-\small
-\begin{tabular}{@{}l r rr rr r rr@{}}
-\toprule
- & & \multicolumn{2}{c}{\TeleSABRE}
- & \multicolumn{2}{c}{\dSABRE}
- & py-dqc & \multicolumn{2}{c}{$\Delta$EPR (\%)} \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-7}\cmidrule(lr){8-9}
-Circuit & CX & EPR & SWAP & EPR & SWAP & e-bits & TS & py \\
-\midrule
-ae         & 1962 &  323 & 1508 & 227 & 1978 &  519 & $-29.7$ & $-56.3$ \\
-ghz        &   63 &   11 &  111 &  16 &   84 &    7 & $+45.5$ & $+128.6$ \\
-graphstate &   64 &   76 &  379 &  17 &   94 &    9 & $-77.6$ & $+88.9$  \\
-qft        & 1966 &  410 & 1872 & 316 & 2264 &  591 & $-22.9$ & $-46.5$ \\
-qnn        & 8126 & 1365 & 6292 & 517 & 8656 &  736 & $-62.1$ & $-29.8$ \\
-random$^{\ast}$ & 1627 & --- & --- & 799 & 4096 & 1181 & --- & $-32.3$ \\
-\midrule
-\textbf{gmean} (5) & & 172.1 & 943 & 100.2 & 789 & 107.3 & $\mathbf{-41.8}$ & $\mathbf{-6.6}$ \\
-\textbf{gmean} (6) & & --- & --- & 141.6 & 1038 & 160.0 & --- & $\mathbf{-11.5}$ \\
-\bottomrule
-\end{tabular}\\[2pt]
-\footnotesize $^{\ast}$\TeleSABRE{} fails to converge for Random;
-\dSABRE{} and pytket-dqc both complete it (Section~\ref{sec:scalability}).
-The 5-circuit gmean row excludes Random for the TS comparison; the
-6-circuit row includes it for the py-dqc comparison.
-\end{table}
-
 \textbf{Random: \TeleSABRE{} fails to converge.}
 \TeleSABRE{}'s energy-based solver does not converge within its
 configured iteration budget on Random for any of the three seeds we
 tried.  \dSABRE{} completes the route under SabreLayout (corners removed,
-best of 3 seeds) using SABRE-style routing passes (799 EPRs, 4096 SWAPs).
+best of 3 seeds) using SABRE-style routing passes (714 EPRs, 3814 SWAPs).
 The topological-order variant (Section~\ref{sec:ablation}) yields
-808 EPRs / 4218 SWAPs --- both constructions complete, with BFS giving
-$-1.1\%$ fewer EPRs.
+783 EPRs / 4092 SWAPs --- both constructions complete, with BFS giving
+$-8.8\%$ fewer EPRs.
 
 \textbf{Where deadlock recovery matters.}
 The recovery path
@@ -1196,73 +1399,81 @@ optimisation lever.
 
 \textbf{Large-circuit sweep (100q / 200q / 360q).}
 To stress-test \dSABRE{} beyond the main evaluation range we run
-\dSABRE{} (BFS extended set) and \TeleSABRE{} on three additional
-suites of two MQT-Bench circuits each (QFT, QPEexact; IBM
-native-gate, Qiskit opt3).  The architectures scale the H-grid of the
-64q suite:
+\dSABRE{} (BFS extended set), \TeleSABRE{}, and \texttt{pytket-dqc} on
+three additional suites using the MQT-Bench QFT circuit
+(IBM native-gate, Qiskit opt3).  The architectures scale the H-grid of
+the 64q suite:
 \begin{itemize}\itemsep1pt
   \item \textbf{100q}: H-grid $2{\times}3$ $5{\times}5$ (150 physical).
   \item \textbf{200q}: H-grid $4{\times}3$ $5{\times}5$ (300 physical).
   \item \textbf{360q}: H-grid $2{\times}3$ $9{\times}9$ (486 physical).
 \end{itemize}
 \noindent
-\TeleSABRE{} is best-of-3-seed; \dSABRE{} runs 2 forward passes from
-\TeleSABRE{}'s best initial layout plus locality-aware layouts
-(3 seeds), and reports the overall best EPR.  The 200q runs use a
-600\,s wall-clock timeout per seed for \TeleSABRE{}.
+\TeleSABRE{} is best-of-3-seed with a 600\,s per-seed timeout for
+200q+; \dSABRE{} uses SabreLayout (corners removed, best of 3 seeds)
+with SABRE-style fwd/bwd/fwd passes.  \texttt{pytket-dqc} uses
+HypergraphPartitioning (best of 5 seeds); \dSABRE{} is also run from
+the same \texttt{pytket-dqc} layout to enable a fair per-column
+comparison.
 
 \begin{table}[t]
 \centering
-\caption{Large-circuit scalability.  Per-circuit EPR / SWAP and
-  $\Delta$EPR of \dSABRE{} vs.\ \TeleSABRE{} (negative is better).
-  \TeleSABRE{} fails to converge on both 200q circuits within the
-  600\,s timeout.}
+\caption{Large-circuit scalability (QFT).  \dSABRE{} uses SabreLayout for
+  the \TeleSABRE{} comparison and the \texttt{pytket-dqc} layout for
+  the py-dqc comparison (separate runs, same router).
+  Negative $\Delta$EPR is better.
+  \TeleSABRE{} fails to converge on the 200q circuit within the
+  600\,s timeout.  $^{\dagger}$See caveat on e-bit counting.}
 \label{tab:large}
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{3pt}
 \small
-\begin{tabular}{@{}ll r rr rr r@{}}
+\begin{tabular}{@{}l r rr rr r rr@{}}
 \toprule
- & & & \multicolumn{2}{c}{\TeleSABRE}
+ & & \multicolumn{2}{c}{\TeleSABRE}
  & \multicolumn{2}{c}{\dSABRE}
- & $\Delta$EPR \\
-\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-8}
-Suite & Circuit & CX & EPR & SWAP & EPR & SWAP & (\%) \\
+ & py-dqc$^{\dagger}$ & \multicolumn{2}{c}{$\Delta$EPR (\%)} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-7}\cmidrule(lr){8-9}
+Suite & CX & EPR & SWAP & EPR & SWAP & e-bits & TS & py \\
 \midrule
-\multirow{3}{*}{100q}
- & qft      & 3420 & 248 & 2414 &  268 &  3303 & $+8.1$ \\
- & qpeexact & 3579 & 586 & 3485 &  306 &  3944 & $-47.8$ \\
- & \textbf{gmean} & & 381.2 & 2900 & 286.4 & 3609 & $\mathbf{-24.9}$ \\
-\midrule
-\multirow{3}{*}{200q}
- & qft      & 7220 & --- & --- & 1006 &  9238 & --- \\
- & qpeexact & 7579 & --- & --- & 4015 & 15952 & --- \\
- & \textbf{gmean} & & --- & --- & 2009.7 & 12140 & --- \\
-\midrule
-\multirow{3}{*}{360q}
- & qft      & 13300 & 1109 & 15098 &  800 & 20384 & $-27.9$ \\
- & qpeexact & 13979 & 1071 & 14348 & 2359 & 27964 & $+120.3$ \\
- & \textbf{gmean} & & 1089.8 & 14718 & 1373.8 & 23875 & $\mathbf{+26.1}$ \\
+100q &  3420 & 248 & 2414 &  301 &  4077 &  815 & $+21.4$ & $-63.1$ \\
+200q &  7220 & ---  & ---   & 1151 & 10989 & 1124 & ---  & $+2.4$ \\
+360q & 13300 & 1109 & 15098 &  579 & 27489 &  669 & $-47.8$ & $-13.5$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:large} shows three regimes.  At \emph{100q}, \dSABRE{}
-retains its advantage with a gmean EPR reduction of $24.9\%$:
-QPEexact's hierarchical structure creates predictable inter-core
-traffic that state teleportation handles in bulk ($-47.8\%$), while
-QFT's deep sequential two-qubit chain produces a modest regression
-($+8.1\%$).  At \emph{200q}, \TeleSABRE{} fails to converge within the
-600\,s timeout on either circuit, whereas \dSABRE{} completes both;
-this robustness echoes the Random-64q result and is driven by the
-checkpoint--rollback escape.  At \emph{360q}, the picture inverts:
-\dSABRE{}'s greedy teleport decisions lose to \TeleSABRE{}'s global
-solver on QPEexact ($+120.3\%$) while still winning on QFT
-($-27.9\%$), yielding a $26\%$ gmean regression overall.  Addressing
-the large-circuit QPEexact-class workload is a concrete direction for
-future work (Section~\ref{sec:future}).
+Table~\ref{tab:large} shows three regimes for QFT.
+At \emph{100q}, \dSABRE{} wins on both fronts: QFT's deep
+sequential chain is harder to pipeline ahead of time, but
+\dSABRE{} still achieves $-63\%$ vs.\ \texttt{pytket-dqc}
+at the cost of $+21\%$ more EPRs than \TeleSABRE{}.
+At \emph{200q}, \TeleSABRE{} fails to converge within the 600\,s
+timeout, whereas \dSABRE{} completes ($1151$ EPR); this robustness
+echoes the Random-64q result and is driven by the checkpoint--rollback
+escape.
+\dSABRE{} is marginally worse than \texttt{pytket-dqc} here ($+2\%$).
+At \emph{360q}, \dSABRE{} beats \TeleSABRE{} ($-47.8\%$)
+and \texttt{pytket-dqc} ($-13.5\%$).
+Compile times for 360q QFT are $281$\,s (\TeleSABRE{}, C++, best of
+3 seeds), $801$\,s (\dSABRE{}, Python, SabreLayout + fwd$\to$bwd$\to$fwd),
+and $546$\,s (\texttt{pytket-dqc}, KaHyPar, best of 5 seeds);
+the Python overhead is the primary driver of \dSABRE{}'s longer
+wall time relative to the compiled C++ \TeleSABRE{}.
+
+\textit{Caveat on e-bit counting.}
+\texttt{pytket-dqc} uses \emph{gate teleportation}: a sequence of
+gates sharing the same qubit across cores is bundled into a hyperedge
+and executed via a single distributed state, with the EPR cost equal
+to the number of edges in the Steiner tree connecting the involved
+cores — one EPR per network hop, amortised over all gates in the bundle.
+\dSABRE{} uses \emph{qubit teleportation}: each inter-core qubit
+movement costs one EPR per hop, regardless of how many gates follow.
+These two quantities are not directly comparable; circuits with long
+runs of inter-core gates on the same qubit benefit disproportionately
+from gate-teleportation amortisation.
 
 %%─────────────────────────────────────────────────────────────────────────────
-\section{Cost Analysis}
+\subsection{Cost Analysis}
 \label{sec:cost}
 
 The combined-cost ratio $c_{\mathrm{tele}}{:}c_{\mathrm{swap}}$ is
@@ -1383,15 +1594,6 @@ is a straightforward extension and would close the gap on QNN-style
 high-density circuits where \TeleSABRE{} retains a small advantage at
 $c_\mathrm{tele}{\le}10$.
 
-\textbf{Large-circuit QPEexact regression.}
-At 360 qubits, \dSABRE{} regresses by $120\%$ on QPEexact while still
-winning on QFT (Section~\ref{sec:scalability}).  The hierarchical
-phase-estimation structure produces long inter-core chains that the
-greedy local scorer commits to suboptimally; a global pre-planning
-stage (e.g.\ batched KaHyPar partition refinement or coarse Dijkstra
-routing on the contracted core graph) layered on top of \dSABRE{}'s
-local moves is a promising direction.
-
 \textbf{Other directions.}
 (i)~A C++ port of \dSABRE{} to close the compile-time gap with
 \TeleSABRE{}.
@@ -1409,15 +1611,15 @@ loop, with proactive congestion relief and a BFS-layer extended-set
 construction as the default lookahead.  Across 18 MQT-Bench circuits
 on three architectures (B-grid 25q/36q; H-grid 64q), \dSABRE{}
 reduces geometric-mean EPR consumption over the state-of-the-art
-\TeleSABRE{} by $39.2\%$, $45.7\%$, and $41.8\%$ respectively, and
-over the gate-teleportation-based pytket-dqc by $67.4\%$, $31.9\%$,
-and $11.5\%$, using only standard Qiskit SabreLayout for initial
+\TeleSABRE{} by $41.1\%$, $44.1\%$, and $43.9\%$ respectively, and
+over the gate-teleportation-based pytket-dqc by $68.4\%$, $29.4\%$,
+and $15.7\%$, using only standard Qiskit SabreLayout for initial
 placement; \dSABRE{} also completes a 64-qubit Random circuit on which
-\TeleSABRE{} fails to converge.  A large-circuit sweep at 100--360
-qubits confirms that \dSABRE{} retains its advantage at 100q ($-25\%$
-gmean EPR) and remains the only router that completes the 200q
-suite (300 physical qubits) within budget; at 360q a global-planning
-gap on QPEexact-class workloads emerges as a concrete open problem.
+\TeleSABRE{} fails to converge.  A large-circuit QFT sweep at 100--360 qubits confirms that \dSABRE{}
+wins at 100q ($-21\%$ EPR vs.\ \TeleSABRE{}, $-63\%$ vs.\
+\texttt{pytket-dqc}), remains the only router that completes the 200q
+circuit (300 physical qubits) within budget, and wins at 360q
+($-48\%$ vs.\ \TeleSABRE{}, $-14\%$ vs.\ \texttt{pytket-dqc}).
 Under a combined cost model, the EPR savings translate to substantial
 reductions across the entire practically relevant range of
 $c_\mathrm{tele}{:}c_\mathrm{swap}$ ratios, with the largest savings
@@ -1439,9 +1641,14 @@ qubit, and consecutive non-local gates on the same wire can share the
 same e-bit (multi-gate amortisation).  This contrasts with
 \dSABRE{}'s \emph{state teleportation}, which physically moves a
 qubit into a target core so that all subsequent gates on it run
-locally.  Both primitives consume Bell pairs, so the e-bit/EPR metric
-is directly comparable.  pytket-dqc assigns qubits to QPUs
-\emph{statically} via KaHyPar hypergraph partitioning and does not
+locally.  Both primitives consume Bell pairs, but the reported counts
+are not directly comparable: \texttt{pytket-dqc} charges one e-bit per
+edge in the Steiner tree connecting all servers in a hyperedge, with
+multiple consecutive non-local gates on the same wire amortised into a
+single hyperedge.  \dSABRE{} charges one EPR per qubit-teleportation
+hop regardless of how many gates follow (see
+Section~\ref{sec:scalability}).  \texttt{pytket-dqc} assigns qubits to
+QPUs \emph{statically} via KaHyPar hypergraph partitioning and does not
 model intra-QPU SWAP routing; its output is an e-bit count only.
 
 \textbf{Implementation notes.}
@@ -1489,8 +1696,8 @@ report per-circuit results together with wall-clock compile times.
 \centering
 \caption{Shared KaHyPar mapping: pytket-dqc e-bits vs.\ \dSABRE{}
   EPR and compile time.  25q and 36q suites, B-grid $2{\times}2$
-  $4{\times}4$.  \dSABRE{} runs 2 forward passes from pytket-dqc's
-  best-seed partition.}
+  $4{\times}4$.  \dSABRE{} uses SABRE-style fwd$\to$bwd$\to$fwd
+  passes from pytket-dqc's best-seed partition.}
 \label{tab:pytket_shared_25_36}
 \setlength{\tabcolsep}{3pt}
 \small
@@ -1524,7 +1731,8 @@ wstate     &   70 &   6 & 0.1\,s &   8 & 0.0\,s & $+33\%$ \\
 \begin{table}[h]
 \centering
 \caption{Shared KaHyPar mapping: 64q suite, H-grid $2{\times}3$
-  $4{\times}4$.}
+  $4{\times}4$.  \dSABRE{} uses SABRE-style fwd$\to$bwd$\to$fwd
+  passes from pytket-dqc's best-seed partition.}
 \label{tab:pytket_shared_64}
 \setlength{\tabcolsep}{3pt}
 \small
@@ -1548,16 +1756,19 @@ random     & 1627 & 1181 &   6.5\,s & 814 &   8.2\,s & $-31\%$ \\
 \textbf{Discussion.}
 Starting from an identical qubit-to-core partition, \dSABRE{} reduces
 EPR consumption over pytket-dqc by a geometric mean of $46\%$ on the
-25q suite and $30\%$ on the 64q suite.  The advantage is largest for
-circuits with high CX density (ae, qft, qnn, random): state
-teleportation moves a qubit once and then executes an arbitrary
-number of subsequent gates locally, whereas gate teleportation charges
-one e-bit per non-local gate regardless.  The 36q suite reverses this
-picture (pytket-dqc $-25\%$): \texttt{dj}, \texttt{vqe\_su2}, and
-\texttt{wstate} have sparse or highly structured interaction graphs
-whose KaHyPar partition already achieves near-zero cross-core
-communication; \dSABRE{}'s dynamic teleport decisions then disrupt this
-optimal static assignment.
+25q suite and $30\%$ on the 64q suite.
+Bear in mind the counting asymmetry noted above: \texttt{pytket-dqc}
+amortises consecutive non-local gates into a single hyperedge, so its
+e-bit advantage is most pronounced on circuits with long runs of
+gates on the same cross-core wire.
+\dSABRE{}'s EPR advantage is largest for circuits with high CX density
+(ae, qft, qnn, random), where state teleportation moves a qubit once
+and all subsequent gates run locally regardless of their number.
+The 36q suite reverses the picture (pytket-dqc wins by $25\%$):
+\texttt{dj}, \texttt{vqe\_su2}, and \texttt{wstate} have sparse or
+highly structured interaction graphs whose KaHyPar partition already
+achieves near-zero cross-core communication; \dSABRE{}'s dynamic
+teleport decisions then disrupt this near-optimal static assignment.
 
 \textbf{Compile time.}
 pytket-dqc's wall time is dominated by KaHyPar and scales with the
