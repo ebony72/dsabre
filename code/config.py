@@ -66,6 +66,8 @@ class HardwareConfig:
     # Disable to ablate each mechanism for the §3 contribution analysis.
     enable_congestion_relief: bool = True
     enable_deadlock_recovery: bool = True
+    enable_node_decay: bool = True
+    enable_hop_gain: bool = True
 
     # ── Diagnostics ───────────────────────────────────────────────────────────
     # When True, every SWAP and teleport is appended to metrics["trace"].

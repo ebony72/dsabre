@@ -28,8 +28,11 @@
 }
 
 @article{stephenson2020high,
-  title   = {High-rate, high-fidelity entanglement of qubits across an elementary quantum network},
-  author  = {Stephenson, L. J. and others},
+  title   = {High-rate, high-fidelity entanglement of qubits across an
+             elementary quantum network},
+  author  = {Stephenson, L. J. and Nadlinger, D. P. and Nichol, B. C. and
+             An, S. and Drmota, P. and Ballance, T. G. and Thirumalai, K. and
+             Goodwin, J. F. and Lucas, D. M. and Ballance, C. J.},
   journal = {Physical Review Letters},
   volume  = {124},
   number  = {11},
@@ -57,20 +60,32 @@
   year    = {2019}
 }
 
-@inproceedings{ferrari2021compiler,
-  title     = {Compiler design for distributed quantum computing},
-  author    = {Ferrari, D. and Cacciapuoti, A. S. and Amoretti, M. and Caleffi, M.},
-  booktitle = {IEEE Transactions on Quantum Engineering},
-  volume    = {2},
-  pages     = {1--20},
-  year      = {2021}
+@article{ferrari2021compiler,
+  title   = {Compiler design for distributed quantum computing},
+  author  = {Ferrari, D. and Cacciapuoti, A. S. and Amoretti, M. and Caleffi, M.},
+  journal = {IEEE Transactions on Quantum Engineering},
+  volume  = {2},
+  pages   = {1--20},
+  year    = {2021}
 }
 
-@inproceedings{wu2022collcomm,
-  title     = {{CollComm}: Collective communication for distributed quantum computing},
-  author    = {Wu, X. and others},
-  booktitle = {Proceedings of the 59th ACM/IEEE Design Automation Conference (DAC)},
-  year      = {2022}
+@misc{wu2022collcomm,
+  title         = {{CollComm}: Enabling Efficient Collective Quantum
+                   Communication Based on {EPR} Buffering},
+  author        = {Wu, Anbang and Ding, Yufei and Li, Ang},
+  year          = {2022},
+  eprint        = {2208.06724},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph}
+}
+
+@inproceedings{liu2025codesign,
+  author    = {Liu, Ji and Zang, Allen and Suchara, Martin and Zhong, Tian and Hovland, Paul D.},
+  booktitle = {2025 62nd ACM/IEEE Design Automation Conference (DAC)},
+  title     = {Hardware-Software Co-design for Distributed Quantum Computing},
+  year      = {2025},
+  pages     = {1--6},
+  doi       = {10.1109/DAC63849.2025.11132538}
 }
 
 @inproceedings{rodrigues2022noise,
@@ -82,12 +97,11 @@
 }
 
 @inproceedings{baker2020time,
-  title     = {Time-optimal qubit mapping},
+  title     = {Time-sliced quantum circuit partitioning for modular architectures},
   author    = {Baker, J. M. and Duckering, C. and Hoover, A. and Chong, F. T.},
-  booktitle = {Proceedings of the 25th International Conference on
-               Architectural Support for Programming Languages and
-               Operating Systems (ASPLOS)},
-  pages     = {524--537},
+  booktitle = {Proceedings of the 17th ACM International Conference on
+               Computing Frontiers (CF)},
+  pages     = {98--107},
   year      = {2020}
 }
 
@@ -102,7 +116,7 @@
 @inproceedings{itoko2020optimization,
   title     = {Optimization of quantum circuit mapping using gate transformation and commutation},
   author    = {Itoko, T. and Raymond, R. and Imamichi, T. and Matsuo, A.},
-  booktedings= {Integration, the VLSI Journal},
+  booktitle = {Integration, the VLSI Journal},
   volume    = {70},
   pages     = {43--50},
   year      = {2020}
@@ -118,9 +132,33 @@
 
 @article{cowtan2019phase,
   title   = {On the qubit routing problem},
-  author  = {Cowtan, A. and others},
+  author  = {Cowtan, A. and Dilkes, S. and Duncan, R. and Krajenbrink, A. and
+             Simmons, W. and Sivarajah, S.},
   journal = {arXiv preprint arXiv:1902.08091},
   year    = {2019}
+}
+
+@article{zhou2020quantum,
+  title   = {Quantum circuit transformation based on simulated annealing and
+             heuristic search},
+  author  = {Zhou, X. and Li, S. and Feng, Y.},
+  journal = {IEEE Transactions on Computer-Aided Design of Integrated Circuits
+             and Systems},
+  volume  = {39},
+  number  = {12},
+  pages   = {4683--4694},
+  year    = {2020}
+}
+
+@article{li2021qubit,
+  title   = {Qubit mapping based on subgraph isomorphism and filtered
+             depth-limited search},
+  author  = {Li, S. and Zhou, X. and Feng, Y.},
+  journal = {IEEE Transactions on Computers},
+  volume  = {70},
+  number  = {11},
+  pages   = {1777--1788},
+  year    = {2021}
 }
 
 @article{nash2020optimal,
@@ -153,14 +191,14 @@
   year      = {2023}
 }
 
-@inproceedings{quetschlich2023mqtbench,
-  title     = {{MQT Bench}: Benchmarking software and design automation tools for
-               quantum computing},
-  author    = {Quetschlich, N. and Burgholzer, L. and Wille, R.},
-  booktitle = {Quantum},
-  volume    = {7},
-  pages     = {1062},
-  year      = {2023}
+@article{quetschlich2023mqtbench,
+  title   = {{MQT Bench}: Benchmarking software and design automation tools for
+             quantum computing},
+  author  = {Quetschlich, N. and Burgholzer, L. and Wille, R.},
+  journal = {Quantum},
+  volume  = {7},
+  pages   = {1062},
+  year    = {2023}
 }
 
 @article{li2023qasmbench,
@@ -175,15 +213,16 @@
 }
 
 @inproceedings{russo2025telesabre,
-  title     = {{TeleSABRE}: Layout Synthesis in Multi-Core Quantum Systems
-               with Teleport Interconnect},
-  author    = {Russo, G. and others},
+  title     = {{TeleSABRE}: Heuristic Layout Synthesis in Multi-Core
+               Quantum Systems with Teleport Interconnect},
+  author    = {Russo, Enrico and Vinciguerra, Elio and Palesi, Maurizio and
+               Patti, Davide and Ascia, Giuseppe and Catania, Vincenzo},
   booktitle = {Proceedings of the IEEE International Conference on Quantum
                Computing and Engineering (QCE)},
   pages     = {749--758},
   year      = {2025},
   doi       = {10.1109/QCE65121.2025.00086},
-  note      = {arXiv:2505.08928}
+  note      = {arXiv:2505.08928. Code: \url{https://github.com/Haimrich/telesabre}}
 }
 
 @article{clauset2004finding,
@@ -266,11 +305,15 @@
   year    = {2024}
 }
 
-@inproceedings{babu2025rtg,
-  title     = {Gate teleportation-assisted routing for quantum algorithms},
-  author    = {Babu, Aravind Plathanam Nano and Kerppo, Oskari and Mu{\~n}oz-Moller, Andr{\'e}s and Haghparast, Majid and Silveri, Matti},
-  booktitle = {arXiv preprint arXiv:2502.04138},
-  year      = {2025}
+@misc{babu2025rtg,
+  title         = {Gate teleportation-assisted routing for quantum algorithms},
+  author        = {Babu, Aravind Plathanam and Kerppo, Oskari and
+                   Mu{\~n}oz Moller, Andr{\'e}s and Haghparast, Majid and
+                   Silveri, Matti},
+  year          = {2025},
+  eprint        = {2502.04138},
+  archivePrefix = {arXiv},
+  primaryClass  = {quant-ph}
 }
 
 @article{suance2025decentralized,
@@ -330,4 +373,151 @@
   pages   = {1895--1899},
   year    = {1993},
   publisher = {APS}
+}
+
+@article{caleffi2024survey,
+  title   = {Distributed quantum computing: A survey},
+  author  = {Caleffi, Marcello and Amoretti, Michele and Ferrari, Davide and
+             Cuomo, Daniele and Illiano, Jessica and Manzalini, Antonio and
+             Cacciapuoti, Angela Sara},
+  journal = {Computer Networks},
+  volume  = {254},
+  pages   = {110672},
+  year    = {2024}
+}
+
+@article{barral2025review,
+  title   = {Review of distributed quantum computing: From single {QPU} to
+             high-performance quantum computing},
+  author  = {Barral, David and Cardama, F. Javier and D{\'\i}az-Camacho, Guillermo
+             and Faílde, Daniel and Pichel, Juan C. and others},
+  journal = {Computer Science Review},
+  volume  = {57},
+  pages   = {100747},
+  year    = {2025}
+}
+
+@article{escofet2024review,
+  title   = {Revisiting the mapping of quantum circuits: Entering the
+             multi-core era},
+  author  = {Escofet, Pau and Ovide, Anabel and Bandic, Medina and
+             Prielinger, Lukas and Almudever, Carmen G. and Feld, Sebastian
+             and Alarc{\'o}n, Eduard and Abadal, Sergi},
+  journal = {ACM Transactions on Quantum Computing},
+  year    = {2024},
+  note    = {arXiv:2403.17205}
+}
+
+@inproceedings{burt2024gcp,
+  title     = {Generalised circuit partitioning for distributed quantum computing},
+  author    = {Burt, Felix and Chen, Kuan-Cheng and Leung, Kin K.},
+  booktitle = {Proceedings of the IEEE International Conference on Quantum
+               Computing and Engineering (QCE)},
+  year      = {2024},
+  note      = {arXiv:2408.01424}
+}
+
+@article{burt2026multilevel,
+  title   = {A multilevel framework for partitioning quantum circuits},
+  author  = {Burt, Felix and Chen, Kuan-Cheng and Leung, Kin K.},
+  journal = {Quantum},
+  volume  = {9},
+  pages   = {1984},
+  year    = {2026},
+  note    = {arXiv:2503.19082}
+}
+
+@inproceedings{bandic2023qubo,
+  title     = {Mapping quantum circuits to modular architectures with {QUBO}},
+  author    = {Bandic, Medina and Prielinger, Lukas and Nüßlein, Jonas and
+               Ovide, Anabel and Rodrigo, Sergi and Abadal, Sergi and
+               Van Someren, Hans and Vardoyan, Gayane and Alarc{\'o}n, Eduard
+               and Almudever, Carmen G. and Feld, Sebastian},
+  booktitle = {Proceedings of the IEEE International Conference on Quantum
+               Computing and Engineering (QCE)},
+  year      = {2023},
+  note      = {arXiv:2305.06687}
+}
+
+@article{andresmartinez2024heterogeneous,
+  title   = {Distributing circuits over heterogeneous, modular quantum
+             computing network architectures},
+  author  = {Andres-Martinez, Pablo and Forrer, Tim and Mills, Daniel and
+             Wu, Jun-Yi and Henaut, Luciana and Yamamoto, Kentaro and
+             Murao, Mio and Duncan, Ross},
+  journal = {Quantum Science and Technology},
+  volume  = {9},
+  year    = {2024},
+  note    = {arXiv:2305.14148}
+}
+
+@inproceedings{pelofske2024drl,
+  title     = {Circuit partitioning for multi-core quantum architectures
+               with deep reinforcement learning},
+  author    = {Pelofske, Elijah and others},
+  booktitle = {Proceedings of the IEEE International Conference on Quantum
+               Computing and Engineering (QCE)},
+  year      = {2024},
+  note      = {arXiv:2401.17976}
+}
+
+@article{peng2020wire,
+  title   = {Simulating large quantum circuits on a small quantum computer},
+  author  = {Peng, Tianyi and Harrow, Aram W. and Ozols, Maris and Wu, Xiaodi},
+  journal = {Physical Review Letters},
+  volume  = {125},
+  number  = {15},
+  pages   = {150504},
+  year    = {2020}
+}
+
+@article{mitarai2021gate,
+  title   = {Constructing a virtual two-qubit gate by sampling single-qubit
+             operations},
+  author  = {Mitarai, Kosuke and Fujii, Keisuke},
+  journal = {New Journal of Physics},
+  volume  = {23},
+  number  = {2},
+  pages   = {023021},
+  year    = {2021}
+}
+
+@article{pellow2025network,
+  title   = {Network-aware scheduling for remote gate execution in
+             quantum data centers},
+  author  = {Pellow-Jarman, Valter and others},
+  journal = {arXiv preprint arXiv:2504.20176},
+  year    = {2025}
+}
+
+@inproceedings{escofet2023interconnect,
+  title     = {Interconnect fabrics for multi-core quantum processors:
+               A context analysis},
+  author    = {Escofet, Pau and Rached, Santiago Bal{\'a}n and Rodrigo, Sergi
+               and Almudever, Carmen G. and Alarc{\'o}n, Eduard and
+               Abadal, Sergi},
+  booktitle = {Proceedings of the 16th International Workshop on
+               Network on Chip Architectures (NoCArc)},
+  year      = {2023},
+  note      = {arXiv:2309.07313}
+}
+
+@article{schoenberger2024shuttling,
+  title   = {Shuttling for scalable trapped-ion quantum computers},
+  author  = {Schoenberger, Daniel and Hillmich, Stefan and Brandl, Matthias
+             and Wille, Robert},
+  journal = {IEEE Transactions on Computer-Aided Design of Integrated
+             Circuits and Systems},
+  year    = {2024},
+  note    = {arXiv:2402.14065}
+}
+
+@article{luo2025dmaps,
+  title   = {{DMapS}: End-to-end Qubit Mapping and Routing for Distributed
+             Quantum Computing Architectures},
+  author  = {Luo, Tingyu and Zheng, Yuzhen and Deng, Yuxin and Fu, Xiang},
+  journal = {IEEE Transactions on Computer-Aided Design of Integrated
+             Circuits and Systems},
+  year    = {2025},
+  note    = {Code: \url{https://github.com/RoccoLoter/DMapS}}
 }

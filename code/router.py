@@ -165,8 +165,9 @@ class General_dSABRE_Router:
                                     + self._evict_cost(p_comm_src, arch, p2l)
                                     + self._evict_cost(p_comm_dst, arch, p2l))
                         cap      = cfg.cap_penalty * max(0, cfg.capacity_threshold - free_cache[next_c])
-                        hop_gain = cfg.hop_gain * (arch.core_dist[src_c][tgt_c]
-                                                   - arch.core_dist[next_c][tgt_c])
+                        hop_gain = (cfg.hop_gain * (arch.core_dist[src_c][tgt_c]
+                                                    - arch.core_dist[next_c][tgt_c])
+                                    if cfg.enable_hop_gain else 0.0)
                         dF = self._delta_front(virt, p_comm_dst, [(g, 0) for g in front_inter], l2p)
                         dE = self._delta_front(virt, p_comm_dst, extended, l2p,
                                                decay=cfg.lookahead_decay)
@@ -391,8 +392,9 @@ class General_dSABRE_Router:
         metrics["cost"] += self.config.cost_local_swap
         if self.config.trace_routing:
             metrics["trace"].append(("SWAP", u, v, ci))
-        node_decay[u] = node_decay.get(u, 1.0) + 0.1
-        node_decay[v] = node_decay.get(v, 1.0) + 0.1
+        if self.config.enable_node_decay:
+            node_decay[u] = node_decay.get(u, 1.0) + 0.1
+            node_decay[v] = node_decay.get(v, 1.0) + 0.1
         return True
 
     # ── Deadlock recovery ──────────────────────────────────────────────────────
@@ -660,8 +662,9 @@ class General_dSABRE_Router:
                         metrics["cost"] += self.config.cost_local_swap
                         if self.config.trace_routing:
                             metrics["trace"].append(("SWAP", u, v, ci))
-                        node_decay[u] += 0.1
-                        node_decay[v] += 0.1
+                        if self.config.enable_node_decay:
+                            node_decay[u] += 0.1
+                            node_decay[v] += 0.1
 
             elif front_inter:
                 # Inter-core teleportation: score candidates, execute best.
