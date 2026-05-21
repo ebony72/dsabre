@@ -44,8 +44,10 @@ logging.disable(logging.WARNING)
 
 
 CIRCUITS_ROOT = os.path.expanduser("~/Documents/telesabre/circuits")
-RESULTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            "results", "results_dmaps_bench.json")
+RESULTS_PATH = os.path.join(
+    os.environ.get("DSABRE_OUT_DIR") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "results"),
+    "results_dmaps_bench.json")
+os.makedirs(os.path.dirname(RESULTS_PATH), exist_ok=True)
 
 NUM_SEEDS = 5   # best of N (DMapS has no seed knob; just rerun) — matches run_pytket_dqc_bench.py
 QUBITS_PER_CHIP = 16   # 4x4 chips for all our suites

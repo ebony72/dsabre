@@ -38,7 +38,7 @@ from layout import sabre_locked_boundary_layout, run_sabre_passes
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 TS_BIN       = os.path.expanduser("~/Documents/telesabre/telesabre")
-_RESULTS_DIR = os.path.join(os.path.dirname(__file__), "results")
+_RESULTS_DIR = os.environ.get("DSABRE_OUT_DIR") or os.path.join(os.path.dirname(__file__), "results")
 os.makedirs(_RESULTS_DIR, exist_ok=True)
 
 # ── Hardware configs ───────────────────────────────────────────────────────────

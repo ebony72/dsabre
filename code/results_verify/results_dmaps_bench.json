@@ -1,0 +1,1088 @@
+{
+  "25": [
+    {
+      "epr": 100,
+      "local_swap": 221,
+      "remote_cx": 44,
+      "remote_swap": 28,
+      "local_cx": 514,
+      "overall": 1221,
+      "seed": 2,
+      "seed_time": 2.707683959044516,
+      "total_time": 13.584048251155764,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 120,
+          "local_swap": 244,
+          "remote_cx": 50,
+          "remote_swap": 35,
+          "overall": 1444,
+          "seed_time": 2.6343918330967426
+        },
+        {
+          "seed": 1,
+          "epr": 104,
+          "local_swap": 243,
+          "remote_cx": 46,
+          "remote_swap": 29,
+          "overall": 1283,
+          "seed_time": 2.6251479170750827
+        },
+        {
+          "seed": 2,
+          "epr": 100,
+          "local_swap": 221,
+          "remote_cx": 44,
+          "remote_swap": 28,
+          "overall": 1221,
+          "seed_time": 2.707683959044516
+        },
+        {
+          "seed": 3,
+          "epr": 108,
+          "local_swap": 238,
+          "remote_cx": 48,
+          "remote_swap": 30,
+          "overall": 1318,
+          "seed_time": 2.7796216669958085
+        },
+        {
+          "seed": 4,
+          "epr": 106,
+          "local_swap": 240,
+          "remote_cx": 44,
+          "remote_swap": 31,
+          "overall": 1300,
+          "seed_time": 2.837202874943614
+        }
+      ],
+      "circuit": "ae",
+      "suite": "25"
+    },
+    {
+      "epr": 1,
+      "local_swap": 5,
+      "remote_cx": 1,
+      "remote_swap": 0,
+      "local_cx": 23,
+      "overall": 15,
+      "seed": 2,
+      "seed_time": 0.9155474579893053,
+      "total_time": 4.539773584110662,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 1,
+          "local_swap": 7,
+          "remote_cx": 1,
+          "remote_swap": 0,
+          "overall": 17,
+          "seed_time": 0.9017262919805944
+        },
+        {
+          "seed": 1,
+          "epr": 1,
+          "local_swap": 8,
+          "remote_cx": 1,
+          "remote_swap": 0,
+          "overall": 18,
+          "seed_time": 0.9148106249049306
+        },
+        {
+          "seed": 2,
+          "epr": 1,
+          "local_swap": 5,
+          "remote_cx": 1,
+          "remote_swap": 0,
+          "overall": 15,
+          "seed_time": 0.9155474579893053
+        },
+        {
+          "seed": 3,
+          "epr": 1,
+          "local_swap": 7,
+          "remote_cx": 1,
+          "remote_swap": 0,
+          "overall": 17,
+          "seed_time": 0.9044972921255976
+        },
+        {
+          "seed": 4,
+          "epr": 1,
+          "local_swap": 6,
+          "remote_cx": 1,
+          "remote_swap": 0,
+          "overall": 16,
+          "seed_time": 0.9031919171102345
+        }
+      ],
+      "circuit": "ghz",
+      "suite": "25"
+    },
+    {
+      "epr": 2,
+      "local_swap": 9,
+      "remote_cx": 2,
+      "remote_swap": 0,
+      "local_cx": 23,
+      "overall": 29,
+      "seed": 0,
+      "seed_time": 0.9821119168773293,
+      "total_time": 4.695775125874206,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 2,
+          "local_swap": 9,
+          "remote_cx": 2,
+          "remote_swap": 0,
+          "overall": 29,
+          "seed_time": 0.9821119168773293
+        },
+        {
+          "seed": 1,
+          "epr": 2,
+          "local_swap": 11,
+          "remote_cx": 2,
+          "remote_swap": 0,
+          "overall": 31,
+          "seed_time": 0.9118800419382751
+        },
+        {
+          "seed": 2,
+          "epr": 2,
+          "local_swap": 10,
+          "remote_cx": 2,
+          "remote_swap": 0,
+          "overall": 30,
+          "seed_time": 0.9116477500647306
+        },
+        {
+          "seed": 3,
+          "epr": 2,
+          "local_swap": 9,
+          "remote_cx": 2,
+          "remote_swap": 0,
+          "overall": 29,
+          "seed_time": 0.9751844999846071
+        },
+        {
+          "seed": 4,
+          "epr": 2,
+          "local_swap": 9,
+          "remote_cx": 2,
+          "remote_swap": 0,
+          "overall": 29,
+          "seed_time": 0.9149509170092642
+        }
+      ],
+      "circuit": "graphstate",
+      "suite": "25"
+    },
+    {
+      "epr": 116,
+      "local_swap": 280,
+      "remote_cx": 44,
+      "remote_swap": 36,
+      "local_cx": 536,
+      "overall": 1440,
+      "seed": 4,
+      "seed_time": 3.3913882919587195,
+      "total_time": 17.05965637601912,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 120,
+          "local_swap": 281,
+          "remote_cx": 36,
+          "remote_swap": 42,
+          "overall": 1481,
+          "seed_time": 3.3958841250278056
+        },
+        {
+          "seed": 1,
+          "epr": 133,
+          "local_swap": 267,
+          "remote_cx": 51,
+          "remote_swap": 41,
+          "overall": 1597,
+          "seed_time": 3.472351042088121
+        },
+        {
+          "seed": 2,
+          "epr": 126,
+          "local_swap": 267,
+          "remote_cx": 54,
+          "remote_swap": 36,
+          "overall": 1527,
+          "seed_time": 3.448862874880433
+        },
+        {
+          "seed": 3,
+          "epr": 119,
+          "local_swap": 257,
+          "remote_cx": 41,
+          "remote_swap": 39,
+          "overall": 1447,
+          "seed_time": 3.351170042064041
+        },
+        {
+          "seed": 4,
+          "epr": 116,
+          "local_swap": 280,
+          "remote_cx": 44,
+          "remote_swap": 36,
+          "overall": 1440,
+          "seed_time": 3.3913882919587195
+        }
+      ],
+      "circuit": "qft",
+      "suite": "25"
+    },
+    {
+      "epr": 115,
+      "local_swap": 501,
+      "remote_cx": 49,
+      "remote_swap": 33,
+      "local_cx": 1174,
+      "overall": 1651,
+      "seed": 3,
+      "seed_time": 4.835908666020259,
+      "total_time": 25.037818750133738,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 202,
+          "local_swap": 621,
+          "remote_cx": 76,
+          "remote_swap": 63,
+          "overall": 2641,
+          "seed_time": 5.080896666971967
+        },
+        {
+          "seed": 1,
+          "epr": 127,
+          "local_swap": 487,
+          "remote_cx": 61,
+          "remote_swap": 33,
+          "overall": 1757,
+          "seed_time": 5.192336875014007
+        },
+        {
+          "seed": 2,
+          "epr": 119,
+          "local_swap": 494,
+          "remote_cx": 55,
+          "remote_swap": 32,
+          "overall": 1684,
+          "seed_time": 4.870757583994418
+        },
+        {
+          "seed": 3,
+          "epr": 115,
+          "local_swap": 501,
+          "remote_cx": 49,
+          "remote_swap": 33,
+          "overall": 1651,
+          "seed_time": 4.835908666020259
+        },
+        {
+          "seed": 4,
+          "epr": 113,
+          "local_swap": 529,
+          "remote_cx": 57,
+          "remote_swap": 28,
+          "overall": 1659,
+          "seed_time": 5.057918958133087
+        }
+      ],
+      "circuit": "qnn",
+      "suite": "25"
+    },
+    {
+      "epr": 317,
+      "local_swap": 1005,
+      "remote_cx": 121,
+      "remote_swap": 98,
+      "local_cx": 1003,
+      "overall": 4175,
+      "seed": 2,
+      "seed_time": 10.91782541712746,
+      "total_time": 53.9641839179676,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 402,
+          "local_swap": 1221,
+          "remote_cx": 160,
+          "remote_swap": 121,
+          "overall": 5241,
+          "seed_time": 10.461249792017043
+        },
+        {
+          "seed": 1,
+          "epr": 343,
+          "local_swap": 1028,
+          "remote_cx": 141,
+          "remote_swap": 101,
+          "overall": 4458,
+          "seed_time": 10.93851291690953
+        },
+        {
+          "seed": 2,
+          "epr": 317,
+          "local_swap": 1005,
+          "remote_cx": 121,
+          "remote_swap": 98,
+          "overall": 4175,
+          "seed_time": 10.91782541712746
+        },
+        {
+          "seed": 3,
+          "epr": 378,
+          "local_swap": 1250,
+          "remote_cx": 138,
+          "remote_swap": 120,
+          "overall": 5030,
+          "seed_time": 11.12221920886077
+        },
+        {
+          "seed": 4,
+          "epr": 389,
+          "local_swap": 1208,
+          "remote_cx": 161,
+          "remote_swap": 114,
+          "overall": 5098,
+          "seed_time": 10.524376583052799
+        }
+      ],
+      "circuit": "random",
+      "suite": "25"
+    }
+  ],
+  "36": [
+    {
+      "epr": 9,
+      "local_swap": 18,
+      "remote_cx": 7,
+      "remote_swap": 1,
+      "local_cx": 10,
+      "overall": 108,
+      "seed": 1,
+      "seed_time": 0.9977733751293272,
+      "total_time": 4.768015876412392,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 9,
+          "local_swap": 19,
+          "remote_cx": 7,
+          "remote_swap": 1,
+          "overall": 109,
+          "seed_time": 0.9320326251909137
+        },
+        {
+          "seed": 1,
+          "epr": 9,
+          "local_swap": 18,
+          "remote_cx": 7,
+          "remote_swap": 1,
+          "overall": 108,
+          "seed_time": 0.9977733751293272
+        },
+        {
+          "seed": 2,
+          "epr": 9,
+          "local_swap": 18,
+          "remote_cx": 7,
+          "remote_swap": 1,
+          "overall": 108,
+          "seed_time": 0.9411190419923514
+        },
+        {
+          "seed": 3,
+          "epr": 9,
+          "local_swap": 24,
+          "remote_cx": 7,
+          "remote_swap": 1,
+          "overall": 114,
+          "seed_time": 0.9507155839819461
+        },
+        {
+          "seed": 4,
+          "epr": 9,
+          "local_swap": 25,
+          "remote_cx": 7,
+          "remote_swap": 1,
+          "overall": 115,
+          "seed_time": 0.9463752501178533
+        }
+      ],
+      "circuit": "bv",
+      "suite": "36"
+    },
+    {
+      "epr": 34,
+      "local_swap": 122,
+      "remote_cx": 14,
+      "remote_swap": 10,
+      "local_cx": 21,
+      "overall": 462,
+      "seed": 0,
+      "seed_time": 1.1695347919594496,
+      "total_time": 5.753912457963452,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 34,
+          "local_swap": 122,
+          "remote_cx": 14,
+          "remote_swap": 10,
+          "overall": 462,
+          "seed_time": 1.1695347919594496
+        },
+        {
+          "seed": 1,
+          "epr": 36,
+          "local_swap": 171,
+          "remote_cx": 20,
+          "remote_swap": 8,
+          "overall": 531,
+          "seed_time": 1.1306648747995496
+        },
+        {
+          "seed": 2,
+          "epr": 35,
+          "local_swap": 167,
+          "remote_cx": 23,
+          "remote_swap": 6,
+          "overall": 517,
+          "seed_time": 1.185645665973425
+        },
+        {
+          "seed": 3,
+          "epr": 36,
+          "local_swap": 130,
+          "remote_cx": 16,
+          "remote_swap": 10,
+          "overall": 490,
+          "seed_time": 1.1433200421743095
+        },
+        {
+          "seed": 4,
+          "epr": 38,
+          "local_swap": 124,
+          "remote_cx": 18,
+          "remote_swap": 10,
+          "overall": 504,
+          "seed_time": 1.1247470830567181
+        }
+      ],
+      "circuit": "dj",
+      "suite": "36"
+    },
+    {
+      "epr": 476,
+      "local_swap": 956,
+      "remote_cx": 168,
+      "remote_swap": 154,
+      "local_cx": 1032,
+      "overall": 5716,
+      "seed": 4,
+      "seed_time": 14.68995637493208,
+      "total_time": 72.16990458383225,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 616,
+          "local_swap": 1319,
+          "remote_cx": 258,
+          "remote_swap": 179,
+          "overall": 7479,
+          "seed_time": 14.672825458925217
+        },
+        {
+          "seed": 1,
+          "epr": 536,
+          "local_swap": 1128,
+          "remote_cx": 174,
+          "remote_swap": 181,
+          "overall": 6488,
+          "seed_time": 14.417012375080958
+        },
+        {
+          "seed": 2,
+          "epr": 472,
+          "local_swap": 1018,
+          "remote_cx": 156,
+          "remote_swap": 158,
+          "overall": 5738,
+          "seed_time": 14.178934749914333
+        },
+        {
+          "seed": 3,
+          "epr": 486,
+          "local_swap": 989,
+          "remote_cx": 192,
+          "remote_swap": 147,
+          "overall": 5849,
+          "seed_time": 14.21117562497966
+        },
+        {
+          "seed": 4,
+          "epr": 476,
+          "local_swap": 956,
+          "remote_cx": 168,
+          "remote_swap": 154,
+          "overall": 5716,
+          "seed_time": 14.68995637493208
+        }
+      ],
+      "circuit": "qaoa",
+      "suite": "36"
+    },
+    {
+      "epr": 200,
+      "local_swap": 482,
+      "remote_cx": 90,
+      "remote_swap": 55,
+      "local_cx": 929,
+      "overall": 2482,
+      "seed": 1,
+      "seed_time": 5.222781250020489,
+      "total_time": 27.24592279200442,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 206,
+          "local_swap": 467,
+          "remote_cx": 90,
+          "remote_swap": 58,
+          "overall": 2527,
+          "seed_time": 5.539238249883056
+        },
+        {
+          "seed": 1,
+          "epr": 200,
+          "local_swap": 482,
+          "remote_cx": 90,
+          "remote_swap": 55,
+          "overall": 2482,
+          "seed_time": 5.222781250020489
+        },
+        {
+          "seed": 2,
+          "epr": 218,
+          "local_swap": 517,
+          "remote_cx": 84,
+          "remote_swap": 67,
+          "overall": 2697,
+          "seed_time": 5.545084666926414
+        },
+        {
+          "seed": 3,
+          "epr": 216,
+          "local_swap": 509,
+          "remote_cx": 96,
+          "remote_swap": 60,
+          "overall": 2669,
+          "seed_time": 5.398746458115056
+        },
+        {
+          "seed": 4,
+          "epr": 216,
+          "local_swap": 449,
+          "remote_cx": 100,
+          "remote_swap": 58,
+          "overall": 2609,
+          "seed_time": 5.540072167059407
+        }
+      ],
+      "circuit": "qpeexact",
+      "suite": "36"
+    },
+    {
+      "epr": 6,
+      "local_swap": 9,
+      "remote_cx": 6,
+      "remote_swap": 0,
+      "local_cx": 99,
+      "overall": 69,
+      "seed": 3,
+      "seed_time": 1.1035249999258667,
+      "total_time": 5.777026457712054,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 6,
+          "local_swap": 14,
+          "remote_cx": 6,
+          "remote_swap": 0,
+          "overall": 74,
+          "seed_time": 1.1693779998458922
+        },
+        {
+          "seed": 1,
+          "epr": 6,
+          "local_swap": 20,
+          "remote_cx": 6,
+          "remote_swap": 0,
+          "overall": 80,
+          "seed_time": 1.1425235827919096
+        },
+        {
+          "seed": 2,
+          "epr": 6,
+          "local_swap": 13,
+          "remote_cx": 6,
+          "remote_swap": 0,
+          "overall": 73,
+          "seed_time": 1.1795252501033247
+        },
+        {
+          "seed": 3,
+          "epr": 6,
+          "local_swap": 9,
+          "remote_cx": 6,
+          "remote_swap": 0,
+          "overall": 69,
+          "seed_time": 1.1035249999258667
+        },
+        {
+          "seed": 4,
+          "epr": 6,
+          "local_swap": 20,
+          "remote_cx": 6,
+          "remote_swap": 0,
+          "overall": 80,
+          "seed_time": 1.1820746250450611
+        }
+      ],
+      "circuit": "vqe_su2",
+      "suite": "36"
+    },
+    {
+      "epr": 4,
+      "local_swap": 8,
+      "remote_cx": 4,
+      "remote_swap": 0,
+      "local_cx": 66,
+      "overall": 48,
+      "seed": 2,
+      "seed_time": 1.1000416250899434,
+      "total_time": 5.386304167099297,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 4,
+          "local_swap": 9,
+          "remote_cx": 4,
+          "remote_swap": 0,
+          "overall": 49,
+          "seed_time": 1.0733232500497252
+        },
+        {
+          "seed": 1,
+          "epr": 4,
+          "local_swap": 9,
+          "remote_cx": 4,
+          "remote_swap": 0,
+          "overall": 49,
+          "seed_time": 1.0577174588106573
+        },
+        {
+          "seed": 2,
+          "epr": 4,
+          "local_swap": 8,
+          "remote_cx": 4,
+          "remote_swap": 0,
+          "overall": 48,
+          "seed_time": 1.1000416250899434
+        },
+        {
+          "seed": 3,
+          "epr": 4,
+          "local_swap": 8,
+          "remote_cx": 4,
+          "remote_swap": 0,
+          "overall": 48,
+          "seed_time": 1.032689708052203
+        },
+        {
+          "seed": 4,
+          "epr": 4,
+          "local_swap": 10,
+          "remote_cx": 4,
+          "remote_swap": 0,
+          "overall": 50,
+          "seed_time": 1.1225321250967681
+        }
+      ],
+      "circuit": "wstate",
+      "suite": "36"
+    }
+  ],
+  "64": [
+    {
+      "epr": 414,
+      "local_swap": 1091,
+      "remote_cx": 164,
+      "remote_swap": 125,
+      "local_cx": 1798,
+      "overall": 5231,
+      "seed": 3,
+      "seed_time": 12.881605583010241,
+      "total_time": 64.33096233406104,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 462,
+          "local_swap": 992,
+          "remote_cx": 180,
+          "remote_swap": 141,
+          "overall": 5612,
+          "seed_time": 12.520972541999072
+        },
+        {
+          "seed": 1,
+          "epr": 470,
+          "local_swap": 1315,
+          "remote_cx": 182,
+          "remote_swap": 144,
+          "overall": 6015,
+          "seed_time": 12.741239124909043
+        },
+        {
+          "seed": 2,
+          "epr": 430,
+          "local_swap": 1112,
+          "remote_cx": 170,
+          "remote_swap": 130,
+          "overall": 5412,
+          "seed_time": 13.010893250117078
+        },
+        {
+          "seed": 3,
+          "epr": 414,
+          "local_swap": 1091,
+          "remote_cx": 164,
+          "remote_swap": 125,
+          "overall": 5231,
+          "seed_time": 12.881605583010241
+        },
+        {
+          "seed": 4,
+          "epr": 546,
+          "local_swap": 1085,
+          "remote_cx": 220,
+          "remote_swap": 163,
+          "overall": 6545,
+          "seed_time": 13.176251834025607
+        }
+      ],
+      "circuit": "ae",
+      "suite": "64"
+    },
+    {
+      "epr": 3,
+      "local_swap": 19,
+      "remote_cx": 3,
+      "remote_swap": 0,
+      "local_cx": 60,
+      "overall": 49,
+      "seed": 3,
+      "seed_time": 1.597039416898042,
+      "total_time": 8.231495374813676,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 3,
+          "local_swap": 20,
+          "remote_cx": 3,
+          "remote_swap": 0,
+          "overall": 50,
+          "seed_time": 1.6332092499360442
+        },
+        {
+          "seed": 1,
+          "epr": 3,
+          "local_swap": 25,
+          "remote_cx": 3,
+          "remote_swap": 0,
+          "overall": 55,
+          "seed_time": 1.6011500828899443
+        },
+        {
+          "seed": 2,
+          "epr": 3,
+          "local_swap": 22,
+          "remote_cx": 3,
+          "remote_swap": 0,
+          "overall": 52,
+          "seed_time": 1.7099935000296682
+        },
+        {
+          "seed": 3,
+          "epr": 3,
+          "local_swap": 19,
+          "remote_cx": 3,
+          "remote_swap": 0,
+          "overall": 49,
+          "seed_time": 1.597039416898042
+        },
+        {
+          "seed": 4,
+          "epr": 3,
+          "local_swap": 25,
+          "remote_cx": 3,
+          "remote_swap": 0,
+          "overall": 55,
+          "seed_time": 1.6901031250599772
+        }
+      ],
+      "circuit": "ghz",
+      "suite": "64"
+    },
+    {
+      "epr": 4,
+      "local_swap": 13,
+      "remote_cx": 4,
+      "remote_swap": 0,
+      "local_cx": 60,
+      "overall": 53,
+      "seed": 0,
+      "seed_time": 1.687390792183578,
+      "total_time": 8.354393750196323,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 4,
+          "local_swap": 13,
+          "remote_cx": 4,
+          "remote_swap": 0,
+          "overall": 53,
+          "seed_time": 1.687390792183578
+        },
+        {
+          "seed": 1,
+          "epr": 4,
+          "local_swap": 18,
+          "remote_cx": 4,
+          "remote_swap": 0,
+          "overall": 58,
+          "seed_time": 1.6398651669733226
+        },
+        {
+          "seed": 2,
+          "epr": 4,
+          "local_swap": 16,
+          "remote_cx": 4,
+          "remote_swap": 0,
+          "overall": 56,
+          "seed_time": 1.6809508751612157
+        },
+        {
+          "seed": 3,
+          "epr": 4,
+          "local_swap": 21,
+          "remote_cx": 4,
+          "remote_swap": 0,
+          "overall": 61,
+          "seed_time": 1.6797451660968363
+        },
+        {
+          "seed": 4,
+          "epr": 4,
+          "local_swap": 25,
+          "remote_cx": 4,
+          "remote_swap": 0,
+          "overall": 65,
+          "seed_time": 1.6664417497813702
+        }
+      ],
+      "circuit": "graphstate",
+      "suite": "64"
+    },
+    {
+      "epr": 395,
+      "local_swap": 1065,
+      "remote_cx": 159,
+      "remote_swap": 118,
+      "local_cx": 1807,
+      "overall": 5015,
+      "seed": 4,
+      "seed_time": 14.229119416093454,
+      "total_time": 70.41819345694967,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 410,
+          "local_swap": 1115,
+          "remote_cx": 170,
+          "remote_swap": 120,
+          "overall": 5215,
+          "seed_time": 14.06975687504746
+        },
+        {
+          "seed": 1,
+          "epr": 425,
+          "local_swap": 1143,
+          "remote_cx": 141,
+          "remote_swap": 142,
+          "overall": 5393,
+          "seed_time": 14.172458124812692
+        },
+        {
+          "seed": 2,
+          "epr": 500,
+          "local_swap": 1086,
+          "remote_cx": 194,
+          "remote_swap": 153,
+          "overall": 6086,
+          "seed_time": 13.897403249982744
+        },
+        {
+          "seed": 3,
+          "epr": 485,
+          "local_swap": 1082,
+          "remote_cx": 179,
+          "remote_swap": 153,
+          "overall": 5932,
+          "seed_time": 14.049455791013315
+        },
+        {
+          "seed": 4,
+          "epr": 395,
+          "local_swap": 1065,
+          "remote_cx": 159,
+          "remote_swap": 118,
+          "overall": 5015,
+          "seed_time": 14.229119416093454
+        }
+      ],
+      "circuit": "qft",
+      "suite": "64"
+    },
+    {
+      "epr": 1020,
+      "local_swap": 3732,
+      "remote_cx": 438,
+      "remote_swap": 291,
+      "local_cx": 7688,
+      "overall": 13932,
+      "seed": 4,
+      "seed_time": 59.642417000140995,
+      "total_time": 298.39736966672353,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 1157,
+          "local_swap": 3720,
+          "remote_cx": 549,
+          "remote_swap": 304,
+          "overall": 15290,
+          "seed_time": 59.354614791926
+        },
+        {
+          "seed": 1,
+          "epr": 1110,
+          "local_swap": 3848,
+          "remote_cx": 428,
+          "remote_swap": 341,
+          "overall": 14948,
+          "seed_time": 60.01570374984294
+        },
+        {
+          "seed": 2,
+          "epr": 1024,
+          "local_swap": 3861,
+          "remote_cx": 428,
+          "remote_swap": 298,
+          "overall": 14101,
+          "seed_time": 59.60994574986398
+        },
+        {
+          "seed": 3,
+          "epr": 1205,
+          "local_swap": 3796,
+          "remote_cx": 517,
+          "remote_swap": 344,
+          "overall": 15846,
+          "seed_time": 59.77468837494962
+        },
+        {
+          "seed": 4,
+          "epr": 1020,
+          "local_swap": 3732,
+          "remote_cx": 438,
+          "remote_swap": 291,
+          "overall": 13932,
+          "seed_time": 59.642417000140995
+        }
+      ],
+      "circuit": "qnn",
+      "suite": "64"
+    },
+    {
+      "epr": 1102,
+      "local_swap": 3624,
+      "remote_cx": 360,
+      "remote_swap": 371,
+      "local_cx": 1267,
+      "overall": 14644,
+      "seed": 4,
+      "seed_time": 31.13795212493278,
+      "total_time": 150.16107729217038,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 1219,
+          "local_swap": 3891,
+          "remote_cx": 409,
+          "remote_swap": 405,
+          "overall": 16081,
+          "seed_time": 30.085364874918014
+        },
+        {
+          "seed": 1,
+          "epr": 1128,
+          "local_swap": 3454,
+          "remote_cx": 360,
+          "remote_swap": 384,
+          "overall": 14734,
+          "seed_time": 29.542196167167276
+        },
+        {
+          "seed": 2,
+          "epr": 1184,
+          "local_swap": 3516,
+          "remote_cx": 384,
+          "remote_swap": 400,
+          "overall": 15356,
+          "seed_time": 29.04513950017281
+        },
+        {
+          "seed": 3,
+          "epr": 1179,
+          "local_swap": 3315,
+          "remote_cx": 385,
+          "remote_swap": 397,
+          "overall": 15105,
+          "seed_time": 30.350424624979496
+        },
+        {
+          "seed": 4,
+          "epr": 1102,
+          "local_swap": 3624,
+          "remote_cx": 360,
+          "remote_swap": 371,
+          "overall": 14644,
+          "seed_time": 31.13795212493278
+        }
+      ],
+      "circuit": "random",
+      "suite": "64"
+    }
+  ]
+}

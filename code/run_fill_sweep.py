@@ -23,7 +23,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-RESULTS = os.path.join(HERE, "results")
+RESULTS = os.environ.get("DSABRE_OUT_DIR") or os.path.join(HERE, "results")
 os.makedirs(RESULTS, exist_ok=True)
 
 QFT_SIZES = [24, 36, 48, 56]   # fill ratios 37.5 / 56 / 75 / 87.5 % on 64-phys
@@ -149,7 +149,7 @@ def run_dmaps(paths):
                 best = m
         if best is None:
             best = seed_log[0]
-        best["seeds"] = seed_log
+        best = {k: v for k, v in best.items() if k != "seeds"}
         best["total_time"] = elapsed
         best["n"] = n
         rows.append(best)

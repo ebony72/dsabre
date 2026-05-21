@@ -43,7 +43,7 @@ from layout import run_sabre_passes
 logging.disable(logging.WARNING)
 
 _HERE        = os.path.dirname(os.path.abspath(__file__))
-_RESULTS_DIR = os.path.join(_HERE, "results")
+_RESULTS_DIR = os.environ.get("DSABRE_OUT_DIR") or os.path.join(_HERE, "results")
 os.makedirs(_RESULTS_DIR, exist_ok=True)
 
 NUM_SEEDS = 5

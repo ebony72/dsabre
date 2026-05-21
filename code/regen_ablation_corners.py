@@ -162,7 +162,8 @@ def main():
         results["mechanism_ablation"][suite_label] = run_mech(suite_label, circuits, info["arch"])
         results["passes_sweep"][suite_label]       = run_passes_sweep(suite_label, circuits, info["arch"])
 
-        outpath = os.path.join(_HERE, "results", "regen_ablation_corners.json")
+        outpath = os.path.join(os.environ.get("DSABRE_OUT_DIR") or os.path.join(_HERE, "results"), "regen_ablation_corners.json")
+        os.makedirs(os.path.dirname(outpath), exist_ok=True)
         with open(outpath, "w") as f:
             json.dump(results, f, indent=2)
         print(f"  → saved partial results to {outpath}", flush=True)

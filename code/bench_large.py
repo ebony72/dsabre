@@ -44,7 +44,7 @@ def p2v_to_layout(p2v, dag):
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 TS_BIN       = os.path.expanduser("~/Documents/telesabre/telesabre")
-_RESULTS_DIR = os.path.join(os.path.dirname(__file__), "results")
+_RESULTS_DIR = os.environ.get("DSABRE_OUT_DIR") or os.path.join(os.path.dirname(__file__), "results")
 os.makedirs(_RESULTS_DIR, exist_ok=True)
 
 _HW = HardwareConfig(deadlock_limit=200, max_backup_attempts=200, max_iterations=50000)
@@ -168,7 +168,11 @@ def run_dsabre(router_key, router, qc, dag, rev_dag, arch, label):
             print(f"    {label} sl_seed{i}: EPR={eprs}, SWAP={ls} ({elapsed:.1f}s)", flush=True)
             if best is None or eprs < best["eprs"]:
                 best = dict(eprs=eprs, ls=ls, layout=f"sl_seed{i}",
-                            time_s=round(elapsed, 2), aborted=False)
+                            time_s=round(elapsed, 2), aborted=False,
+                            backup_activations=m.get("backup_activations", 0),
+                            force_make_room=m.get("force_make_room", 0),
+                            relief_candidates=m.get("relief_candidates", 0),
+                            relief_picks=m.get("relief_picks", 0))
         else:
             print(f"    {label} sl_seed{i}: ABORTED ({elapsed:.1f}s)", flush=True)
     if best is None:
@@ -187,6 +191,9 @@ def bench_suite(suite_name, s):
         "dS":  General_dSABRE_Router(arch, _HW),
         "dSE": dSABRE_BurstExt(arch, _HW),
     }
+    _only_routers = s.get("only_routers")
+    if _only_routers:
+        routers = {k: v for k, v in routers.items() if k in _only_routers}
 
     records = []
     print(f"\n{'═'*60}\n  {suite_name}\n{'═'*60}", flush=True)
@@ -225,6 +232,14 @@ def bench_suite(suite_name, s):
         )
         records.append(rec)
 
+        # Incremental save so kill/abort doesn't lose work
+        try:
+            _inc_path = os.path.join(_RESULTS_DIR, f"results_{suite_name}.partial.json")
+            with open(_inc_path, "w") as _f:
+                json.dump({"suite": suite_name, "records": records}, _f, indent=2)
+        except Exception as _e:
+            print(f"    (partial save failed: {_e})", flush=True)
+
         # Quick summary
         ts_epr = ts_result["eprs"] if ts_result else None
         for rkey in ["dS", "dSE"]:
@@ -240,7 +255,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--suite", choices=["100", "200", "360", "all"], default="all")
+    parser.add_argument("--circuits", default=None,
+                        help="Comma-separated subset of circuits to run (e.g., 'qft'). "
+                             "Default: all circuits listed in the suite config.")
+    parser.add_argument("--routers", default=None,
+                        help="Comma-separated subset of routers to run (e.g., 'dSE'). "
+                             "Default: dS,dSE.")
     args = parser.parse_args()
+    only = set(args.circuits.split(",")) if args.circuits else None
+    only_routers = set(args.routers.split(",")) if args.routers else None
 
     run_suites = []
     if args.suite in ("100", "all"): run_suites.append("100q")
@@ -250,7 +273,11 @@ def main():
     t_total = time.time()
     all_records = {}
     for sname in run_suites:
-        records = bench_suite(sname, SUITES[sname])
+        suite_cfg = dict(SUITES[sname])
+        if only is not None:
+            suite_cfg["circuits"] = [c for c in suite_cfg["circuits"] if c in only]
+        suite_cfg["only_routers"] = only_routers
+        records = bench_suite(sname, suite_cfg)
         all_records[sname] = records
         out_path = os.path.join(_RESULTS_DIR, f"results_{sname}.json")
         payload = dict(

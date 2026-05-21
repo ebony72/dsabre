@@ -1,0 +1,59 @@
+{
+  "sizes": [
+    24,
+    36,
+    48,
+    56
+  ],
+  "device": "B-grid 2x2 4x4 (64 phys)",
+  "rows": [
+    {
+      "epr": 108,
+      "local_swap": 269,
+      "remote_cx": 36,
+      "remote_swap": 36,
+      "local_cx": 552,
+      "overall": 1349,
+      "seed": 2,
+      "seed_time": 10.110311624826863,
+      "total_time": 49.16199399996549,
+      "n": 24
+    },
+    {
+      "epr": 458,
+      "local_swap": 776,
+      "remote_cx": 156,
+      "remote_swap": 151,
+      "local_cx": 1158,
+      "overall": 5356,
+      "seed": 2,
+      "seed_time": 33.91121566714719,
+      "total_time": 187.64555229223333,
+      "n": 36
+    },
+    {
+      "epr": 675,
+      "local_swap": 1395,
+      "remote_cx": 223,
+      "remote_swap": 226,
+      "local_cx": 2049,
+      "overall": 8145,
+      "seed": 2,
+      "seed_time": 40.63611570792273,
+      "total_time": 210.78400837513618,
+      "n": 48
+    },
+    {
+      "epr": 676,
+      "local_swap": 1503,
+      "remote_cx": 254,
+      "remote_swap": 211,
+      "local_cx": 2670,
+      "overall": 8263,
+      "seed": 3,
+      "seed_time": 55.03234437503852,
+      "total_time": 278.2349308321718,
+      "n": 56
+    }
+  ]
+}

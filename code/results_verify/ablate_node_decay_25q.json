@@ -1,0 +1,82 @@
+{
+  "suite": "25q",
+  "rows": [
+    {
+      "circuit": "ae",
+      "on": {
+        "eprs": 23,
+        "ls": 374
+      },
+      "off": {
+        "eprs": 23,
+        "ls": 304
+      },
+      "time_s": 5.01
+    },
+    {
+      "circuit": "ghz",
+      "on": {
+        "eprs": 1,
+        "ls": 14
+      },
+      "off": {
+        "eprs": 1,
+        "ls": 14
+      },
+      "time_s": 0.06
+    },
+    {
+      "circuit": "graphstate",
+      "on": {
+        "eprs": 2,
+        "ls": 16
+      },
+      "off": {
+        "eprs": 2,
+        "ls": 14
+      },
+      "time_s": 0.05
+    },
+    {
+      "circuit": "qft",
+      "on": {
+        "eprs": 33,
+        "ls": 461
+      },
+      "off": {
+        "eprs": 33,
+        "ls": 349
+      },
+      "time_s": 3.89
+    },
+    {
+      "circuit": "qnn",
+      "on": {
+        "eprs": 48,
+        "ls": 1076
+      },
+      "off": {
+        "eprs": 48,
+        "ls": 701
+      },
+      "time_s": 13.99
+    },
+    {
+      "circuit": "random",
+      "on": {
+        "eprs": 169,
+        "ls": 1374
+      },
+      "off": {
+        "eprs": 178,
+        "ls": 1123
+      },
+      "time_s": 33.37
+    }
+  ],
+  "gmean": {
+    "on": 15.196139985777014,
+    "off": 15.32811800506643,
+    "pct": 0.8684969960328257
+  }
+}

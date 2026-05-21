@@ -6,7 +6,7 @@ circuit in the chosen suite, using the same layout seeds and fwd/bwd/fwd SABRE
 passes as the main benchmark.  Reports EPR and local-SWAP counts plus a gmean
 summary.  Usage: python3 ablate_node_decay.py [--suite 25q|64q]
 """
-import sys, os, math, time, argparse
+import sys, os, math, time, argparse, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from qiskit import QuantumCircuit
@@ -86,6 +86,7 @@ def bench_suite(suite_name, cfg):
     print(f"  {'-'*14}  {'-'*8}  {'-'*8}  {'-'*7}  {'-'*7}  {'-'*7}", flush=True)
 
     epr_on_all, epr_off_all = [], []
+    rows = []
 
     for fname in qasm_files:
         circ = fname.replace(suffix, "")
@@ -103,10 +104,13 @@ def bench_suite(suite_name, cfg):
             status_on  = "ABORT" if m_on  is None else str(m_on["eprs"])
             status_off = "ABORT" if m_off is None else str(m_off["eprs"])
             print(f"  {circ:<14}  {status_on:>8}  {status_off:>8}", flush=True)
+            rows.append(dict(circuit=circ, on=None if m_on is None else dict(eprs=m_on["eprs"], ls=m_on["ls"]),
+                             off=None if m_off is None else dict(eprs=m_off["eprs"], ls=m_off["ls"])))
             continue
 
         epr_on, epr_off = m_on["eprs"], m_off["eprs"]
         ls_on,  ls_off  = m_on["ls"],   m_off["ls"]
+        rows.append(dict(circuit=circ, on=dict(eprs=epr_on, ls=ls_on), off=dict(eprs=epr_off, ls=ls_off), time_s=round(elapsed,2)))
         pct = (epr_off - epr_on) / max(epr_on, 1) * 100
         sign = "+" if pct >= 0 else ""
         print(f"  {circ:<14}  {epr_on:>8}  {epr_off:>8}  {sign}{pct:>6.1f}%  {ls_on:>7}  {ls_off:>7}  ({elapsed:.1f}s)", flush=True)
@@ -121,6 +125,14 @@ def bench_suite(suite_name, cfg):
     print(f"  {'gmean':<14}  {gm_on:>8.1f}  {gm_off:>8.1f}  {sign}{gm_pct:>6.1f}%", flush=True)
     print(f"\n  Positive ΔEPR% = decay=ON wins (off costs more EPRs).", flush=True)
     print(flush=True)
+
+    out_dir = os.environ.get("DSABRE_OUT_DIR") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
+    os.makedirs(out_dir, exist_ok=True)
+    out = os.path.join(out_dir, f"ablate_node_decay_{suite_name}.json")
+    with open(out, "w") as f:
+        json.dump({"suite": suite_name, "rows": rows,
+                   "gmean": {"on": gm_on, "off": gm_off, "pct": gm_pct}}, f, indent=2)
+    print(f"  → saved {out}", flush=True)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "date": "2026-05-19",
+    "description": "pytket-dqc (5 seeds) and dSE from pytket layout for 100q/200q/360q",
+    "py_seeds": 5
+  },
+  "results": {
+    "100q": [
+      {
+        "circuit": "qft",
+        "cx": 3420,
+        "py_ebits": 815,
+        "py_seed": null,
+        "py_time": 29.25,
+        "dse": {
+          "eprs": 315,
+          "ls": 4859,
+          "time_s": 33.39,
+          "aborted": false
+        }
+      },
+      {
+        "circuit": "qpeexact",
+        "cx": 3579,
+        "py_ebits": 511,
+        "py_seed": null,
+        "py_time": 19.27,
+        "dse": {
+          "eprs": 247,
+          "ls": 4548,
+          "time_s": 36.99,
+          "aborted": false
+        }
+      }
+    ],
+    "200q": [
+      {
+        "circuit": "qft",
+        "cx": 7220,
+        "py_ebits": 1124,
+        "py_seed": null,
+        "py_time": 116.72,
+        "dse": {
+          "eprs": 880,
+          "ls": 10515,
+          "time_s": 171.38,
+          "aborted": false
+        }
+      },
+      {
+        "circuit": "qpeexact",
+        "cx": 7579,
+        "py_ebits": 1058,
+        "py_seed": null,
+        "py_time": 81.53,
+        "dse": {
+          "eprs": 895,
+          "ls": 10759,
+          "time_s": 188.71,
+          "aborted": false
+        }
+      }
+    ],
+    "360q": [
+      {
+        "circuit": "qft",
+        "cx": 13300,
+        "py_ebits": 669,
+        "py_seed": null,
+        "py_time": 409.96,
+        "dse": {
+          "eprs": 385,
+          "ls": 22837,
+          "time_s": 734.18,
+          "aborted": false
+        }
+      },
+      {
+        "circuit": "qpeexact",
+        "cx": 13979,
+        "py_ebits": 264,
+        "py_seed": null,
+        "py_time": 256.97,
+        "dse": {
+          "eprs": 832,
+          "ls": 24427,
+          "time_s": 1014.86,
+          "aborted": false
+        }
+      }
+    ]
+  }
+}

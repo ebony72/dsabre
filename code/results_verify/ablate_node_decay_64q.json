@@ -1,0 +1,82 @@
+{
+  "suite": "64q",
+  "rows": [
+    {
+      "circuit": "ae",
+      "on": {
+        "eprs": 216,
+        "ls": 2332
+      },
+      "off": {
+        "eprs": 203,
+        "ls": 1363
+      },
+      "time_s": 103.82
+    },
+    {
+      "circuit": "ghz",
+      "on": {
+        "eprs": 16,
+        "ls": 89
+      },
+      "off": {
+        "eprs": 16,
+        "ls": 72
+      },
+      "time_s": 0.91
+    },
+    {
+      "circuit": "graphstate",
+      "on": {
+        "eprs": 19,
+        "ls": 104
+      },
+      "off": {
+        "eprs": 15,
+        "ls": 95
+      },
+      "time_s": 1.02
+    },
+    {
+      "circuit": "qft",
+      "on": {
+        "eprs": 246,
+        "ls": 2054
+      },
+      "off": {
+        "eprs": 285,
+        "ls": 1742
+      },
+      "time_s": 56.84
+    },
+    {
+      "circuit": "qnn",
+      "on": {
+        "eprs": 521,
+        "ls": 8662
+      },
+      "off": {
+        "eprs": 504,
+        "ls": 5167
+      },
+      "time_s": 793.83
+    },
+    {
+      "circuit": "random",
+      "on": {
+        "eprs": 714,
+        "ls": 3814
+      },
+      "off": {
+        "eprs": 730,
+        "ls": 3641
+      },
+      "time_s": 347.33
+    }
+  ],
+  "gmean": {
+    "on": 134.83409654009506,
+    "off": 131.23537685295943,
+    "pct": -2.6689982574737625
+  }
+}
