@@ -109,13 +109,14 @@ study, and the cost-ratio sensitivity sweep are in the paper.
 ## Citation
 
 ```bibtex
-@article{li2026dsabre,
-  author  = {Li, Sanjiang},
-  title   = {{dSABRE}: A {SABRE}-Style Router for Multi-Core
-             Distributed Quantum Computers},
-  journal = {IEEE Transactions on Computer-Aided Design of
-             Integrated Circuits and Systems (under review)},
-  year    = {2026}
+@misc{li2026dsabre,
+      title={dSABRE: A SABRE-Style Router for Multi-Core Distributed Quantum Computers}, 
+      author={Sanjiang Li},
+      year={2026},
+      eprint={2605.21960},
+      archivePrefix={arXiv},
+      primaryClass={quant-ph},
+      url={https://arxiv.org/abs/2605.21960}, 
 }
 ```
 
