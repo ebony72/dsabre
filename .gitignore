@@ -17,3 +17,4 @@ results.csv
 results.json
 legacy/
 interaction_graph_figures/
+.claude/worktrees/

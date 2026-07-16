@@ -1,5 +1,7 @@
 # dSABRE — Paper Directory
 
+**IMPORTANT: Do not modify any files in this folder unless explicitly instructed by the user.**
+
 This directory is the primary working directory for the dSABRE project.
 All paths below are relative to `paper/` unless noted.
 
