@@ -1,6 +1,23 @@
 # TODO
 
-## Fix the corner-removal initial layout (found 2026-07-15, CPHM Phase 13)
+## ~~Fix the corner-removal initial layout~~ (found 2026-07-15, RESOLVED 2026-07-17)
+
+Fixed by porting CPHM's validated `sabre_adaptive_corner_layout` (Phase 13e,
+`../cphm/code/layout_corners.py`) into `layout.py::sabre_locked_boundary_layout`
+(same name/signature, callers unchanged): per-core fill-adaptive reservation of the
+k most-remote corners of EVERY core, k = largest in 0..4 keeping usable-slot fill
+<= 0.80 (k=4 at 25/36/100/200/360q, k=2 at 64q). Port verified AST-identical to the
+CPHM implementation and producing identical corner sets on all six suite
+architectures. Before/after on the frozen dqcbench circuit copies, identical
+protocol and current router code (gmean EPR new/old): 25q 1.016 dS / 1.000 dSE;
+36q 0.882 / 0.968; 64q 0.835 / 0.862 — matching CPHM's measurements (1.009 /
+0.952 / 0.805 on its base router). All rows replay-verified.
+
+**Headline tables in `code/results/` and the paper still carry old-layout
+numbers**; regenerating them (and re-running 100q/200q/360q, where CPHM measured
+0.736 / 0.546 ratios) remains open — see the original analysis below.
+
+### Original analysis (kept for the re-run decision)
 
 `layout.py::sabre_locked_boundary_layout` implements a **monolithic-chip** rule — "remove
 the four corner nodes" via `sorted(min-degree nodes)[:4]`. On a multi-core architecture

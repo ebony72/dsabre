@@ -188,25 +188,70 @@ def locality_aware_layout(dag, arch: DistributedArchitecture, rng=None) -> dict:
 
 # ── SabreLayout with locked boundary ──────────────────────────────────────────
 
-def sabre_locked_boundary_layout(qc, dag, arch: DistributedArchitecture, seed: int = 0):
-    """Run SabreLayout on the architecture graph with the four lowest-degree
-    (corner) nodes removed, using seeds [seed, seed+1, seed+2].
+def _per_core_reserved_corner_nodes(arch: DistributedArchitecture, per_core: int) -> set:
+    """The ``per_core`` least-useful corner physical qubits of each core:
+    among the core's minimum-degree (corner) vertices in ``arch.Gr``, the
+    ones with the largest total shortest-path distance to all other physical
+    qubits. Deterministic (distance ties broken by ascending node id)."""
+    if per_core <= 0:
+        return set()
+    dist = dict(nx.all_pairs_shortest_path_length(arch.Gr))
+    reserved = set()
+    for c in range(arch.num_cores):
+        nodes = arch.core_qubits(c)
+        degs = {n: arch.Gr.degree(n) for n in nodes}
+        min_deg = min(degs.values())
+        cands = [n for n in nodes if degs[n] == min_deg]
+        if len(cands) < per_core:
+            cands = sorted(nodes, key=lambda n: (degs[n], n))[:per_core]
+        remoteness = {n: sum(dist[n].values()) for n in cands}
+        chosen = sorted(cands, key=lambda n: (-remoteness[n], n))[:per_core]
+        reserved.update(chosen)
+    return reserved
 
-    Removing corner nodes reserves them for teleportation communication slots
-    and prevents SabreLayout from placing frequently-interacting qubits there.
+
+def adaptive_corner_count(arch: DistributedArchitecture, num_qubits: int,
+                          max_fill: float = 0.80, k_max: int = 4) -> int:
+    """Fill-adaptive per-core reservation count: the LARGEST k (0..k_max) that
+    keeps the usable-slot fill nq/(ncores*(slots_per_core-k)) at or below
+    max_fill.
+
+    Reserving per-core escape corners helps monotonically while head-room
+    lasts (200q m=5 cores: k=4 beats k=2 on every circuit), but dense
+    circuits regress once usable fill climbs toward ~90% (64q m=4 cores:
+    k=4 -> 89% fill and ae/qft regress past k=2).  max_fill=0.80 reproduces
+    the per-suite optima of the corner-count dose-response study:
+    k=4 at 25/36/100/200q, k=2 at 64q.
+    """
+    ncores = arch.num_cores
+    spc = len(arch.core_qubits(0))
+    for k in range(k_max, -1, -1):
+        usable = ncores * (spc - k)
+        if usable > 0 and num_qubits / usable <= max_fill:
+            return k
+    return 0
+
+
+def sabre_locked_boundary_layout(qc, dag, arch: DistributedArchitecture, seed: int = 0):
+    """Run SabreLayout on the architecture graph with per-core reserved
+    corners removed, using seeds [seed, seed+1, seed+2].
+
+    Reserves the k most-remote corner nodes of EVERY core (k fill-adaptive,
+    see `adaptive_corner_count`) as teleportation communication / escape
+    slots, preventing SabreLayout from placing frequently-interacting qubits
+    there.  The former whole-chip rule ("the 4 lowest-degree nodes") put all
+    four reserved slots in core 0 under core-major numbering, leaving every
+    other core with none and regularly fully packed.
 
     Returns a list of up to 3 candidate layouts ({logical_qubit: physical_qubit}).
     """
     from qiskit.transpiler import PassManager, CouplingMap
     from qiskit.transpiler.passes import SabreLayout
 
-    degrees      = dict(arch.Gr.degree())
-    min_degree   = min(degrees.values())
-    corner_nodes = set(sorted(n for n, d in degrees.items() if d == min_degree)[:4])
+    k = adaptive_corner_count(arch, qc.num_qubits)
+    corner_nodes = _per_core_reserved_corner_nodes(arch, per_core=k)
 
     reduced_nodes = [n for n in arch.Gr.nodes() if n not in corner_nodes]
-    reduced_G     = arch.Gr.subgraph(reduced_nodes)
-
     node_to_idx   = {n: i for i, n in enumerate(reduced_nodes)}
     reduced_edges  = [
         (node_to_idx[u], node_to_idx[v])
@@ -214,7 +259,8 @@ def sabre_locked_boundary_layout(qc, dag, arch: DistributedArchitecture, seed: i
         if u not in corner_nodes and v not in corner_nodes
     ]
     directed = reduced_edges + [(v, u) for u, v in reduced_edges]
-    cm = CouplingMap(couplinglist=directed, description="dsabre_corners_removed")
+    cm = CouplingMap(couplinglist=directed,
+                     description=f"dsabre_{k}corners_per_core_removed")
 
     layouts = []
     for sd in [seed, seed + 1, seed + 2]:
