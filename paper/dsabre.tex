@@ -30,6 +30,9 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 %% ── Notation macros ──────────────────────────────────────────────────────────
+% Revision highlighting: major changes from the 2026-07 revision are marked
+% in blue via \rev{...}.  Set \revenabled to \relax to typeset them in black.
+\newcommand{\rev}[1]{{\color{blue}#1}}
 \newcommand{\dSABRE}{\textsc{dSABRE}}
 \newcommand{\dSE}{\textsc{dSABRE-Ext}}
 \newcommand{\TeleSABRE}{\textsc{TeleSABRE}}
@@ -74,14 +77,14 @@ construction of the inter-core extended set that respects DAG
 dependencies layer by layer rather than mixing wires in topological
 order.  Across 18 MQT-Bench circuits
 at 25, 36, and 64 logical qubits, \dSABRE{} reduces geometric-mean
-EPR consumption by $41$--$53\%$ over \TeleSABRE{}.  Against the
+EPR consumption by \rev{$41$--$53\%$} over \TeleSABRE{}.  \rev{Against the
 gate-teleportation-based \texttt{pytket-dqc} using its strongest
 Steiner-embedding distributor, \dSABRE{} reduces EPRs by $12$--$57\%$
 on the 25- and 36-qubit suites; on the denser 64-qubit suite that
 method's gate embedding is more e-bit-efficient, though it neither
-accounts for intra-core SWAP cost nor scales to the largest circuits.
-\dSABRE{} uses a \texttt{SabreLayout}-based initial layout with per-core
-communication-slot reservation.  A
+accounts for intra-core SWAP cost nor scales to the largest circuits.}
+\dSABRE{} uses a \rev{\texttt{SabreLayout}-based initial layout with per-core
+communication-slot reservation}.  A
 large-circuit QFT sweep at 100--360 qubits confirms scalability.  Code and online appendices are available at
 \url{https://github.com/ebony72/dsabre}.
 \end{abstract}
@@ -148,9 +151,10 @@ pairs or fails to converge altogether.
 
 \item \textbf{A five-term gate-centric teleportation score.}
 \LightSABRE{}~\cite{zou2024lightsabrelightweightenhancedsabre} scores
-a SWAP as the front-layer distance gain $\Delta_F$ plus a
+a SWAP as the front-layer distance change $\Delta_F$ plus a
 decay-weighted lookahead ${\Delta}_E$, both in $\Delta$-form
-(old minus new distance) on gates sharing a qubit with the move.
+(new minus old distance, so lower is better) on gates sharing a qubit
+with the move.
 \dSABRE{} carries the same two $\Delta$-form terms into the
 inter-core scorer and adds three teleport-specific terms: a staging
 SWAP cost $d_\mathrm{prep}$ to reach a comm port, a
@@ -166,14 +170,14 @@ adds another $+11.3\%$ on the 25-qubit suite.
 \dSABRE{} maintains an explicit demand vector over cores and
 proactively teleports idle qubits away from high-demand, low-capacity
 cores before bottlenecks form, scoring relief moves within the same
-teleportation objective.  On the per-core adaptive layout its
+teleportation objective.  \rev{On the per-core adaptive layout its
 geometric-mean effect is small---disabling relief \emph{lowers} 64-qubit
 gmean EPR by $8.7\%$ (Section~\ref{sec:ablation})---indicating that much
 of the congestion it once addressed was an artifact of the previous
 core-0-only layout that born several cores fully packed.  Its remaining
 value is on individual hard instances: on the 64-qubit Random circuit,
 \dSABRE{} completes routing under proactive relief where \TeleSABRE{}
-fails to converge.
+fails to converge.}
 %A checkpoint--rollback wrapper around \LightSABRE{}'s release-valve
 %idea~\cite{zou2024lightsabrelightweightenhancedsabre} provides a
 %safety net for marginal SabreLayout seeds but does not fire on the
@@ -191,14 +195,14 @@ circuit size (Section~\ref{sec:ablation}).
 \item \textbf{Comprehensive empirical validation.}
 Across MQT-Bench suites at 25, 36, and 64 qubits on multi-core grid
 architectures, \dSABRE{} reduces geometric-mean EPR consumption by
-$41$--$53\%$ over \TeleSABRE{}~\cite{russo2025telesabre}.  It also
+\rev{$41$--$53\%$} over \TeleSABRE{}~\cite{russo2025telesabre}.  \rev{It also
 reduces EPRs by $12$--$57\%$ over \texttt{pytket-dqc}~\cite{pytketdqc2024}
 (strongest Steiner-embedding distributor) on the 25- and 36-qubit suites,
 while on the 64-qubit suite that method's gate embedding is more
 e-bit-efficient on structured circuits---at the cost of ignoring
-intra-core SWAPs and of runtimes orders of magnitude longer.  \dSABRE{}
-uses a \texttt{SabreLayout}-based initial layout with per-core
-communication-slot reservation.  Ablation
+intra-core SWAPs and of runtimes orders of magnitude longer.}  \dSABRE{}
+uses a \rev{\texttt{SabreLayout}-based initial layout with per-core
+communication-slot reservation}.  Ablation
 studies, cost-ratio sweeps, and a scalability sweep up to 360-qubit QFT
 confirm that the gains are mainly driven by the heuristic design and congestion
 mechanisms.
@@ -367,9 +371,10 @@ teleport costs $c_{\mathrm{tele}}$ (one EPR pair).
   \label{eq:sabre}
 \end{equation}
 where $F$ is the front layer, $E$ the extended lookahead set, and
-$\Delta(g) = d_{\mathrm{old}}^g - d_{\mathrm{new}}^g$ the reduction in
+\rev{$\Delta(g) = d_{\mathrm{new}}^g - d_{\mathrm{old}}^g$} the change in
 physical distance between the two qubits of gate $g$ caused by the
-candidate SWAP ($d^g$ is shortest-path distance on the coupling graph).
+candidate SWAP \rev{(negative when the SWAP moves them closer)}; $d^g$ is
+shortest-path distance on the coupling graph.
 All extended-set gates contribute with equal weight; the $\tfrac{1}{|E|}$
 factor normalises the lookahead term to the same scale as the front term.
 \SABRE{} also couples its router with an initial-layout optimiser: starting
@@ -494,7 +499,7 @@ $g_i$ (front layer = depth~0; first successor = depth~1).
 The lookahead contribution is
 \begin{equation}\label{Delta_E_Tilde}
 \tilde{\Delta}_E^\mathrm{c} = \sum_{i=0}^{|E_\mathrm{c}|-1}
-\gamma^{\mathrm{dep}(g_i)}(d_{\mathrm{old}}^{g_i} - d_{\mathrm{new}}^{g_i}),
+\gamma^{\mathrm{dep}(g_i)}(d_{\mathrm{new}}^{g_i} - d_{\mathrm{old}}^{g_i}),
 \end{equation}
 where $\gamma\in (0,1]$ is the lookahead decay and the distance terms use
 the intra-core graph.
@@ -561,7 +566,7 @@ Each candidate is scored as:
     (count shown on arrow).  Step~(2): a teleportation along link
     $(\pi_s,\pi_d)$ delivers $q_1$ to $\pi_d$ in $c_\mathrm{next}$
     (dashed arc; score $s$ annotated).  Candidate~A wins ($s_A{=}{-16}$) by
-    combining the fewest staging SWAPs with positive $\Delta_F$ and hop
+    combining the fewest staging SWAPs with negative $\Delta_F$ and hop
     gain and no capacity penalty.  The red port ($\pi_d^C$, labelled
     \textit{occ.}) indicates an occupied landing port, contributing an
     extra eviction SWAP to $d_\mathrm{prep}^C$.}
@@ -570,8 +575,8 @@ Each candidate is scored as:
 \begin{equation}
   s = \underbrace{d_{\mathrm{prep}}}_{\text{staging}} +
       \underbrace{c_{\mathrm{cap}}}_{\text{capacity}} -
-      \underbrace{g_{\mathrm{hop}}}_{\text{hop gain}} -
-      \underbrace{\Delta_F}_{\text{front gain}} -
+      \underbrace{g_{\mathrm{hop}}}_{\text{hop gain}} +
+      \underbrace{\Delta_F}_{\text{front change}} +
       \underbrace{w_e\,\tilde{\Delta}_E}_{\text{lookahead}},
   \label{eq:dsabre}
 \end{equation}
@@ -593,9 +598,10 @@ core $c_\mathrm{next}$ (not the final partner-qubit core $c_\mathrm{tgt}$),
 $\tau$ the capacity threshold, and $c_{\mathrm{pen}}$ a cost multiplier.
 This prevents progressive crowding of hot cores that leads to deadlock.
 
-\textbf{Front-layer gain} $\Delta_F = d_{\mathrm{old}}^{g} - d_{\mathrm{new}}^{g}$
-is the reduction in weighted physical distance between $q_1$ and $q_2$
-after the teleport, computed on the full-chip graph $G_\arch$ (intra-core
+\textbf{Front-layer change} \rev{$\Delta_F = d_{\mathrm{new}}^{g} - d_{\mathrm{old}}^{g}$
+is the change in weighted physical distance between $q_1$ and $q_2$
+after the teleport (negative when they are brought closer)}, computed on
+the full-chip graph $G_\arch$ (intra-core
 edges weight~1, inter-core links weight~$w_{\mathrm{link}}$).
 There is exactly one front-layer gate involving the moving qubit $q_1$:
 because any two gates that share a qubit are ordered by a dependency
@@ -635,8 +641,8 @@ $\Delta_F$ is evaluated from $g$ alone and $\tilde{\Delta}_E{=}0$
 $p_2{=}(1,1)\in C_5$, the shortest path on $G_\arch$ gives
 $d_{\mathrm{old}}^g{=}28$ (via $C_1{\to}C_2{\to}C_5$).
 Table~\ref{tab:example} scores the three outgoing-link candidates:
-A wins via cheap staging combined with positive $\Delta_F$ and hop gain;
-B loses because $q_1$ moves away from $C_5$ ($\Delta_F$ negative);
+A wins via cheap staging combined with negative $\Delta_F$ and hop gain;
+B loses because $q_1$ moves away from $C_5$ ($\Delta_F$ positive);
 C matches A on $\Delta_F$ and hop gain but is killed by the capacity
 penalty on the nearly-full landing core.
 
@@ -652,9 +658,9 @@ Candidate~A is selected.}
 \toprule
 Candidate & next core & direction & $d_{\mathrm{prep}}$ & $c_{\mathrm{cap}}$ & $g_{\mathrm{hop}}$ & $\Delta_F$ & score $s$ \\
 \midrule
-A & $C_2$ & towards $C_5$ & 1 &  0 & $+5$ & $+12$ & $\mathbf{-16}$ \\
-B & $C_0$ & away from $C_5$ & 2 &  0 & $-5$ & $-11$ & $18$ \\
-C & $C_4$ & towards $C_5$ & 3 & 15 & $+5$ & $+12$ & $1$ \\
+A & $C_2$ & towards $C_5$ & 1 &  0 & $+5$ & $-12$ & $\mathbf{-16}$ \\
+B & $C_0$ & away from $C_5$ & 2 &  0 & $-5$ & $+11$ & $18$ \\
+C & $C_4$ & towards $C_5$ & 3 & 15 & $+5$ & $-12$ & $1$ \\
 \bottomrule
 \end{tabular}%
 }
@@ -1021,13 +1027,13 @@ consequential (Table~\ref{tab:main64}).  \dSABRE{} reduces gmean EPRs
 by \textbf{52.6\%} over the five circuits on which \TeleSABRE{}
 converges, with per-circuit reductions ranging from $-18.2\%$ (GHZ)
 to $-78.9\%$ (Graphstate) and QFT/QNN at $-50.2\%$/$-62.8\%$.
-The per-core adaptive corner reservation
-(Section~\ref{sec:layout}) supplies every core with escape slots, which
+\rev{The per-core adaptive corner reservation
+(Section~\ref{sec:initial_mapping}) supplies every core with escape slots, which
 resolves the earlier star-circuit weakness on GHZ: it now improves
 ($9$ vs.\ $11$) rather than regressing, as no core is born fully packed
 and the local $\Delta$-form score is no longer forced to chase the
-next CX out of a saturated core.
-Against pytket-dqc's strongest distributor the comparison
+next CX out of a saturated core.}
+\rev{Against pytket-dqc's strongest distributor the comparison
 \emph{reverses}: the 6-circuit geometric mean is $+21.3\%$, i.e.\
 \dSABRE{}'s teleport-EPRs exceed pytket-dqc's e-bits.
 \textsc{CoverEmbeddingSteinerDetached} is markedly more e-bit-efficient
@@ -1039,7 +1045,7 @@ embedding method does not scale or embed and a plain partitioner is used.
 Two caveats temper this: pytket-dqc's e-bit count omits the intra-core
 SWAP cost that \dSABRE{} pays and reports, and its strongest method is
 computationally far heavier (minutes to intractable per large circuit
-versus \dSABRE{}'s seconds).  On Random, \TeleSABRE{} fails to converge
+versus \dSABRE{}'s seconds).}  On Random, \TeleSABRE{} fails to converge
 on any of three seeds; \dSABRE{} completes ($721$ EPR) under default
 scoring and proactive relief alone, without triggering
 checkpoint--rollback.
@@ -1220,18 +1226,19 @@ inter-core hop count --- is inert on the 25q B-grid (where the
 front-layer weighted distance already captures direction) but
 contributes a small improvement on the larger 64q H-grid
 ($+1.8\%$ gmean): longer inter-core paths mean the specific landing
-port can be far from the optimal staging position for the next hop,
-depressing $\Delta_F$ below the true directional value; $g_{\mathrm{hop}}$
-compensates with a fixed position-independent signal.
+port can be far from the optimal staging position for the next hop, so
+$\Delta_F$ understates the true directional benefit (it is less negative
+than the move deserves); $g_{\mathrm{hop}}$ compensates with a fixed
+position-independent signal.
 
-Congestion relief is near-neutral on both suites once the per-core
+\rev{Congestion relief is near-neutral on both suites once the per-core
 adaptive layout is in place: it is inactive on 25q ($0\%$) and mildly
 counterproductive on 64q ($-8.7\%$, i.e.\ disabling it lowers gmean EPR).
 Because every core now begins with reserved escape capacity, the
 standing congestion the relief mechanism was designed to pre-empt is
 largely absorbed upstream by the layout; its residual value is confined
 to individual hard instances (e.g.\ 64q Random, where it enables
-completion) rather than the suite geometric mean.
+completion) rather than the suite geometric mean.}
 
 % ── (iii) Parameter sensitivity ──────────────────────────────────────
 \paragraph{Parameter sensitivity.}
@@ -1256,7 +1263,7 @@ hidden lever; tuning beyond the defaults yields diminishing returns.
 architecture graph $G_\arch$ (intra-core edges plus inter-core
 links), with two adaptations for the distributed setting.
 
-\emph{Corner removal.}
+\emph{Per-core corner reservation.}
 SabreLayout packs each core to its full physical capacity.  Two
 problems follow.  First, an occupied communication port cannot
 accept an incoming teleport without first evicting its current
@@ -1264,12 +1271,20 @@ occupant, so saturated cores either stall the inter-core scorer or
 force chains of relocations.  Second, full cores trip the
 capacity penalty (Section~\ref{sec:tele}) on every candidate teleport
 into them, biasing the router away from the actually-preferred
-landing core.  We exclude the four lowest-degree \emph{corner}
-physical qubits from the coupling map passed to SabreLayout---in
-both B-grid and H-grid architectures they are furthest from any
-inter-core link---which guarantees four free slots per affected core
-to serve as eviction scratch space and to keep the core below the
-capacity threshold.
+landing core.  \rev{We therefore exclude, from the coupling map passed to
+SabreLayout, the $k$ most-remote \emph{corner} physical qubits of
+\emph{every} core---the minimum-degree vertices farthest (by total
+shortest-path distance) from all other physical qubits, which in both
+B-grid and H-grid architectures sit furthest from any inter-core
+link---so that each core retains $k$ free slots for eviction scratch
+space and stays below the capacity threshold.  The count $k$ is chosen
+adaptively as the largest value in $\{0,\dots,4\}$ that keeps the
+usable-slot fill $n_q/(N_{\mathrm{cores}}(m^2-k))$ at or below $0.80$;
+this yields $k{=}4$ on the 25/36/100/200-qubit suites and $k{=}2$ on the
+denser 64-qubit suite.  A whole-chip variant that removes only the
+globally lowest-degree corners reserves slots in a single core under
+core-major qubit numbering, leaving the others fully packed; per-core
+reservation is what supplies every core with escape capacity.}
 
 \emph{Forward--backward--forward schedule.}
 We run three routing passes (forward $\to$ reversed-DAG backward
@@ -1383,10 +1398,10 @@ Suite & CX & EPR & SWAP & EPR & SWAP & e-bits & TS & tket \\
 \end{table}
 
 Table~\ref{tab:large} shows the QFT scalability trend.
-At \emph{100q}, \dSABRE{} now edges \TeleSABRE{} ($-10.1\%$ EPR under the
+\rev{At \emph{100q}, \dSABRE{} now edges \TeleSABRE{} ($-10.1\%$ EPR under the
 per-core adaptive layout), but pytket-dqc's Steiner-tree embedding is far
 more e-bit-efficient on this deep controlled-phase chain
-($+95.6\%$: \dSABRE{} uses $223$ teleport-EPRs versus $114$ e-bits).
+($+95.6\%$: \dSABRE{} uses $223$ teleport-EPRs versus $114$ e-bits).}
 At \emph{200q}, \TeleSABRE{} fails to converge within the 600\,s
 timeout, whereas \dSABRE{} completes ($834$ EPR) under its
 default scoring and proactive relief; the
@@ -1398,7 +1413,7 @@ selection well-fed.  The embedding advantage persists here
 exceeds a 25-minute budget and the cheaper \textsc{PartitioningHeterogeneous}
 distributor is reported instead.
 The \emph{360q} row is carried over from the previous configuration
-pending regeneration on the per-core layout (Section~\ref{sec:layout}).
+pending regeneration on the per-core layout (Section~\ref{sec:initial_mapping}).
 As at the smaller sizes, the QFT comparison against pytket-dqc is
 dominated by its gate-teleportation embedding on this circuit family,
 which \dSABRE{}'s state-teleportation model does not target;
