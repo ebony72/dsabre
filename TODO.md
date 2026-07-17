@@ -1,5 +1,22 @@
 # TODO
 
+## Open after the 2026-07-17 benchmark regeneration
+
+- **360q large-circuit row not regenerated.** `tab:large`'s 360q row (and the
+  `results_360q.json` file) still hold previous-layout dSABRE numbers and
+  HypergraphPartitioning pytket e-bits; flagged in-table with `$^{\S}$`. Deferred
+  because dSABRE 360q routing is ~hours and CoverEmbeddingSteinerDetached is
+  intractable at that size. Re-run when convenient: `regen_headline.py 360` (in the
+  session scratchpad) + a bounded pytket cell.
+- **Steiner-detached does not scale.** `pytket-dqc`'s CoverEmbeddingSteinerDetached
+  exceeded a 25-min budget on 64q qnn, 200q, 360q and is embedding-incompatible on
+  random (arbitrary-phase); those cells use PartitioningHeterogeneous (footnoted). If
+  a stronger scalable pytket number is wanted, give Steiner-detached a larger budget.
+- **Congestion-relief contribution is now marginal.** Post-layout-fix ablation shows
+  removing relief *lowers* 64q gmean EPR by 8.7% (was +23.4% in the old paper). Prose
+  now frames relief as per-instance (64q Random) rather than a gmean driver. Worth a
+  deeper look at whether relief earns its place, or should be retuned/removed.
+
 ## Layout-policy exploration beyond adaptive corners (2026-07-17, negative result)
 
 Three capacity-envelope alternatives to the adopted per-core adaptive corner rule
