@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdflatex *)",
+      "Bash(bibtex *)",
+      "Bash(until grep *)",
+      "mcp__ccd_session_mgmt__search_session_transcripts",
+      "mcp__ccd_session__mark_chapter",
+      "Bash(/usr/bin/git status *)"
+    ]
+  }
+}

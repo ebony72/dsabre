@@ -1,0 +1,95 @@
+\documentclass[11pt]{letter}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{hyperref}
+
+\signature{Sanjiang Li \\
+  Centre for Quantum Software and Information \\
+  University of Technology Sydney, Australia \\
+  %ORCID: 0000-0002-3332-2546 \\
+  E-mail: sanjiang.li@uts.edu.au}
+
+%\address{Sanjiang Li \\
+%  Centre for Quantum Software and Information \\
+%  University of Technology Sydney \\
+%  PO Box 123, Broadway NSW 2007, Australia}
+
+\begin{document}
+
+\begin{letter}{}
+%The Editor-in-Chief \\
+%  IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems \\
+ % IEEE Council on Electronic Design Automation}
+
+\opening{Dear Editor,}
+
+I am pleased to submit the enclosed manuscript, ``\emph{dSABRE: A
+SABRE-Style Router for Multi-Core Distributed Quantum Computers},''
+for consideration as a Regular Paper in the IEEE Transactions on
+Computer-Aided Design of Integrated Circuits and Systems (TCAD).
+
+%\medskip
+\noindent\textbf{Scope and contribution.}
+The paper addresses the routing problem for circuits compiled to
+multi-core distributed quantum computers (DQCs), where minimising
+EPR-pair consumption is the dominant compilation objective.  We
+present dSABRE, a SABRE-style router whose inter-core teleportation
+scorer combines a gate-centric five-term cost (staging, capacity,
+front-layer gain, hop direction, and decay-weighted lookahead) with
+two architectural mechanisms --- a proactive congestion-relief pass
+and a BFS-layer inter-core extended set.  On 18 MQT-Bench circuits
+at 25, 36, and 64 logical qubits, dSABRE reduces geometric-mean EPR
+consumption by 41--44\% over TeleSABRE (the prior state-of-the-art
+SABRE-style distributed router) and by 16--68\% over pytket-dqc, and
+scales to 360-qubit QFT circuits on a 486-physical-qubit
+architecture.  The contribution fits squarely within TCAD's scope on
+algorithms and methods for automated design of integrated quantum
+systems.
+
+%\medskip
+\noindent\textbf{Originality and prior versions.}
+This submission is original work.  No earlier peer-reviewed version
+of this paper has been published or accepted for publication at any
+journal, conference, or workshop, and no portion of the text overlaps
+with prior peer-reviewed publications by the author.
+
+%\medskip
+\noindent\textbf{Concurrent submission.}
+The manuscript is not under review at any other journal, conference,
+or workshop, and will not be submitted elsewhere during the TCAD
+review process.
+
+%\medskip
+\noindent\textbf{Open access.}
+I am submitting under the \emph{Traditional} (non-Open-Access)
+publication option.
+
+%\medskip
+\noindent\textbf{Generative AI disclosure.}
+In accordance with TCAD's policy on generative AI tools (§G), the
+acknowledgments section discloses the use of Anthropic's Claude
+(via Claude Code) for: refactoring portions of the dSABRE
+implementation, authoring benchmark scripts and aggregating
+per-circuit JSON results into tables, drafting LaTeX sources for two
+figures, and copy-editing prose.  All AI-generated content was
+reviewed, verified, and corrected by the author, who takes full
+responsibility for correctness and originality.
+
+%\medskip
+\noindent\textbf{Conflicts of interest.}
+The author declares no conflicts of interest with any current TCAD
+Associate Editor.
+
+%\medskip
+\noindent\textbf{Artefact availability.}
+The implementation, benchmark suites, per-circuit results, and
+online appendices referenced in the paper are publicly available at
+\url{https://github.com/ebony72/dsabre}.
+
+%\medskip
+Thank you for considering this submission.  I look forward to the
+reviewers' feedback.
+
+\closing{Sincerely,}
+
+\end{letter}
+\end{document}

@@ -1,0 +1,218 @@
+% Running-example figure for Sec. III-C  (Inter-core teleportation scoring).
+% Architecture: 2x3 H-grid (same geometry as fig/architectures.tex right panel).
+%   C0 top-left, C1 top-mid, C2 top-right, C3 bot-left, C4 bot-mid, C5 bot-right.
+%   Core spacing 2.1; qubit spacing 0.4; core box (-0.2,-1.4)--(1.4,0.2).
+% Scenario: gate g=(q1,q2), q1 in C1 at (r0,c2), q2 in C5 at (r1,c1).
+% Three candidates (q1 as source):
+%   A  q1->C2 via C1(r1c3)--C2(r1c0):  1 SWAP staging, score s=-16  [winner]
+%   B  q1->C0 via C1(r1c0)--C0(r1c3):  2 SWAPs staging, score s=+18
+%   C  q1->C4 via C1(r3c2)--C4(r0c1):  2 SWAPs staging + occ. eviction, score s=+1
+\begin{tikzpicture}[
+  every node/.style={font=\scriptsize},
+  %%── qubit nodes ──────────────────────────────────────────────────────────────
+  dot/.style   ={circle, fill=gray!20, draw=gray!25, minimum size=1.8mm, inner sep=0pt},
+  docc/.style  ={circle, fill=gray!72, draw=gray!82, minimum size=1.8mm, inner sep=0pt},
+  qsrc/.style  ={circle, fill=blue!35, draw=blue!75, minimum size=2.5mm,
+                 inner sep=0pt, line width=0.6pt},
+  qtrg/.style  ={circle, fill=red!30,  draw=red!70,  minimum size=2.5mm,
+                 inner sep=0pt, line width=0.6pt},
+  %%── staging slots ────────────────────────────────────────────────────────────
+  nsA/.style   ={circle, fill=teal!40,   draw=teal!80,   minimum size=2.0mm, inner sep=0pt},
+  nsB/.style   ={circle, fill=orange!45, draw=orange!80, minimum size=2.0mm, inner sep=0pt},
+  nsC/.style   ={circle, fill=violet!40, draw=violet!80, minimum size=2.0mm, inner sep=0pt},
+  %%── comm-port styles ─────────────────────────────────────────────────────────
+  portN/.style  ={circle, fill=teal!40,   draw=teal!75,   minimum size=2.2mm,
+                  inner sep=0pt, line width=0.4pt},
+  portA/.style  ={circle, fill=teal!55,   draw=teal!90,   minimum size=2.2mm,
+                  inner sep=0pt, line width=0.5pt},
+  portB/.style  ={circle, fill=orange!55, draw=orange!90, minimum size=2.2mm,
+                  inner sep=0pt, line width=0.5pt},
+  portC/.style  ={circle, fill=violet!55, draw=violet!90, minimum size=2.2mm,
+                  inner sep=0pt, line width=0.5pt},
+  portOcc/.style={circle, fill=red!28,   draw=red!65,    minimum size=2.2mm, inner sep=0pt},
+  %%── core boxes ───────────────────────────────────────────────────────────────
+  cbox/.style  ={draw=black!60, rounded corners=2pt, fill=white,    line width=0.5pt},
+  cboxS/.style ={draw=blue!55,  rounded corners=2pt, fill=blue!4,   line width=0.8pt},
+  cboxCC/.style={draw=orange!50,rounded corners=2pt, fill=orange!5, line width=0.6pt},
+  %%── grid edges and inter-core links ─────────────────────────────────────────
+  ie/.style={draw=gray!25, line width=0.35pt},
+  cl/.style={draw=gray!30, line width=0.65pt},
+  %%── step-1 (SWAP within core) arrows ────────────────────────────────────────
+  swpA/.style={-{Stealth[length=1.5mm,width=1.1mm]}, teal!75,   line width=0.9pt},
+  swpB/.style={-{Stealth[length=1.5mm,width=1.1mm]}, orange!80, line width=0.9pt},
+  swpC/.style={-{Stealth[length=1.5mm,width=1.1mm]}, violet!70, line width=0.9pt},
+  %%── step-2 (teleport) arrows ─────────────────────────────────────────────────
+  tpA/.style={-{Stealth[length=2mm,width=1.5mm]}, teal!90,   line width=1.1pt,
+              densely dashed},
+  tpB/.style={-{Stealth[length=2mm,width=1.5mm]}, orange!90, line width=1.1pt,
+              densely dashed},
+  tpC/.style={-{Stealth[length=2mm,width=1.5mm]}, violet!80, line width=1.1pt,
+              densely dashed},
+  %%── annotation labels ────────────────────────────────────────────────────────
+  ann/.style={font=\tiny, inner sep=1pt},
+]
+
+%%─── C0  (shift 0,0) ──────────────────────────────────────────────────────────
+\begin{scope}[shift={(0,0)}]
+  \draw[cbox] (-0.2,-1.4) rectangle (1.4,0.2);
+  \foreach \r in {0,1,2,3}{\foreach \dc in {0,1,2}{
+    \draw[ie]({\dc*0.4},{-\r*0.4})--({\dc*0.4+0.4},{-\r*0.4});}}
+  \foreach \c in {0,1,2,3}{\foreach \dr in {0,1,2}{
+    \draw[ie]({\c*0.4},{-\dr*0.4})--({\c*0.4},{-\dr*0.4-0.4});}}
+  \foreach \r in {0,1,2,3}{\foreach \c in {0,1,2,3}{
+    \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
+  \node[portB] (pdB) at (1.2,-0.4) {};   % r1c3: pi_dB  Cand B lands here
+  \node[portN]       at (0.4,-1.2) {};   % r3c1: port to C3
+  \node[font=\tiny, gray!65] at (0.6,-0.6) {$C_0$};
+\end{scope}
+
+%%─── C1  (shift 2.1,0)  source core ─────────────────────────────────────────
+\begin{scope}[shift={(2.1,0)}]
+  \draw[cboxS] (-0.2,-1.4) rectangle (1.4,0.2);
+  \foreach \r in {0,1,2,3}{\foreach \dc in {0,1,2}{
+    \draw[ie]({\dc*0.4},{-\r*0.4})--({\dc*0.4+0.4},{-\r*0.4});}}
+  \foreach \c in {0,1,2,3}{\foreach \dr in {0,1,2}{
+    \draw[ie]({\c*0.4},{-\dr*0.4})--({\c*0.4},{-\dr*0.4-0.4});}}
+  %% regular dots at non-special positions
+  \foreach \r/\c in {0/1, 1/1, 1/2, 2/1, 2/3, 3/0, 3/1, 3/3}{
+    \node[dot] at ({\c*0.4},{-\r*0.4}) {};}
+  %% q1, staging slots, ports
+  \node[qsrc]  (p1)  at (0.8, 0   ) {};   % r0c2  p1 = current position of q1
+  \node[nsA]   (nsA) at (1.2, 0   ) {};   % r0c3  n_s^A  (1 SWAP from p1)
+  \node[nsB]   (nsB) at (0.0, 0   ) {};   % r0c0  n_s^B  (2 SWAPs)
+  \node[nsC]   (nsC) at (0.8,-0.8 ) {};   % r2c2  n_s^C  (2 SWAPs)
+  \node[portB] (psB) at (0.0,-0.4 ) {};   % r1c0  pi_s  -> C0
+  \node[portA] (psA) at (1.2,-0.4 ) {};   % r1c3  pi_s  -> C2
+  \node[portC] (psC) at (0.8,-1.2 ) {};   % r3c2  pi_s  -> C4
+  \node[font=\tiny, gray!65] at (0.6,-0.6) {$C_1$};
+\end{scope}
+
+%%─── C2  (shift 4.2,0) ────────────────────────────────────────────────────────
+\begin{scope}[shift={(4.2,0)}]
+  \draw[cbox] (-0.2,-1.4) rectangle (1.4,0.2);
+  \foreach \r in {0,1,2,3}{\foreach \dc in {0,1,2}{
+    \draw[ie]({\dc*0.4},{-\r*0.4})--({\dc*0.4+0.4},{-\r*0.4});}}
+  \foreach \c in {0,1,2,3}{\foreach \dr in {0,1,2}{
+    \draw[ie]({\c*0.4},{-\dr*0.4})--({\c*0.4},{-\dr*0.4-0.4});}}
+  \foreach \r in {0,1,2,3}{\foreach \c in {0,1,2,3}{
+    \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
+  \node[portA] (pdA) at (0.0,-0.4) {};   % r1c0: pi_dA  Cand A lands here
+  \node[portN]       at (0.8,-1.2) {};   % r3c2: port to C5
+  \node[font=\tiny, gray!65] at (0.6,-0.6) {$C_2$};
+\end{scope}
+
+%%─── C3  (shift 0,-2.1) ───────────────────────────────────────────────────────
+\begin{scope}[shift={(0,-2.1)}]
+  \draw[cbox] (-0.2,-1.4) rectangle (1.4,0.2);
+  \foreach \r in {0,1,2,3}{\foreach \dc in {0,1,2}{
+    \draw[ie]({\dc*0.4},{-\r*0.4})--({\dc*0.4+0.4},{-\r*0.4});}}
+  \foreach \c in {0,1,2,3}{\foreach \dr in {0,1,2}{
+    \draw[ie]({\c*0.4},{-\dr*0.4})--({\c*0.4},{-\dr*0.4-0.4});}}
+  \foreach \r in {0,1,2,3}{\foreach \c in {0,1,2,3}{
+    \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
+  \node[portN] at (0.4, 0  ) {};   % r0c1: port to C0
+  \node[portN] at (1.2,-0.8) {};   % r2c3: port to C4
+  \node[font=\tiny, gray!65] at (0.6,-0.6) {$C_3$};
+\end{scope}
+
+%%─── C4  (shift 2.1,-2.1)  congested ─────────────────────────────────────────
+\begin{scope}[shift={(2.1,-2.1)}]
+  \draw[cboxCC] (-0.2,-1.4) rectangle (1.4,0.2);
+  \foreach \r in {0,1,2,3}{\foreach \dc in {0,1,2}{
+    \draw[ie]({\dc*0.4},{-\r*0.4})--({\dc*0.4+0.4},{-\r*0.4});}}
+  \foreach \c in {0,1,2,3}{\foreach \dr in {0,1,2}{
+    \draw[ie]({\c*0.4},{-\dr*0.4})--({\c*0.4},{-\dr*0.4-0.4});}}
+  %% 14 occupied (dark), 2 free (light) to show f_dst=2
+  \foreach \r/\c in {0/2, 0/3,
+                     1/0, 1/1, 1/2, 1/3,
+                     2/1, 2/2, 2/3,
+                     3/0, 3/1, 3/2, 3/3}{
+    \node[docc] at ({\c*0.4},{-\r*0.4}) {};}
+  \foreach \r/\c in {0/0, 0/3}{% two visibly free slots
+    \node[dot]  at ({\c*0.4},{-\r*0.4}) {};}
+  \node[portOcc] (pdC) at (0.4,0)    {};   % r0c1: pi_dC (occupied by another qubit)
+  \node[portN]         at (0.0,-0.8) {};   % r2c0: port to C3
+  \node[portN]         at (1.2,-0.8) {};   % r2c3: port to C5
+  \node[font=\tiny, gray!65] at (0.6,-0.6) {$C_4$};
+\end{scope}
+
+%%─── C5  (shift 4.2,-2.1)  target ────────────────────────────────────────────
+\begin{scope}[shift={(4.2,-2.1)}]
+  \draw[cbox] (-0.2,-1.4) rectangle (1.4,0.2);
+  \foreach \r in {0,1,2,3}{\foreach \dc in {0,1,2}{
+    \draw[ie]({\dc*0.4},{-\r*0.4})--({\dc*0.4+0.4},{-\r*0.4});}}
+  \foreach \c in {0,1,2,3}{\foreach \dr in {0,1,2}{
+    \draw[ie]({\c*0.4},{-\dr*0.4})--({\c*0.4},{-\dr*0.4-0.4});}}
+  \foreach \r in {0,1,2,3}{\foreach \c in {0,1,2,3}{
+    \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
+  \node[portN]       at (0.8, 0  ) {};   % r0c2: port to C2
+  \node[portN]       at (0.0,-0.8) {};   % r2c0: port to C4
+  \node[qtrg] (q2)  at (0.4,-0.4) {};   % q2 at r1c1
+  \node[font=\tiny, gray!65] at (0.6,-0.6) {$C_5$};
+\end{scope}
+
+%%─── Inter-core EPR links (black, same as architectures.tex) ─────────────────
+\draw[cl] (1.2,-0.4) -- (2.1,-0.4);    % C0(r1c3)--C1(r1c0)
+\draw[cl] (3.3,-0.4) -- (4.2,-0.4);    % C1(r1c3)--C2(r1c0)
+\draw[cl] (0.4,-1.2) -- (0.4,-2.1);    % C0(r3c1)--C3(r0c1)
+\draw[cl] (2.9,-1.2) -- (2.5,-2.1);    % C1(r3c2)--C4(r0c1)  staggered
+\draw[cl] (5.0,-1.2) -- (5.0,-2.1);    % C2(r3c2)--C5(r0c2)
+\draw[cl] (1.2,-2.9) -- (2.1,-2.9);    % C3(r2c3)--C4(r2c0)
+\draw[cl] (3.3,-2.9) -- (4.2,-2.9);    % C4(r2c3)--C5(r2c0)
+
+%%─── Candidate A: q1 -> C2  (score -4, winner) ──────────────────────────────
+%% Step 1: 1 SWAP  p1(2.9,0) -> nsA(3.3,0)
+\draw[swpA] (p1.east) -- node[above,ann,teal!80] {\textbf{1}} (nsA.west);
+%% Step 2: teleport  psA(3.3,-0.4) -> pdA(4.2,-0.4), arc above link
+\draw[tpA] (psA.east) to[out=30,in=150]
+  node[midway,above=0mm,ann,teal!80] {${-}16$\;{\footnotesize\checkmark}}
+  (pdA.west);
+
+%%─── Candidate B: q1 -> C0  (score +7) ──────────────────────────────────────
+%% Step 1: 2 SWAPs  p1(2.9,0) -> nsB(2.1,0)
+\draw[swpB] (p1.west) -- node[above,ann,orange!80] {\textbf{2}} (nsB.east);
+%% Step 2: teleport  psB(2.1,-0.4) -> pdB(1.2,-0.4), arc below link
+\draw[tpB] (psB.west) to[out=210,in=330]
+  node[midway,below=0.5mm,ann,orange!80] { $+18$}
+  (pdB.east);
+
+%%─── Candidate C: q1 -> C4  (score +13) ─────────────────────────────────────
+%% Step 1: 2 SWAPs  p1(2.9,0) -> nsC(2.9,-0.8)
+\draw[swpC] (p1.south) -- node[right,ann,violet!75] {\textbf{2}} (nsC.north);
+%% Step 2: teleport  psC(2.9,-1.2) -> pdC(2.5,-2.1), arc to right of link
+\draw[tpC] (psC.south) to[out=290,in=70]
+  node[midway,right=.5mm,ann,violet!75] {$+1$}
+  (pdC.north);
+
+%%─── Qubit labels ─────────────────────────────────────────────────────────────
+\node[above=1mm, blue!75, font=\scriptsize] at (2.9,0.05)
+  {$q_1$};
+\node[above left=0.5mm and 0.2mm, red!70, font=\scriptsize] at (q2.east)
+  {$q_2$};
+
+%%─── Staging-slot labels ──────────────────────────────────────────────────────
+\node[above=1.5mm, ann, teal!75]   at (3.55,0.05)   {$n_s^A$};
+\node[above=1.5mm, ann, orange!80] at (2.1,0.05)   {$n_s^B$};
+\node[right=0.8mm, ann, violet!75] at (2.3,-0.88){$n_s^C$};
+
+%%─── Port label for occupied pi_dC ───────────────────────────────────────────
+\node[below=1mm, ann, red!65] at (pdC.west) {\textit{occ.}};
+
+%%─── "Congested" annotation for C4 ──────────────────────────────────────────
+\node[ann, orange!70] at (2.6,-3.8) {congested ($f_\mathrm{dst}{=}2$)};
+
+%%─── Legend ──────────────────────────────────────────────────────────────────
+\node[qsrc, label={[ann, xshift=1mm, blue!75]right:$q_1$ (source)}]
+  at (5.85, 0.3) {};
+\node[qtrg, label={[ann, xshift=1mm, red!65]right:$q_2$ (target)}]
+  at (5.85,-0.1) {};
+\node[nsA,  label={[ann, xshift=1mm, teal!80]right:$n_s$ (A)}]
+  at (5.85,-0.5) {};
+\node[nsB,  label={[ann, xshift=1mm, orange!80]right:$n_s$ (B)}]
+  at (5.85,-0.9) {};
+\node[nsC,  label={[ann, xshift=1mm, violet!75]right:$n_s$ (C)}]
+  at (5.85,-1.3) {};
+\node[portOcc, label={[ann, xshift=1mm, red!60]right:$\pi_d$ (occ.)}]
+  at (5.85,-1.7) {};
+
+\end{tikzpicture}
