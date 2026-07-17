@@ -378,7 +378,7 @@ class General_dSABRE_Router:
                     remaining.discard(c1)
         return ext
 
-    def _fallback_local_swap(self, front_inter, wdag, l2p, p2l, metrics, node_decay):
+    def _fallback_local_swap(self, front_inter, wdag, l2p, p2l, metrics):
         """SABRE-style SWAP when no teleportation candidates are available."""
         arch = self.arch
         involved = {l2p[n.qargs[0]] for n in front_inter} | {l2p[n.qargs[1]] for n in front_inter}
@@ -406,9 +406,7 @@ class General_dSABRE_Router:
                     )
                     for n, depth in local_ext
                 )
-                H = max(node_decay.get(u, 1.0), node_decay.get(v, 1.0)) * (
-                    delta_Hf + self.config.weight_extended * (delta_He / max(len(local_ext), 1))
-                )
+                H = delta_Hf + self.config.weight_extended * (delta_He / max(len(local_ext), 1))
                 if H < min_H:
                     min_H, best_swap = H, (u, v, ci)
 
@@ -423,9 +421,6 @@ class General_dSABRE_Router:
         metrics["cost"] += self.config.cost_local_swap
         if self.config.trace_routing:
             metrics["trace"].append(("SWAP", u, v, ci))
-        if self.config.enable_node_decay:
-            node_decay[u] = node_decay.get(u, 1.0) + 0.1
-            node_decay[v] = node_decay.get(v, 1.0) + 0.1
         return True
 
     # ── Deadlock recovery ──────────────────────────────────────────────────────
@@ -587,7 +582,6 @@ class General_dSABRE_Router:
         failure_log = []
         _t_start = time.perf_counter()
 
-        node_decay       = {p: 1.0 for p in arch.Gr.nodes}
         iteration        = 0
         last_remaining   = len(list(wdag.op_nodes()))
         no_progress_iters = 0
@@ -604,7 +598,6 @@ class General_dSABRE_Router:
         ckpt_l2p   = l2p.copy()
         ckpt_p2l   = p2l.copy()
         ckpt_wdag  = deepcopy(wdag)
-        ckpt_decay = node_decay.copy()
         ckpt_counters  = {k: metrics[k] for k in ckpt_counter_keys}
         ckpt_trace_len = len(metrics["trace"]) if metrics["trace"] is not None else 0
         prev_remaining = last_remaining
@@ -639,7 +632,6 @@ class General_dSABRE_Router:
                 if intra_exec:
                     for n, p1, p2 in intra_exec:
                         wdag.remove_op_node(n)
-                        node_decay[p1] = node_decay[p2] = 1.0
                     progress = True
 
             if not wdag.op_nodes():
@@ -691,10 +683,8 @@ class General_dSABRE_Router:
                                 )
                                 for n, depth in local_ext
                             )
-                            score = max(node_decay[u], node_decay[v]) * (
-                                (delta_Hf / max(len(local_front), 1))
-                                + self.config.weight_extended * (delta_He / max(len(local_ext), 1))
-                            )
+                            score = ((delta_Hf / max(len(local_front), 1))
+                                     + self.config.weight_extended * (delta_He / max(len(local_ext), 1)))
                             if score < min_score:
                                 min_score, best_swap = score, (u, v)
 
@@ -708,9 +698,6 @@ class General_dSABRE_Router:
                         metrics["cost"] += self.config.cost_local_swap
                         if self.config.trace_routing:
                             metrics["trace"].append(("SWAP", u, v, ci))
-                        if self.config.enable_node_decay:
-                            node_decay[u] += 0.1
-                            node_decay[v] += 0.1
 
             elif front_inter:
                 # Inter-core teleportation: score candidates, execute best.
@@ -720,7 +707,7 @@ class General_dSABRE_Router:
                 # Instrumentation: count proactive-relief candidates (those have node=None).
                 metrics["relief_candidates"] += sum(1 for c in candidates if c.node is None)
                 if not candidates:
-                    if not self._fallback_local_swap(front_inter, wdag, l2p, p2l, metrics, node_decay):
+                    if not self._fallback_local_swap(front_inter, wdag, l2p, p2l, metrics):
                         remaining = len(list(wdag.op_nodes()))
                         elapsed   = time.perf_counter() - _t_start
                         failure_log.append(("NO_ACTIONS_NO_FALLBACK", iteration, remaining, elapsed))
@@ -731,7 +718,6 @@ class General_dSABRE_Router:
                     if best.node is None:
                         metrics["relief_picks"] += 1
                     self._apply_teleport(best, l2p, p2l, metrics)
-                    node_decay[best.p_comm_src] = node_decay[best.p_comm_dst] = 1.0
                     extended_cache = None
 
             remaining = len(list(wdag.op_nodes()))
@@ -741,7 +727,6 @@ class General_dSABRE_Router:
                 ckpt_l2p   = l2p.copy()
                 ckpt_p2l   = p2l.copy()
                 ckpt_wdag  = deepcopy(wdag)
-                ckpt_decay = node_decay.copy()
                 ckpt_counters  = {k: metrics[k] for k in ckpt_counter_keys}
                 ckpt_trace_len = len(metrics["trace"]) if metrics["trace"] is not None else 0
             else:
@@ -762,7 +747,6 @@ class General_dSABRE_Router:
                 l2p        = ckpt_l2p.copy()
                 p2l        = ckpt_p2l.copy()
                 wdag       = deepcopy(ckpt_wdag)
-                node_decay = ckpt_decay.copy()
                 for k in ckpt_counter_keys:
                     metrics[k] = ckpt_counters[k]
                 if metrics["trace"] is not None:
@@ -778,7 +762,6 @@ class General_dSABRE_Router:
                 ckpt_l2p   = l2p.copy()
                 ckpt_p2l   = p2l.copy()
                 ckpt_wdag  = deepcopy(wdag)
-                ckpt_decay = node_decay.copy()
                 ckpt_counters  = {k: metrics[k] for k in ckpt_counter_keys}
                 ckpt_trace_len = len(metrics["trace"]) if metrics["trace"] is not None else 0
 
