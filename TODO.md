@@ -1,5 +1,35 @@
 # TODO
 
+## Layout-policy exploration beyond adaptive corners (2026-07-17, negative result)
+
+Three capacity-envelope alternatives to the adopted per-core adaptive corner rule
+were benchmarked on 25/36/64q (dS + dSE, identical best-of-3 SabreLayout ->
+fwd/bwd/fwd protocol, all rows replay-verified):
+
+1. **spread** — even per-core budget ceil(n/(K*0.8)); at 36/64q its budgets equal
+   adaptive's, so those suites isolate reservation SHAPE (most-remote blob vs the
+   4 spread-out corners).
+2. **pack** — fewest connected cores C = ceil(n/0.8m), unused cores fully
+   reserved, smallest budget on the most CENTRAL used core.
+3. **lal** — `locality_aware_layout` (community partition), 3 seeds.
+
+Result (gmean EPR vs adaptive; worst circuit):
+
+| | spread | pack | lal |
+|---|---|---|---|
+| 25q dSE / dS | 1.36 / 1.36 (ghz 3x) | 1.36 / 1.32 (ghz 3x) | 1.63 / 1.87 (ghz 9x) |
+| 36q dSE / dS | 0.98 / 0.98 | 0.93 / 0.94 (wstate 1.5x) | 2.20 / 2.14 |
+| 64q dSE / dS | 1.04 / 0.96 | 1.01 / 0.96 (tails 1.2-1.3x) | 1.53 / 1.42 |
+
+**None adopted.** Takeaways: (a) reservation shape is noise at equal budgets —
+the fill head-room (budget) is what matters, and the corner set is as good as
+any; (b) packing fewer cores helps mid-fill gmean (36q 0.93) and chain circuits
+(ghz 64q: 6 vs 8 EPR) but blows up small sparse circuits at low fill (ghz 25q
+3x) and carries 1.2-1.5x tails — unsafe as a default; (c) the interaction-graph
+community layout is dominated everywhere. If revisited: a per-circuit policy
+chooser (e.g. pack only when the interaction graph is chain-like) is the open
+direction, not a new global rule.
+
 ## ~~Fix the corner-removal initial layout~~ (found 2026-07-15, RESOLVED 2026-07-17)
 
 Fixed by porting CPHM's validated `sabre_adaptive_corner_layout` (Phase 13e,
