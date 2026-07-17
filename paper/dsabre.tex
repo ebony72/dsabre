@@ -1373,10 +1373,8 @@ configuration is marginally worse.}
   600\,s timeout.  $^{\dagger}$See caveat on e-bit counting.
   $^{\ddagger}$\texttt{pytket-dqc}'s
   \textsc{CoverEmbeddingSteinerDetached} exceeds a 25-minute budget at
-  200q; the \textsc{PartitioningHeterogeneous} distributor is used.
-  $^{\S}$360q is not yet regenerated on the per-core adaptive layout;
-  its \dSABRE{} column and \texttt{pytket-dqc} e-bits are from the
-  previous configuration (\textsc{HypergraphPartitioning}).}
+  200q and 360q; the \textsc{PartitioningHeterogeneous} distributor is
+  used for those e-bit counts.}
 \label{tab:large}
 \setlength{\tabcolsep}{3pt}
 \small
@@ -1391,7 +1389,7 @@ Suite & CX & EPR & SWAP & EPR & SWAP & e-bits & TS & tket \\
 \midrule
 100q &  3420 & 248 & 2414 &  223 &  2723 &  114 & $-10.1$ & $+95.6$ \\
 200q &  7220 & ---  & ---   &  834 &  7043 &  447$^{\ddagger}$ & ---  & $+86.6$ \\
-360q$^{\S}$ & 13300 & 1109 & 15098 &  579 & 27489 &  669 & $-47.8$ & $-13.5$ \\
+360q & 13300 & 1109 & 15098 &  626 & 13433 &  195$^{\ddagger}$ & $-43.6$ & $+221.0$ \\
 \bottomrule
 \end{tabular}%
 }
@@ -1412,18 +1410,24 @@ selection well-fed.  The embedding advantage persists here
 ($+86.6\%$ vs.\ \texttt{pytket-dqc}), though \textsc{CoverEmbeddingSteinerDetached}
 exceeds a 25-minute budget and the cheaper \textsc{PartitioningHeterogeneous}
 distributor is reported instead.
-The \emph{360q} row is carried over from the previous configuration
-pending regeneration on the per-core layout (Section~\ref{sec:initial_mapping}).
+\rev{At \emph{360q}, \dSABRE{} again beats \TeleSABRE{} ($626$ vs.\ $1109$
+EPR, $-43.6\%$) while pytket-dqc's embedding is more e-bit-efficient
+($195$ e-bits, $+221\%$); the per-core adaptive layout together with the
+removal of the node-decay term cuts \dSABRE{}'s SWAP count from $27{,}489$
+to $13{,}433$ ($-51\%$) relative to the previous configuration.}
 As at the smaller sizes, the QFT comparison against pytket-dqc is
 dominated by its gate-teleportation embedding on this circuit family,
 which \dSABRE{}'s state-teleportation model does not target;
 the EPR-versus-e-bit caveat (no intra-core SWAP cost for pytket-dqc)
 applies throughout.
 Compile times for 360q QFT are $281$\,s (\TeleSABRE{}, C++, best of
-3 seeds), $801$\,s (\dSABRE{}, Python, SabreLayout + fwd$\to$bwd$\to$fwd),
-and $546$\,s (\texttt{pytket-dqc}, KaHyPar, best of 5 seeds);
-the Python overhead is the primary driver of \dSABRE{}'s longer
-wall time relative to the compiled C++ \TeleSABRE{}.
+3 seeds) and, for \dSABRE{} (Python, SabreLayout + fwd$\to$bwd$\to$fwd),
+of order $700$\,s per SabreLayout seed; the Python overhead is the primary
+driver of \dSABRE{}'s longer wall time relative to the compiled C++
+\TeleSABRE{}.  \rev{pytket-dqc's strongest distributor is the most
+expensive of the three---\textsc{CoverEmbeddingSteinerDetached} exceeds a
+25-minute budget at this size (its cheaper \textsc{HypergraphPartitioning}
+partitioner runs in ${\approx}550$\,s).}
 
 %%─────────────────────────────────────────────────────────────────────────────
 \subsection{Cost Analysis}

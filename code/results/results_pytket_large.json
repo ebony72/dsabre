@@ -18,6 +18,13 @@
     "py_ebits": 447,
     "py_method": "PartitioningHeterogeneous"
    }
+  ],
+  "360": [
+   {
+    "circuit": "qft",
+    "py_ebits": 195,
+    "py_method": "PartitioningHeterogeneous"
+   }
   ]
  }
 }

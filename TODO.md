@@ -2,12 +2,11 @@
 
 ## Open after the 2026-07-17 benchmark regeneration
 
-- **360q large-circuit row not regenerated.** `tab:large`'s 360q row (and the
-  `results_360q.json` file) still hold previous-layout dSABRE numbers and
-  HypergraphPartitioning pytket e-bits; flagged in-table with `$^{\S}$`. Deferred
-  because dSABRE 360q routing is ~hours and CoverEmbeddingSteinerDetached is
-  intractable at that size. Re-run when convenient: `regen_headline.py 360` (in the
-  session scratchpad) + a bounded pytket cell.
+- ~~360q large-circuit row not regenerated.~~ **DONE 2026-07-18**: `tab:large`
+  360q regenerated on the per-core layout (node_decay off), replay-verified —
+  dSABRE 626/13433 EPR/SWAP (was 579/27489; SWAP -51%), TS -43.6%, pytket
+  e-bits 195 (PartitioningHeterogeneous, Steiner-detached exceeded the 25-min
+  cap). `$^{\S}$` deferred footnote removed. `results_360q.json` synced.
 - **Steiner-detached does not scale.** `pytket-dqc`'s CoverEmbeddingSteinerDetached
   exceeded a 25-min budget on 64q qnn, 200q, 360q and is embedding-incompatible on
   random (arbitrary-phase); those cells use PartitioningHeterogeneous (footnoted). If
