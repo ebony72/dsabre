@@ -9,21 +9,39 @@
    {
     "circuit": "qft",
     "py_ebits": 114,
-    "py_method": "CoverEmbeddingSteinerDetached"
+    "py_method": "CoverEmbeddingSteinerDetached",
+    "hp_ebits": 815,
+    "dse_from_hp": {
+     "eprs": 280,
+     "ls": 2962,
+     "aborted": false
+    }
    }
   ],
   "200": [
    {
     "circuit": "qft",
     "py_ebits": 447,
-    "py_method": "PartitioningHeterogeneous"
+    "py_method": "PartitioningHeterogeneous",
+    "hp_ebits": 1124,
+    "dse_from_hp": {
+     "eprs": 1014,
+     "ls": 8150,
+     "aborted": false
+    }
    }
   ],
   "360": [
    {
     "circuit": "qft",
     "py_ebits": 195,
-    "py_method": "PartitioningHeterogeneous"
+    "py_method": "PartitioningHeterogeneous",
+    "hp_ebits": 669,
+    "dse_from_hp": {
+     "eprs": 563,
+     "ls": 13248,
+     "aborted": false
+    }
    }
   ]
  }

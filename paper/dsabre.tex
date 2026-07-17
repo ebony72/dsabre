@@ -1118,11 +1118,11 @@ random$^{\ast}$ & 1627 & --- & --- & 721 & 3608 & 968$^{\ddagger}$ & --- & $-25.
 To isolate routing from allocation quality, we re-run \dSABRE{} from
 each baseline's own initial layout.  The \TeleSABRE{} gap persists
 ($-25\%$ EPR on 25q, $-43\%$ on 64q from its
-\texttt{optimize\_initial} layout); against \texttt{pytket-dqc}'s
+\texttt{optimize\_initial} layout); \rev{against \texttt{pytket-dqc}'s
 KaHyPar partition \dSABRE{} wins on all three suites
-($-55\%$ on 25q, $-14\%$ on 36q, $-36\%$ on 64q); the 36q margin is
+($-56.8\%$ on 25q, $-8.0\%$ on 36q, $-40.1\%$ on 64q); the 36q margin is
 the narrowest because the sparse interaction graphs in that suite are
-already near-optimally partitioned by KaHyPar.
+already near-optimally partitioned by KaHyPar.}
 
 \subsection{Ablation Study}
 \label{sec:ablation}
@@ -1355,15 +1355,15 @@ H-grid of the 64q suite:
 \texttt{pytket-dqc} uses HypergraphPartitioning (best of 5 seeds).
 Each router runs from its own initial layout, so the $\Delta_{\rm tket}$
 column should be read with this layout asymmetry in mind in addition
-to the e-bit counting caveat (Section~\ref{sec:setup}).\footnote{For a
+to the e-bit counting caveat (Section~\ref{sec:setup}).\footnote{\rev{For a
 layout-controlled point of comparison, re-running \dSABRE{} from
 \texttt{pytket-dqc}'s HypergraphPartitioning layout gives EPR counts
-of $315$ (100q), $880$ (200q), and $385$ (360q), versus
+of $280$ (100q), $1014$ (200q), and $563$ (360q), versus
 \texttt{pytket-dqc}'s $815$, $1124$, and $669$ --- corresponding to
-$\Delta_{\rm tket}$ of $-61.4\%$, $-21.7\%$, and $-42.5\%$.  In this
+$\Delta_{\rm tket}$ of $-65.6\%$, $-9.8\%$, and $-15.8\%$.  In this
 matched-layout setting \dSABRE{} beats \texttt{pytket-dqc} at all
-three sizes, including the 200q row where the SabreLayout
-configuration is marginally worse.}
+three sizes, most narrowly at 200q where its SabreLayout
+configuration is marginally worse.}}
 
 \begin{table}[t]
 \centering
