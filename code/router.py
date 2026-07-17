@@ -16,6 +16,8 @@ marked aborted.
 import time
 from copy import deepcopy
 
+import networkx as nx
+
 from config import HardwareConfig
 from architecture import DistributedArchitecture
 from actions import TeleportAction
@@ -245,10 +247,21 @@ class General_dSABRE_Router:
 
     # ── Physical operations ────────────────────────────────────────────────────
 
-    def _local_swap_path(self, p_src, p_dst, core_id, l2p, p2l, metrics):
+    def _local_swap_path(self, p_src, p_dst, core_id, l2p, p2l, metrics,
+                         avoid=None):
         if p_src == p_dst:
             return
         path = self._ipath(core_id, p_src, p_dst)
+        if avoid is not None and avoid != p_src and avoid != p_dst and avoid in path:
+            # Detour around a node that must stay untouched (a comm port that
+            # has to remain free to hold an EPR half at teleport time).
+            try:
+                path = nx.shortest_path(
+                    nx.restricted_view(self.arch.intra[core_id], [avoid], []),
+                    p_src, p_dst,
+                )
+            except nx.NetworkXNoPath:
+                pass  # `avoid` is a cut vertex of this core: no detour exists
         for i in range(len(path) - 1):
             a, b = path[i], path[i + 1]
             qa, qb = p2l[a], p2l[b]
@@ -284,9 +297,27 @@ class General_dSABRE_Router:
 
     def _apply_teleport(self, a: TeleportAction, l2p, p2l, metrics):
         """Execute teleportation: evict comm qubits, SWAP to staging slot, move."""
+        if self._free_slots(a.src_core, self.arch, p2l) == 0:
+            # Source core has zero free slots: _evict below has nowhere to
+            # swap the port's occupant to and would silently no-op, leaving
+            # the port illegally occupied.  Relieve the core with one real
+            # (legal) teleport hop first; `a.virt` itself must stay put, or
+            # the staging-path lookup below would operate on a qubit that
+            # already left this core.
+            self._force_make_room(a.src_core, l2p, p2l, metrics, exclude_virt=a.virt)
+        if self._free_slots(a.next_core, self.arch, p2l) == 0:
+            # The relief hop above can land its evacuee in `a.next_core` if
+            # that's where the chosen outgoing link happens to lead --
+            # consuming the one free slot the caller secured there for this
+            # move's destination.  Re-check and top it back up before the
+            # destination evict below relies on it.
+            self._force_make_room(a.next_core, l2p, p2l, metrics, exclude_virt=a.virt)
         self._evict(a.p_comm_src, a.src_core,  l2p, p2l, metrics)
         self._evict(a.p_comm_dst, a.next_core, l2p, p2l, metrics)
-        self._local_swap_path(l2p[a.virt], a.n_s, a.src_core, l2p, p2l, metrics)
+        # The staging path must not route through the just-evicted source comm
+        # port: both comm ports have to be free at teleport time (EPR halves).
+        self._local_swap_path(l2p[a.virt], a.n_s, a.src_core, l2p, p2l, metrics,
+                              avoid=a.p_comm_src)
         virt = p2l[a.n_s]
         p2l[a.n_s] = None
         if virt is not None: l2p[virt] = a.p_comm_dst
@@ -399,40 +430,46 @@ class General_dSABRE_Router:
 
     # ── Deadlock recovery ──────────────────────────────────────────────────────
 
-    def _force_make_room(self, core_id, l2p, p2l, metrics):
-        """Teleport any qubit out of a full core to free one slot."""
+    def _force_make_room(self, core_id, l2p, p2l, metrics, exclude_virt=None):
+        """Teleport a qubit out of a full core to free one slot.
+
+        `exclude_virt`, when given, must not be the qubit relieved: used by
+        `_apply_teleport` when it calls this mid-move, so the relief hop
+        can't sweep away the very qubit it is already routing.
+        """
         metrics["force_make_room"] += 1
         arch = self.arch
         if self._free_slots(core_id, arch, p2l) > 0:
             return True
         outgoing = (
             [(u, v) for u, v in arch.inter_core_links
-             if arch.core_of(u) == core_id and self._free_slots(arch.core_of(v), arch, p2l) > 0]
+             if arch.core_of(u) == core_id and self._free_slots(arch.core_of(v), arch, p2l) > 0
+             and p2l[u] != exclude_virt]
             + [(v, u) for u, v in arch.inter_core_links
-               if arch.core_of(v) == core_id and self._free_slots(arch.core_of(u), arch, p2l) > 0]
+               if arch.core_of(v) == core_id and self._free_slots(arch.core_of(u), arch, p2l) > 0
+               and p2l[v] != exclude_virt]
         )
         if not outgoing:
             return False
         cp_out, cp_in = outgoing[0]
         neighbor_core = arch.core_of(cp_in)
-        src = min(
-            [p for p in arch.core_qubits(core_id) if p2l[p] is not None],
-            key=lambda p: self._idist(core_id, p, cp_out),
-        )
-        n_s = min(
-            list(arch.intra[core_id].neighbors(cp_out)),
-            key=lambda n: self._idist(core_id, src, n),
-        )
-        self._evict(cp_out, core_id, l2p, p2l, metrics)
         self._evict(cp_in, neighbor_core, l2p, p2l, metrics)
-        self._local_swap_path(src, n_s, core_id, l2p, p2l, metrics)
-        virt = p2l[n_s]
-        p2l[n_s] = None
+        # The core is full (the free-slot early exit did not fire), so the
+        # out-port occupant is itself the cheapest evacuee and no staging
+        # slot can be cleared for it: teleport it straight off the port.
+        # A qubit sitting on the source port is the one placement the
+        # teleport protocol still allows when that port is not free.
+        virt = p2l[cp_out]
+        p2l[cp_out] = None
         if virt is not None: l2p[virt] = cp_in
         p2l[cp_in] = virt
         metrics["teles"] += 1
         metrics["eprs"]  += 1
         metrics["cost"]  += self.config.cost_teleport
+        if self.config.trace_routing:
+            metrics["trace"].append(
+                ("TELE", virt, cp_out, cp_in, core_id, neighbor_core)
+            )
         return True
 
     def _backup_plan(self, wdag, l2p, p2l, metrics):

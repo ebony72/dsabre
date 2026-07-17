@@ -21,6 +21,11 @@ unitary as the input, up to the final qubit permutation:
        matches the layout returned by the router.
   (I4) Pre-gate adjacency: a 2q gate becomes executable only when its two
        logical qubits map to adjacent physical qubits.
+  (I5) Teleport port legality: at each TELE, the source-side comm port of
+       the link must be free (or hold the moving qubit itself) and the
+       moving qubit must sit at or adjacent to that port; the destination
+       port must be free.  Both ports carry EPR halves during the protocol,
+       so an occupied port makes the teleport physically unexecutable.
 
 Usage
 -----
@@ -174,6 +179,28 @@ def verify_routing(dag, arch, initial_layout, final_layout, trace) -> VerifyRepo
                 fails.append(
                     f"[{step_i}] TELE: destination {p_comm_dst} not free "
                     f"(holds {p2v[p_comm_dst]})"
+                )
+            # (I5) source-side port legality.  The trace does not record the
+            # source port, but p_comm_dst identifies the inter-core link.
+            p_now = v2p.get(virt)
+            src_ports = [u for u, v in arch.inter_links_between(src_core, next_core)
+                         if v == p_comm_dst]
+            if not src_ports:
+                fails.append(
+                    f"[{step_i}] TELE: no {src_core}->{next_core} link "
+                    f"ends at {p_comm_dst}"
+                )
+            elif not any(
+                p_now == u
+                or (p2v.get(u) is None
+                    and p_now is not None
+                    and arch.intra[src_core].has_edge(p_now, u))
+                for u in src_ports
+            ):
+                fails.append(
+                    f"[{step_i}] TELE: source port(s) {src_ports} of link to "
+                    f"{p_comm_dst} occupied or not adjacent to virt {virt} "
+                    f"at {p_now}"
                 )
             # (I3) permutation update: virt moves to p_comm_dst, old slot frees.
             old = v2p[virt]
