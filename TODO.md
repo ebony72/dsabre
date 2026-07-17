@@ -36,3 +36,36 @@ Sources (in `../cphm/`): `PROGRESS.md` Phase 13c/13d; `code/layout_corners.py`
 Implication: every dSABRE headline table was produced under the core-0-only layout; a
 per-core reservation rescales the baseline by -20% (64q) to -45% (200q) EPR before any
 router change. Adopting it means re-running the benchmark tables.
+
+## Teleport destination-port-occupied bug (found 2026-07-17, stress test)
+
+Separate from the source-port bug fixed the same day in `code/router.py`
+(`_apply_teleport` staging-path + full-source-core eviction, see the commit "Fix
+teleport-legality bugs: staging path and full-source-core eviction"): `verify.py`'s I5
+check can also fail on the **destination** side — `TELE: destination {p} not free
+(holds {virt})` — meaning `_apply_teleport`'s `_evict(a.p_comm_dst, a.next_core, ...)`
+sometimes doesn't actually clear the destination port before the write.
+
+**Confirmed pre-existing**: reproduces identically on the unmodified pre-fix router
+(commit `779c8c3`), so it predates and is independent of both fixes applied 2026-07-17.
+Not caught by dqcbench's M1 pilot (qasm_25 / architecture A, 2x2 cores of 3x3) — only
+surfaced under a deliberately tight stress scenario.
+
+**Repro**: `build_b_grid_architecture(r=2, s=2, m=4)` (64 phys, 4 cores of 16),
+`HardwareConfig(deadlock_limit=300, max_backup_attempts=300, max_iterations=20000,
+trace_routing=True)`, `sabre_locked_boundary_layout(seed=0)`, a single
+`router.route(dag, layout)` pass (both `General_dSABRE_Router` and
+`dSABRE_BurstExt`) on `wstate_nativegates_ibm_qiskit_opt3_36.qasm` from dqcbench's
+`circuits/qasm_36/`. Fails at trace index ~620 with `_free_slots(core)==0` /
+`force_make_room` count >= 1 at the point of failure in every observed instance —
+suggests the same "core is completely full" family as the source-side bug, but via a
+different call path not yet isolated (candidate `next_core` free-slot check in
+`_generate_candidates` runs before selection; something between there and the actual
+`_evict(p_comm_dst, ...)` — possibly `_backup_plan`/`_force_make_room` activity in a
+prior iteration, or a same-iteration interaction not yet identified — leaves the port
+occupied by the time `_apply_teleport` writes to it). Root cause not yet diagnosed.
+
+Plausibly related to the corner-removal layout bug above: if per-core reservation
+were fixed, cores would fill up less often, which may make this destination-side
+race harder to trigger — but the underlying legality bug would still need its own
+fix independent of that.
