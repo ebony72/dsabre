@@ -594,10 +594,19 @@ class General_dSABRE_Router:
         backup_attempts  = 0
         extended_cache   = None
 
+        # Output-stream accounting must be checkpointed alongside the layout:
+        # deadlock recovery discards the work done since the checkpoint, so
+        # ops emitted on the abandoned branch are not part of the compiled
+        # circuit and must leave the trace/counters too, or the emitted
+        # stream stops being replayable against the restored state.
+        ckpt_counter_keys = ("ls", "teles", "catcomms", "eprs", "cost", "1q_gates")
+
         ckpt_l2p   = l2p.copy()
         ckpt_p2l   = p2l.copy()
         ckpt_wdag  = deepcopy(wdag)
         ckpt_decay = node_decay.copy()
+        ckpt_counters  = {k: metrics[k] for k in ckpt_counter_keys}
+        ckpt_trace_len = len(metrics["trace"]) if metrics["trace"] is not None else 0
         prev_remaining = last_remaining
 
         while wdag.op_nodes():
@@ -733,6 +742,8 @@ class General_dSABRE_Router:
                 ckpt_p2l   = p2l.copy()
                 ckpt_wdag  = deepcopy(wdag)
                 ckpt_decay = node_decay.copy()
+                ckpt_counters  = {k: metrics[k] for k in ckpt_counter_keys}
+                ckpt_trace_len = len(metrics["trace"]) if metrics["trace"] is not None else 0
             else:
                 no_progress_iters += 1
 
@@ -752,6 +763,10 @@ class General_dSABRE_Router:
                 p2l        = ckpt_p2l.copy()
                 wdag       = deepcopy(ckpt_wdag)
                 node_decay = ckpt_decay.copy()
+                for k in ckpt_counter_keys:
+                    metrics[k] = ckpt_counters[k]
+                if metrics["trace"] is not None:
+                    del metrics["trace"][ckpt_trace_len:]
                 metrics["backup_activations"] += 1
                 extended_cache = None
                 if not self._backup_plan(wdag, l2p, p2l, metrics):
@@ -764,6 +779,8 @@ class General_dSABRE_Router:
                 ckpt_p2l   = p2l.copy()
                 ckpt_wdag  = deepcopy(wdag)
                 ckpt_decay = node_decay.copy()
+                ckpt_counters  = {k: metrics[k] for k in ckpt_counter_keys}
+                ckpt_trace_len = len(metrics["trace"]) if metrics["trace"] is not None else 0
 
         metrics["compile_time"] = time.perf_counter() - _t_start
         metrics["failure_log"]  = failure_log
