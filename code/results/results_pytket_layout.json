@@ -1,104 +1,119 @@
 {
- "meta": {
-  "date": "2026-07-17",
-  "method": "CoverEmbeddingSteinerDetached"
- },
- "results": {
-  "25q": [
-   {
-    "circuit": "ae",
-    "py_ebits": 48,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "ghz",
-    "py_ebits": 3,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "graphstate",
-    "py_ebits": 4,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "qft",
-    "py_ebits": 61,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "qnn",
-    "py_ebits": 115,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "random",
-    "py_ebits": 479,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   }
-  ],
-  "36q": [
-   {
-    "circuit": "bv",
-    "py_ebits": 3,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "dj",
-    "py_ebits": 3,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "qaoa",
-    "py_ebits": 148,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "qpeexact",
-    "py_ebits": 49,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "vqe_su2",
-    "py_ebits": 9,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "wstate",
-    "py_ebits": 6,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   }
-  ],
-  "64q": [
-   {
-    "circuit": "ae",
-    "py_ebits": 141,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "ghz",
-    "py_ebits": 5,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "graphstate",
-    "py_ebits": 9,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "qft",
-    "py_ebits": 181,
-    "py_method": "CoverEmbeddingSteinerDetached"
-   },
-   {
-    "circuit": "qnn",
-    "py_ebits": 735,
-    "py_method": "PartitioningHeterogeneous"
-   },
-   {
-    "circuit": "random",
-    "py_ebits": 968,
-    "py_method": "PartitioningHeterogeneous"
-   }
-  ]
- }
+  "meta": {
+    "date": "2026-07-17",
+    "method": "CoverEmbeddingSteinerDetached"
+  },
+  "results": {
+    "25q": [
+      {
+        "circuit": "ae",
+        "py_ebits": 48,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "ghz",
+        "py_ebits": 3,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "graphstate",
+        "py_ebits": 4,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "qft",
+        "py_ebits": 61,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "qnn",
+        "py_ebits": 115,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "random",
+        "py_ebits": 479,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      }
+    ],
+    "36q": [
+      {
+        "circuit": "bv",
+        "py_ebits": 3,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "dj",
+        "py_ebits": 3,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "qaoa",
+        "py_ebits": 148,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "qpeexact",
+        "py_ebits": 49,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "vqe_su2",
+        "py_ebits": 9,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "wstate",
+        "py_ebits": 6,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      }
+    ],
+    "64q": [
+      {
+        "circuit": "ae",
+        "py_ebits": 141,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "ghz",
+        "py_ebits": 5,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "graphstate",
+        "py_ebits": 9,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "qft",
+        "py_ebits": 181,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "qnn",
+        "py_ebits": 735,
+        "py_method": "PartitioningHeterogeneous"
+      },
+      {
+        "circuit": "random",
+        "py_ebits": 968,
+        "py_method": "PartitioningHeterogeneous"
+      },
+      {
+        "circuit": "qpeexact",
+        "py_ebits": 96,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "qaoa",
+        "py_ebits": 472,
+        "py_method": "CoverEmbeddingSteinerDetached"
+      },
+      {
+        "circuit": "multiplier",
+        "py_ebits": 2957,
+        "py_method": "PartitioningHeterogeneous"
+      }
+    ]
+  }
 }

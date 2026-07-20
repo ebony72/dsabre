@@ -75,9 +75,9 @@ saturated cores; a proactive congestion-relief pass that redistributes
 idle qubits out of high-demand cores before deadlock; and a BFS-layer
 construction of the inter-core extended set that respects DAG
 dependencies layer by layer rather than mixing wires in topological
-order.  Across 18 MQT-Bench circuits
+order.  Across \rev{21} MQT-Bench circuits
 at 25, 36, and 64 logical qubits, \dSABRE{} reduces geometric-mean
-EPR consumption by \rev{$41$--$53\%$} over \TeleSABRE{}.  \rev{Against the
+EPR consumption by \rev{$41$--$46\%$} over \TeleSABRE{}.  \rev{Against the
 gate-teleportation-based \texttt{pytket-dqc} using its strongest
 Steiner-embedding distributor, \dSABRE{} reduces EPRs by $12$--$57\%$
 on the 25- and 36-qubit suites; on the denser 64-qubit suite that
@@ -195,7 +195,7 @@ circuit size (Section~\ref{sec:ablation}).
 \item \textbf{Comprehensive empirical validation.}
 Across MQT-Bench suites at 25, 36, and 64 qubits on multi-core grid
 architectures, \dSABRE{} reduces geometric-mean EPR consumption by
-\rev{$41$--$53\%$} over \TeleSABRE{}~\cite{russo2025telesabre}.  \rev{It also
+\rev{$41$--$46\%$} over \TeleSABRE{}~\cite{russo2025telesabre}.  \rev{It also
 reduces EPRs by $12$--$57\%$ over \texttt{pytket-dqc}~\cite{pytketdqc2024}
 (strongest Steiner-embedding distributor) on the 25- and 36-qubit suites,
 while on the 64-qubit suite that method's gate embedding is more
@@ -815,7 +815,15 @@ quantum phase estimation (QPEexact, hierarchical).
 
 \emph{Suite~3 (64-qubit):} the same six circuit families as Suite~1 scaled to
 64~logical qubits (AE, QFT, QNN, Random, GHZ, Graphstate), run on the larger
-H-grid architecture.
+H-grid architecture\rev{, extended with three further circuits that complete
+the algorithmic-class coverage at the largest scale: QPEexact
+(phase-estimation family, the class on which gate teleportation is
+strongest), QAOA (dense max-cut cost layers with shared-control $ZZ$
+structure), and a 16-bit Multiplier (arithmetic, the suite's largest
+circuit at 13\,040 CX).  QPEexact is the MQT-Bench v1.1.0
+nativegates/opt3 circuit; QAOA and Multiplier are generated with
+MQT-Bench v2.2.2 in the same format (basis $\{R_z, SX, X, CX\}$, Qiskit
+optimisation level~3)}.
 
 Circuit properties are summarised in Table~\ref{tab:circuits}.
 
@@ -844,13 +852,16 @@ Suite & Circuit    & Qubits & CX gates & Depth & CX/qubit \\
  & QPEexact   & 36 & 1019 & 347 & 28.3 \\
  & QAOA       & 36 & 1200 & 256 & 33.3 \\
 \midrule
-\multirow{6}{*}{64q}
+\multirow{9}{*}{64q}
  & AE         & 64 & 1962 & 1058 & 30.7 \\
  & QFT        & 64 & 1966 &  446 & 30.7 \\
  & QNN        & 64 & 8126 &  650 & 127.0 \\
  & Random     & 64 & 1627 &  403 & 25.4 \\
  & GHZ        & 64 &   63 &   66 &  1.0 \\
  & Graphstate & 64 &   64 &   25 &  1.0 \\
+ & \rev{QPEexact}   & \rev{64} & \rev{2139} & \rev{626} & \rev{33.4} \\
+ & \rev{QAOA}       & \rev{64} & \rev{3920} & \rev{493} & \rev{61.2} \\
+ & \rev{Multiplier} & \rev{64} & \rev{13040} & \rev{22469} & \rev{203.8} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -896,6 +907,11 @@ shared-control CNOT runs (QFT, QPE) favour gate teleportation.
 The $\Delta_{\rm tket}$ columns in
 Tables~\ref{tab:main25}--\ref{tab:large} are unit-consistent but
 should be read with this work-per-unit asymmetry in mind.
+\rev{The asymmetry is also \emph{temporal}: a gate-teleportation e-bit
+must stay entangled for the full duration of the hyperedge it serves,
+whereas a teledata e-bit is consumed instantaneously by its teleport.
+Section~\ref{sec:main_results} quantifies what this unbounded-lifetime
+assumption is worth (Table~\ref{tab:dmax}).}
 
 \textbf{Parameters.}
 Table~\ref{tab:params} lists all hyperparameters.
@@ -911,8 +927,9 @@ Each router uses its authors' convention: best-of-3 seeds for
 \dSABRE{} and \TeleSABRE{}~\cite{russo2025telesabre}, best-of-5 for
 \texttt{pytket-dqc}~\cite{pytketdqc2024}.  This reflects the operational
 cost rather than per-attempt variance.  The advantage over \TeleSABRE{}
-is robust to this choice: replacing best with median on 64q shifts the
-gmean gap from $-52.6\%$ to $-50.2\%$ vs.\ \TeleSABRE{}, still a large
+is robust to this choice: replacing best with median on \rev{the
+original five-circuit \TeleSABRE{}-matched} 64q \rev{set} shifts the gmean gap from
+$-52.6\%$ to $-50.2\%$ vs.\ \TeleSABRE{}, still a large
 reduction.  The comparison against \texttt{pytket-dqc} is
 method-dependent (Tables~\ref{tab:main25}--\ref{tab:main64}) and is
 discussed per suite above.
@@ -1023,10 +1040,13 @@ partitions almost perfectly; the geometric mean still favours \dSABRE{}.
 
 \textbf{64q.}
 The H-grid suite is where the gap from \TeleSABRE{} is most
-consequential (Table~\ref{tab:main64}).  \dSABRE{} reduces gmean EPRs
-by \textbf{52.6\%} over the five circuits on which \TeleSABRE{}
-converges, with per-circuit reductions ranging from $-18.2\%$ (GHZ)
-to $-78.9\%$ (Graphstate) and QFT/QNN at $-50.2\%$/$-62.8\%$.
+consequential (Table~\ref{tab:main64}).  \rev{The suite comprises the six
+\TeleSABRE{}-benchmark circuits plus the three class-completion additions
+(QPEexact, QAOA, Multiplier).}  \dSABRE{} reduces gmean EPRs
+by \rev{\textbf{45.5\%} over the seven circuits on which \TeleSABRE{}
+converges, with per-circuit reductions ranging from $-12.6\%$ (QPEexact)
+to $-78.9\%$ (Graphstate), QFT/QNN at $-50.2\%$/$-62.8\%$, and the
+13k-CX Multiplier at $-31.2\%$.}
 \rev{The per-core adaptive corner reservation
 (Section~\ref{sec:initial_mapping}) supplies every core with escape slots, which
 resolves the earlier star-circuit weakness on GHZ: it now improves
@@ -1034,19 +1054,23 @@ resolves the earlier star-circuit weakness on GHZ: it now improves
 and the local $\Delta$-form score is no longer forced to chase the
 next CX out of a saturated core.}
 \rev{Against pytket-dqc's strongest distributor the comparison
-\emph{reverses}: the 6-circuit geometric mean is $+21.3\%$, i.e.\
+\emph{reverses}: the 9-circuit geometric mean is $+20.0\%$, i.e.\
 \dSABRE{}'s teleport-EPRs exceed pytket-dqc's e-bits.
 \textsc{CoverEmbeddingSteinerDetached} is markedly more e-bit-efficient
 on the structured circuits (AE $+71.6\%$, GHZ $+80.0\%$, Graphstate
-$+77.8\%$, QFT $+12.7\%$), where Steiner-tree gate embedding reuses a
-few EPR pairs across many controlled operations; \dSABRE{} leads only on
-the two densest circuits (QNN $-30.9\%$, Random $-25.5\%$), on which the
+$+77.8\%$, QFT $+12.7\%$, and above all QPEexact $+182.3\%$; QAOA is
+near parity at $+12.1\%$), where Steiner-tree gate embedding reuses a
+few EPR pairs across many controlled operations; \dSABRE{} leads on
+the three densest circuits (QNN $-30.9\%$, Random $-25.5\%$, Multiplier
+$-48.8\%$), on which the
 embedding method does not scale or embed and a plain partitioner is used.
 Two caveats temper this: pytket-dqc's e-bit count omits the intra-core
 SWAP cost that \dSABRE{} pays and reports, and its strongest method is
 computationally far heavier (minutes to intractable per large circuit
-versus \dSABRE{}'s seconds).}  On Random, \TeleSABRE{} fails to converge
-on any of three seeds; \dSABRE{} completes ($721$ EPR) under default
+versus \dSABRE{}'s seconds).}  On Random \rev{and QAOA}, \TeleSABRE{}
+fails to converge
+on any of three seeds; \dSABRE{} completes \rev{both ($721$ and $529$
+EPR)} under default
 scoring and proactive relief alone, without triggering
 checkpoint--rollback.
 
@@ -1083,11 +1107,12 @@ wstate   &   70 &  12 &   88 &   6 &   25 &   6 & $-50.0$ & $+0.0$  \\
 \centering
 \caption{64-qubit suite (H-grid $2{\times}3$ $4{\times}4$, 96 physical
   qubits).  Methodology and notation as Table~\ref{tab:main25};
-  $^{\ast}$\TeleSABRE{} fails to converge on Random.
+  $^{\ast}$\TeleSABRE{} fails to converge on Random \rev{and QAOA}.
   $^{\ddagger}$\texttt{pytket-dqc}'s \textsc{CoverEmbeddingSteinerDetached}
-  does not scale to (QNN) or embed (Random) these dense circuits within a
+  does not scale to (QNN\rev{, Multiplier}) or embed (Random) these dense
+  circuits within a
   20-minute budget; the non-embedding \textsc{PartitioningHeterogeneous}
-  distributor is used for those two cells.}
+  distributor is used for those cells.}
 \label{tab:main64}
 \setlength{\tabcolsep}{3pt}
 \small
@@ -1106,9 +1131,12 @@ graphstate &   64 &   76 &  379 &  16 &   89 &    9 & $-78.9$ & $+77.8$ \\
 qft        & 1966 &  410 & 1872 & 204 & 1563 &  181 & $-50.2$ & $+12.7$ \\
 qnn        & 8126 & 1365 & 6292 & 508 & 5229 &  735$^{\ddagger}$ & $-62.8$ & $-30.9$ \\
 random$^{\ast}$ & 1627 & --- & --- & 721 & 3608 & 968$^{\ddagger}$ & --- & $-25.5$ \\
+\rev{qpeexact}   & \rev{2139}  & \rev{310}  & \rev{1624}  & \rev{271}  & \rev{1792}  & \rev{96}   & \rev{$-12.6$} & \rev{$+182.3$} \\
+\rev{qaoa$^{\ast}$} & \rev{3920} & --- & --- & \rev{529} & \rev{3688} & \rev{472} & --- & \rev{$+12.1$} \\
+\rev{multiplier} & \rev{13040} & \rev{2202} & \rev{11232} & \rev{1514} & \rev{10109} & \rev{2957$^{\ddagger}$} & \rev{$-31.2$} & \rev{$-48.8$} \\
 \midrule
-\textbf{gmean} (5) & & 172.1 & 943 & 81.6 & 573 & 61.0 & $\mathbf{-52.6}$ & $\mathbf{+33.7}$ \\
-\textbf{gmean} (6) & & --- & --- & 117.3 & 779 & 96.7 & --- & $\mathbf{+21.3}$ \\
+\rev{\textbf{gmean} (7)} & & \rev{269.5} & \rev{1452} & \rev{147.0} & \rev{1016} & \rev{113.3} & \rev{$\mathbf{-45.5}$} & \rev{$\mathbf{+29.7}$} \\
+\rev{\textbf{gmean} (9)} & & --- & --- & \rev{202.2} & \rev{1350} & \rev{168.5} & --- & \rev{$\mathbf{+20.0}$} \\
 \bottomrule
 \end{tabular}%
 }
@@ -1123,6 +1151,103 @@ KaHyPar partition \dSABRE{} wins on all three suites
 ($-56.8\%$ on 25q, $-8.0\%$ on 36q, $-40.1\%$ on 64q); the 36q margin is
 the narrowest because the sparse interaction graphs in that suite are
 already near-optimally partitioned by KaHyPar.}
+
+\paragraph{\rev{Entanglement-lifetime sensitivity.}}
+\rev{Every \texttt{pytket-dqc} e-bit count above assumes an
+\emph{unbounded} entanglement lifetime: the link qubit created by one
+starting process stays entangled until the last gate of its hyperedge
+has executed.  Bandini \emph{et al.}~\cite{bandini2026optimized} argue
+that this is unrealistic---EPR-pair quality decays quickly, so the
+number of gates sharing one pair must be bounded---and cap
+gates-per-EPR at $D_{\max}$, proposing $D_{\max}{=}3$ as a realistic
+setting.  We therefore re-score \texttt{pytket-dqc}'s distributions
+under this bound, using a counter that generalises its own cost model:
+an established link serves at most $D_{\max}$ gates before it dies and
+must be re-established from a still-live neighbour on the hyperedge's
+Steiner tree.  The counter is conservative in \texttt{pytket-dqc}'s
+favour (intermediate links age only when they themselves serve gates;
+embedded and home-server gates age nothing; wall-clock time is
+ignored) and reproduces \texttt{pytket-dqc}'s own cost exactly at
+$D_{\max}{=}\infty$ on every distribution evaluated.  \dSABRE{} needs
+no adjustment at any $D_{\max}$: a teledata EPR is consumed
+instantaneously by its teleport, so teledata counts are
+lifetime-invariant by construction.}
+
+\rev{Table~\ref{tab:dmax} shows the sweep on the 64q suite.  The
+$+20.0\%$ reversal of Table~\ref{tab:main64} exists only above a
+lifetime threshold: the geometric-mean gap crosses parity between
+$D_{\max}{=}10$ and $D_{\max}{=}5$ and becomes a \dSABRE{} win of
+$\mathbf{37.9\%}$ at the realistic $D_{\max}{=}3$ ($68.5\%$ at
+$D_{\max}{=}1$).  Three structural observations.  (i)~The circuits on
+which gate teleportation wins at $D_{\max}{=}\infty$ are exactly those
+whose distributions hold links across many gates, and they inflate
+$2.7$--$4.8\times$ at $D_{\max}{=}3$ (AE $137\!\to\!423$, QFT
+$190\!\to\!572$, QNN $540\!\to\!2435$, QAOA $472\!\to\!1282$); the
+sharpest case is QPEexact, \texttt{pytket-dqc}'s largest unbounded win
+($+182.3\%$ in Table~\ref{tab:main64}), which inflates $79\!\to\!378$
+and flips to a \dSABRE{} advantage ($-28.3\%$).  QNN's winning
+distribution
+requires individual link qubits to serve up to $102$ gates while
+remaining entangled across $4262$ of the circuit's $8126$ CX
+time-slots---more than half its execution.  (ii)~GHZ and Graphstate
+are $D_{\max}$-\emph{insensitive}: their hyperedges hold roughly one
+gate each, so these residual wins reflect partition quality rather
+than held entanglement, and the shared-mapping experiment above shows
+\dSABRE{} matches them when routed from the same partition.
+(iii)~Dense circuits move least (Random $908\!\to\!967$, Multiplier
+$2950\!\to\!5004$): with no or short
+shared-control runs there is little amortisation to lose, and
+\dSABRE{} already led those rows.  The same sweep on the smaller
+suites only widens \dSABRE{}'s margins: at $D_{\max}{=}3$ the best
+\texttt{pytket-dqc} pipeline inflates AE-25 from $48$ to $136$ e-bits
+and QFT-25 from $59$ to $164$, and QPEexact-36 inflates from $44$ to
+$192$, turning the one structured 36q circuit it won
+(Table~\ref{tab:main36}, $+32.7\%$) into a $66\%$ \dSABRE{}
+advantage.  A $D_{\max}$-aware re-partition could soften, though not
+eliminate, this inflation; \texttt{pytket-dqc} currently offers no
+such option.  We conclude that gate-teleportation's e-bit advantage on
+structured circuits is conditional on hardware sustaining
+entanglement across ${\gtrsim}5$--$10$ gates per EPR pair, whereas
+teledata routing delivers its counts under any lifetime.}
+
+\begin{table}[t]
+\centering
+\caption{\rev{Entanglement-lifetime sensitivity on the 64q suite:
+  \texttt{pytket-dqc} e-bits when one EPR pair may serve at most
+  $D_{\max}$ gates (best completed distributor per cell,
+  counter as described in the text).  The $D_{\max}{=}\infty$ column
+  reproduces the setting of Table~\ref{tab:main64} up to seed and
+  pipeline variation and is in aggregate \emph{more} favourable to
+  \texttt{pytket-dqc} (gmean $+33.4\%$ vs $+20.0\%$).  \dSABRE{} EPR
+  (Table~\ref{tab:main64}) is $D_{\max}$-invariant.
+  $\Delta_{3}$ compares \dSABRE{} against the $D_{\max}{=}3$ column;
+  negative favours \dSABRE{}.}}
+\label{tab:dmax}
+\setlength{\tabcolsep}{3pt}
+\small
+{\color{blue}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}l r rrrrr r@{}}
+\toprule
+ & \dSABRE & \multicolumn{5}{c}{\texttt{pytket-dqc} e-bits at $D_{\max}$} & \\
+\cmidrule(lr){3-7}
+Circuit & EPR & $\infty$ & $10$ & $5$ & $3$ & $1$ & $\Delta_{3}$ (\%) \\
+\midrule
+ae         & 242 & 137 &  191 &  292 &  423 & 1118 & $-42.8$ \\
+ghz        &   9 &   5 &    5 &    5 &    5 &    5 & $+80.0$ \\
+graphstate &  16 &   6 &    6 &    6 &    6 &    6 & $+166.7$ \\
+qft        & 204 & 190 &  265 &  400 &  572 & 1416 & $-64.3$ \\
+qnn        & 508 & 540 & 1009 & 1592 & 2435 & 6866 & $-79.1$ \\
+random     & 721 & 908 &  908 &  922 &  967 & 1453 & $-25.4$ \\
+qpeexact   & 271 &  79 &  136 &  245 &  378 & 1064 & $-28.3$ \\
+qaoa       & 529 & 472 &  548 &  878 & 1282 & 3402 & $-58.7$ \\
+multiplier & 1514 & 2950 & 3352 & 4008 & 5004 & 10930 & $-69.7$ \\
+\midrule
+\textbf{gmean} $\Delta$ (\%) & & $+33.4$ & $+5.6$ & $-20.5$ & $\mathbf{-37.9}$ & $-68.5$ & \\
+\bottomrule
+\end{tabular}%
+}}
+\end{table}
 
 \subsection{Ablation Study}
 \label{sec:ablation}
@@ -1309,7 +1434,8 @@ Table~\ref{tab:timing} reports wall-clock compilation time on the
   time.  \dSABRE{}: total time for three routing passes
   (fwd$\to$bwd$\to$fwd) from the best SabreLayout seed.
   \TeleSABRE{} is a compiled C++ binary; \dSABRE{} is pure-Python
-  with NetworkX\@.  $^{\ast}$\TeleSABRE{} fails to converge on Random.}
+  with NetworkX\@.  $^{\ast}$\TeleSABRE{} fails to converge on Random
+  \rev{and QAOA}.}
 \label{tab:timing}
 \setlength{\tabcolsep}{6pt}
 \begin{tabular}{@{}lrrr@{}}
@@ -1322,12 +1448,16 @@ Graphstate &   64 &  3.92 &   0.05 \\
 QFT        & 1966 &  1.81 &  10.34 \\
 QNN        & 8126 & 25.21 & 123.60 \\
 Random$^{\ast}$ & 1627 & --- & 16.69 \\
+\rev{QPEexact}   & \rev{2139}  & \rev{4.87}  & \rev{8.58} \\
+\rev{QAOA$^{\ast}$} & \rev{3920} & --- & \rev{26.63} \\
+\rev{Multiplier} & \rev{13040} & \rev{85.69} & \rev{462.44} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Times scale with CX count: \TeleSABRE{} spans $0.02$\,s (GHZ) to
-$25$\,s (QNN, 8126 CX); \dSABRE{} spans $0.05$\,s to $124$\,s.
+\rev{$86$\,s (Multiplier, 13\,040 CX)}; \dSABRE{} spans $0.05$\,s to
+\rev{$462$\,s}.
 \dSABRE{} is $5$--$12\times$ slower on circuits where both converge,
 which we attribute to the pure-Python vs.\ compiled-C\texttt{++}
 constant factor and to per-iteration NetworkX shortest-path lookups
@@ -1555,7 +1685,10 @@ extension CollComm~\cite{wu2022collcomm} operate earlier in the
 toolchain: they use gate commutativity to reorder consecutive non-local
 gates on the same wire (or across multiple wires) and amortise the
 whole block onto a single shared entanglement state, reporting EPR
-savings of $50$--$75\%$ on amenable circuits.  The two approaches
+savings of $50$--$75\%$ on amenable circuits\rev{; the lifetime-bounded
+gate grouping of Bandini \emph{et al.}~\cite{bandini2026optimized}
+tempers such savings with the $D_{\max}$ constraint we adopt in
+Table~\ref{tab:dmax}}.  The two approaches
 operate at different layers and should compose well: a burst-extraction
 pre-pass would expose longer wire-aligned gate sequences, and
 \dSABRE{}'s BFS extended set would let the teleport score capture
