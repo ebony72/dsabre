@@ -71,9 +71,11 @@ reduction, since on the corrected initial layout their effect on the
 geometric mean is neutral.
 
 \item \textbf{A non-grid architecture.}  A new experiment runs the
-64-qubit suite on a ring of four IBM 27-qubit heavy-hex cores, with no
-router or layout changes, addressing the tension between the abstract
-architecture model and the grid-only evaluation.
+64-qubit circuits on a ring of four IBM 27-qubit heavy-hex cores, with
+no router or layout change and no parameter retuned.  \dSABRE{}'s
+margin over \TeleSABRE{} is $48.2\%$ there, slightly larger than on the
+grid architectures, and \TeleSABRE{} additionally fails to converge on
+a circuit \dSABRE{} routes.
 
 \item \textbf{Comparison methodology.}  A new table states what one EPR
 pair buys under each compiler's cost model, and the differing
@@ -173,12 +175,22 @@ families suggest that the method is sensitive to underlying topology.
 \response
 This was a fair criticism of the evidence, and we have added the
 missing experiment rather than argued the point.  Section~IV now
-reports the 64-qubit suite on a ring of four IBM 27-qubit heavy-hex
+reports the 64-qubit circuits on a ring of four IBM 27-qubit heavy-hex
 cores---irregular degree, six degree-1 leaves, intra-core diameter 12
 against 6 for the grid.  No router or layout code is specialised for
 it: the corner-reservation rule is defined by vertex degree and
 remoteness, so it selects leaf qubits instead of grid corners
-automatically.  \TeleSABRE{} is run on the same architecture.
+automatically, and every hyperparameter keeps its default.
+\TeleSABRE{} runs on the same architecture.  \dSABRE{}'s margin is
+$48.2\%$, slightly \emph{larger} than on the grids.
+
+The absolute numbers also behave in an interpretable way that we now
+report: EPR counts fall for both routers while intra-core SWAP counts
+rise $50$--$70\%$, because four 27-qubit cores partition the same 64
+logical qubits more coarsely than six 16-qubit cores but are twice as
+wide.  Larger cores trade inter-core EPR pairs for intra-core SWAPs,
+and \dSABRE{} makes that trade without retuning because both are scored
+against the same potential.
 \where{new Section~IV-D, Table~IX}
 
 On topology sensitivity specifically: the GHZ regression the reviewer

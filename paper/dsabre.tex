@@ -96,9 +96,10 @@ the gate-teleportation compiler \texttt{pytket-dqc}, \dSABRE{} uses
 $12$--$57\%$ fewer EPR pairs on the smaller suites; on the 64-qubit
 suite \texttt{pytket-dqc}'s Steiner-tree embedding is more efficient
 under unbounded entanglement lifetime, but that advantage inverts once
-one EPR pair may serve only a bounded number of gates.  Results carry
-over to a non-grid architecture of IBM heavy-hex cores, and a QFT sweep
-to 360 qubits confirms scalability.}  Code and online appendices are
+one EPR pair may serve only a bounded number of gates.  On a non-grid
+architecture of IBM heavy-hex cores, reached without retuning a single
+parameter, the margin is $48\%$; a QFT sweep to 360 qubits confirms
+scalability.}  Code and online appendices are
 available at \url{https://github.com/ebony72/dsabre}.
 \end{abstract}
 
@@ -201,8 +202,8 @@ stuck gate.  We report them honestly.  Once every core is given
 reserved escape capacity by the initial layout, relief is neutral on
 the geometric mean (Section~\ref{sec:ablation}); its value, and the
 escape's, is completion---\dSABRE{} routes the 64-qubit Random and
-QAOA circuits and the 200-qubit QFT, on all of which \TeleSABRE{}
-fails to converge.  Proposition~\ref{prop:progress} makes this precise,
+QAOA circuits, the 200-qubit QFT, and QNN on the heavy-hex
+architecture, on all of which \TeleSABRE{} fails to converge.  Proposition~\ref{prop:progress} makes this precise,
 bounding the cost of escaping a stall at twice the core-graph diameter
 in EPR pairs under a stated capacity condition---where a fixed
 safety-valve cap offers no progress argument at all.}
@@ -1429,14 +1430,25 @@ by vertex degree and remoteness, so on heavy-hex it selects leaf qubits
 instead of grid corners without modification.}
 
 \rev{Table~\ref{tab:heavyhex} reports the result.  \dSABRE{}'s
-advantage over \TeleSABRE{} is preserved on a topology neither router
-was tuned for, which is the claim Section~\ref{sec:arch} makes.
-Absolute EPR counts rise for both routers relative to the H-grid: the
-longer intra-core diameter makes staging more expensive, and with two
-communication ports per core the ring offers fewer routes than the H-grid's
-seven links.  That both compilers degrade together, while their ratio
-holds, is the expected signature of a harder architecture rather than a
-grid-specific heuristic.}
+advantage over \TeleSABRE{} is not merely preserved but slightly larger
+than on the H-grid ($-48.2\%$ against $-45.5\%$), on a topology neither
+router was tuned for and with no parameter retuned---which is the claim
+Section~\ref{sec:arch} makes.  \TeleSABRE{} additionally fails to
+converge on QNN here, a circuit it completes on the H-grid, while
+\dSABRE{} routes it.}
+
+\rev{The absolute numbers move in an instructive way.  EPR counts
+\emph{fall} for both routers relative to the H-grid (\dSABRE{}: AE
+$242\!\to\!87$, QFT $204\!\to\!126$, Random $721\!\to\!462$) while
+intra-core SWAP counts \emph{rise} by $50$--$70\%$.  This is the
+expected consequence of redistributing the same 64 logical qubits over
+four 27-qubit cores instead of six 16-qubit ones: a coarser partition
+leaves fewer gates crossing a core boundary, so fewer teleports are
+needed, but each core is now twelve hops across instead of six, so more
+local SWAPs are needed to bring operands together.  Larger cores trade
+inter-core EPR pairs for intra-core SWAPs, and because \dSABRE{} scores
+both against the same potential (Section~\ref{sec:principle}) it makes
+that trade without retuning.}
 
 \begin{table}[t]
 \centering
@@ -1458,7 +1470,14 @@ grid-specific heuristic.}
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-7}
 Circuit & CX & EPR & SWAP & EPR & SWAP & (\%) \\
 \midrule
-\multicolumn{7}{c}{\emph{[regenerated: see \texttt{results\_heavyhex.json}]}} \\
+ae         & 1962 & 124 & 2538 &  87 & 2256 & $-29.8$ \\
+ghz        &   63 &   5 &  235 &   2 &   43 & $-60.0$ \\
+graphstate &   64 &  46 &  538 &  12 &  151 & $-73.9$ \\
+qft        & 1966 & 154 & 2562 & 126 & 2656 & $-18.2$ \\
+qnn$^{\ast}$ & 8126 & --- & --- & 239 & 9499 & --- \\
+random     & 1627 & 740 & 7585 & 462 & 6006 & $-37.6$ \\
+\midrule
+\textbf{gmean} (5) & & 79.9 & 1442 & 41.4 & 748 & $\mathbf{-48.2}$ \\
 \bottomrule
 \end{tabular}%
 }

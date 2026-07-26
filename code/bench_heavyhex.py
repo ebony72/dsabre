@@ -47,6 +47,18 @@ HW = HardwareConfig(deadlock_limit=100, max_backup_attempts=100,
 # would dominate wall time on a diameter-12 core without adding evidence.
 CIRCUITS = ["ae", "ghz", "graphstate", "qft", "qnn", "random"]
 
+# CX counts the main-text 64q table reports, used as a preflight check.  The
+# qnn entry in circuits/qasm_64 was replaced on 2026-07-09 by a 63-CX circuit;
+# the 8126-CX circuit the paper reports survives only as a .bak alongside it.
+# We read that file rather than editing the circuit directory, and abort on any
+# other mismatch instead of silently benchmarking a different circuit.
+EXPECTED_CX = {"ae": 1962, "ghz": 63, "graphstate": 64, "qft": 1966,
+               "qnn": 8126, "random": 1627}
+OVERRIDES = {
+    "qnn": os.path.join(
+        CIRCUIT_DIR, "qnn_OLD_DEEP_nativegates_ibm_qiskit_opt3_64.qasm.bak"),
+}
+
 
 def export_device_json(arch, path: str, name: str) -> str:
     """Write the architecture in TeleSABRE's device-JSON schema.
@@ -117,10 +129,19 @@ def main():
         if cname not in CIRCUITS:
             continue
         t0 = time.time()
+        if cname in OVERRIDES:
+            print(f"  [{cname}] using {os.path.basename(OVERRIDES[cname])} "
+                  f"(directory copy has the wrong CX count)", flush=True)
+            qf = OVERRIDES[cname]
         qc, dag = load_qasm(qf)
         from qiskit.converters import circuit_to_dag
         rev_dag = circuit_to_dag(qc.reverse_ops())
         n_cx = sum(1 for _ in dag.two_qubit_ops())
+        if EXPECTED_CX.get(cname) not in (None, n_cx):
+            raise SystemExit(
+                f"circuit mismatch: {cname} has {n_cx} CX gates, the 64q table "
+                f"reports {EXPECTED_CX[cname]}. Refusing to benchmark a "
+                f"different circuit under the same name.")
 
         ts = run_telesabre(qf, DEVICE_JSON)
         layouts = sabre_locked_boundary_layout(qc, dag, arch, seed=0)
