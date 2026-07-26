@@ -1118,21 +1118,20 @@ unit-consistent but not work-consistent.  (ii)~\emph{Scope differs}:
 intra-core SWAP routing at all, so its column omits a cost \dSABRE{}
 pays and reports.  (iii)~\emph{The architecture model differs}: its
 \texttt{NISQNetwork} records \emph{which} core pairs are connected but
-not \emph{how many} physical links join them, so its counts are
-insensitive to interconnect bandwidth.  Doubling the B-grid's
-inter-core links from four to eight leaves its e-bit counts bit-identical
-while both \dSABRE{} and \TeleSABRE{} respond (online appendices).
-(iv)~The asymmetry is also \emph{temporal}: a gate-teleportation e-bit
-must stay entangled for the full span of the hyperedge it serves,
-whereas a teledata EPR is consumed instantaneously, so
-\texttt{pytket-dqc}'s counts presuppose an entanglement lifetime the
-hardware may not provide.  We address (i)--(ii) with a
-layout-controlled comparison in which both compilers start from the
-same qubit-to-core partition, and (iv) with a lifetime sweep; both are
-in Section~\ref{sec:main_results}.  Against \TeleSABRE{}, which shares
-\dSABRE{}'s cost model, physical architecture and intra-core SWAP
-accounting, no such correction is needed and the comparison is direct;
-that is why it is the comparison we headline.}
+not \emph{how many} physical links join them, and its per-server
+communication capacity defaults to \emph{unbounded}.  (iv)~The
+asymmetry is also \emph{temporal}: a gate-teleportation e-bit must stay
+entangled for the full span of the hyperedge it serves, whereas a
+teledata EPR is consumed instantaneously, so \texttt{pytket-dqc}'s
+counts presuppose an entanglement lifetime the hardware may not
+provide.  Section~\ref{sec:fair} confronts (iii) by rebuilding the
+network to \dSABRE{}'s physical constraints, and
+Section~\ref{sec:main_results} addresses (i)--(ii) with a
+layout-controlled comparison and (iv) with a lifetime sweep.  Against
+\TeleSABRE{}, which shares \dSABRE{}'s cost model, physical
+architecture and intra-core SWAP accounting, none of these corrections
+is needed and the comparison is direct; that is why it is the one we
+headline.}
 
 \begin{table}[t]
 \centering
@@ -1292,7 +1291,12 @@ Steiner-embedding distributor the picture is mixed: \dSABRE{} matches or
 beats it on four circuits (BV $-66.7\%$, QAOA $-7.4\%$; DJ and W-state at
 parity), while the embedding is more e-bit-efficient on QPEexact
 ($+32.7\%$) and VQE-SU2 ($+11.1\%$), whose interaction graphs KaHyPar
-partitions almost perfectly; the geometric mean still favours \dSABRE{}.
+partitions almost perfectly.  \rev{This suite is the one where the
+network model matters most: given the device's true data capacity
+\texttt{pytket-dqc} improves to a $10.6$ geometric mean and the
+comparison reaches parity, and its remaining advantage on QPEexact
+turns out to require three times the communication capacity the device
+has.  Section~\ref{sec:fair} gives that analysis.}
 
 \textbf{64q.}
 The H-grid suite is where the gap from \TeleSABRE{} is most
@@ -1377,6 +1381,139 @@ routing delivers its counts under any lifetime.  The per-circuit sweep,
 and the same sweep on the smaller suites, are in the online
 appendices.}
 
+
+\subsection{\rev{Matching pytket-dqc to the Physical Architecture}}
+\label{sec:fair}
+
+\rev{The e-bit counts of Table~\ref{tab:main} are the ones
+\texttt{pytket-dqc} reports on the network description it is normally
+given, and that description is more permissive than the device
+\dSABRE{} is benchmarked on in two respects we can correct.}
+
+\rev{\emph{Communication capacity.}  \texttt{NISQNetwork} accepts a
+per-server communication capacity \texttt{server\_ebit\_mem}, the number
+of link qubits a core may hold \emph{simultaneously}.  Left unset---as
+in the standard usage---the constructor documents it as unbounded.
+\dSABRE{}'s architecture is not: a core has exactly one communication
+port per incident inter-core link, so core $c$ can hold at most
+$\deg(c)$ link qubits at once, which is $2$ or $3$ on our
+architectures.  \emph{Data capacity.}  The server sizes normally passed
+are an even split of the \emph{logical} qubit count, unrelated to the
+device.  Physically a core holds $M$ qubits of which $\deg(c)$ are
+communication ports, leaving $M-\deg(c)$ data slots---$14$ on the
+B-grid, $13$--$14$ on the H-grid, more room than the even split
+provides.}
+
+\rev{We therefore rebuild the network with data capacity $M-\deg(c)$
+and communication capacity $\deg(c)$, and re-run the same distributor
+with the same seed budget.  Table~\ref{tab:fair} reports the result.
+Two things follow, pulling in opposite directions.}
+
+\rev{First, the correction \emph{helps} \texttt{pytket-dqc}, because
+the physical data capacity is the more generous of the two: its
+geometric mean improves from $35.3$ to $27.5$ on the 25-qubit suite and
+from $12.3$ to $10.6$ on the 36-qubit suite.  \dSABRE{}'s margin
+narrows from $-56.6\%$ to $-44.3\%$ at 25 qubits, and at 36 qubits the
+comparison crosses over to parity ($+1.8\%$, i.e.\ \texttt{pytket-dqc}
+marginally ahead) where the published model showed $-12.3\%$.  This is
+the honest figure and we report it in place of the earlier one.}
+
+\rev{Second, the communication bound is not respected by the
+distributors at all.  Setting \texttt{server\_ebit\_mem} leaves every
+reported cost unchanged, because \texttt{cost()} is computed from the
+hyperedge structure and the bound is checked only when the distribution
+is materialised into a circuit.  Asking for that circuit is therefore a
+test of whether the reported answer is executable at all, and for half
+the circuits it is not: the last column of Table~\ref{tab:fair} gives
+the smallest uniform communication capacity under which each
+distribution can be built.  On the 25-qubit suite four of six
+distributions need $7$ to $19$ link qubits per core against the $2$ the
+device provides; AE needs $19$, nearly ten times the hardware budget.
+The two circuits that fit ($1$ each) are GHZ and Graphstate, whose
+hyperedges hold roughly one gate apiece.}
+
+\rev{The pattern is consistent: the distributions that need the most
+communication memory are the ones that amortise the most gates onto a
+single entangled state, which are exactly the ones on which gate
+teleportation looks cheapest.  The 36-qubit suite makes this concrete.
+Under the corrected model \texttt{pytket-dqc}'s one clear win is
+QPEexact ($52$ e-bits against \dSABRE{}'s $65$), and QPEexact's
+distribution requires $6$ simultaneous link qubits per core; it cannot
+be executed on a device with $2$.  Its next-best relative showing,
+QAOA, needs more than $13$.  We do not claim this invalidates the
+gate-teleportation approach---it is a statement about a cost model, not
+about the physics---but a reader comparing the two columns should know
+that the e-bit counts and the EPR counts are not both achievable on the
+same machine.}
+
+\rev{This also connects the two corrections.  Amortising many gates
+onto one entangled state is what makes gate teleportation cheap in
+e-bits, and it is simultaneously what forces a link qubit to be held
+\emph{longer} (the lifetime assumption of
+Section~\ref{sec:main_results}) and to be held \emph{alongside others}
+(the capacity assumption here).  The three quantities are not
+independent knobs: a hyperedge spanning $g$ gates buys a factor of $g$
+in e-bits, and pays for it in both link-qubit occupancy and required
+coherence.  A device that cannot supply one generally cannot supply the
+other, which is why the lifetime sweep and the capacity audit single
+out the same circuits---AE, QFT, QNN, QPEexact---as the ones whose
+apparent advantage rests on the idealisation.}
+
+\rev{One route we could not take: \texttt{pytket-dqc} offers to repair
+a distribution to fit a bounded capacity
+(\texttt{to\_pytket\_circuit(allow\_update=True)}), which would give a
+directly comparable constrained cost.  On the 25-qubit QFT that call
+had not returned after nine minutes, against $9.2$\,s to produce the
+distribution in the first place, so we report realisability rather than
+a repaired count.}
+
+\begin{table}[t]
+\centering
+\caption{\rev{\texttt{pytket-dqc} on the network it is normally given
+  (\emph{published}: logical-split data capacity, unbounded
+  communication memory) versus one matching \dSABRE{}'s device
+  (\emph{physical}: data capacity $M{-}\deg(c)$, communication capacity
+  $\deg(c)$).  \dSABRE{} EPR counts are from Table~\ref{tab:main}.
+  \emph{ports needed} is the smallest uniform communication capacity
+  under which the published distribution can be materialised; the
+  device provides $2$.  ${>}k$ means the search was still failing at
+  $k$ when its time budget expired.  Rows in which the distribution
+  cannot be executed on the device are marked $^{\dagger}$.}}
+\label{tab:fair}
+\setlength{\tabcolsep}{4pt}
+\small
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}l rrr r@{}}
+\toprule
+ & \multicolumn{2}{c}{\texttt{pytket-dqc} e-bits} & \dSABRE{} & ports \\
+\cmidrule(lr){2-3}
+Circuit & published & physical & EPR & needed \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{25 logical qubits, B-grid, 2 ports per core}} \\
+\addlinespace[1pt]
+ae$^{\dagger}$         &  48 &  48 &  23 & 19 \\
+ghz                    &   3 &   2 &   1 &  1 \\
+graphstate             &   4 &   2 &   2 &  1 \\
+qft$^{\dagger}$        &  61 &  57 &  33 & 10 \\
+qnn$^{\dagger}$        & 115 & 127 &  48 & 12 \\
+random$^{\dagger}$     & 480 & 314 & 178 &  7 \\
+\cmidrule(lr){1-5}
+\textbf{gmean}         & 35.3 & 27.5 & 15.3 & \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{36 logical qubits, same B-grid}} \\
+\addlinespace[1pt]
+bv                     &   3 &   1 &   1 &  1 \\
+dj                     &   3 &   2 &   3 &  1 \\
+qaoa$^{\dagger}$       & 148 & 144 & 137 & ${>}13$ \\
+qpeexact$^{\dagger}$   &  49 &  52 &  65 &  6 \\
+vqe\_su2               &   9 &  12 &  10 &  1 \\
+wstate                 &   6 &   8 &   6 &  1 \\
+\cmidrule(lr){1-5}
+\textbf{gmean}         & 12.3 & 10.6 & 10.8 & \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
 \subsection{\rev{Architecture Independence: Heavy-Hex Cores}}
 \label{sec:heavyhex}

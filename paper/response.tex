@@ -77,6 +77,25 @@ margin over \TeleSABRE{} is $48.2\%$ there, slightly larger than on the
 grid architectures, and \TeleSABRE{} additionally fails to converge on
 a circuit \dSABRE{} routes.
 
+\item \textbf{pytket-dqc rebuilt to our physical architecture.}  We
+found that the network description \texttt{pytket-dqc} is normally
+given is more permissive than the device \dSABRE{} is benchmarked on,
+in two correctable respects.  Its per-server communication capacity
+defaults to \emph{unbounded}, whereas a core has one communication port
+per inter-core link ($2$--$3$ here); and the server sizes passed are an
+even split of the logical qubit count rather than the physical capacity
+$M-\deg(c)$.  Section~IV-C re-runs it with both corrected.  The data
+correction \emph{helps} \texttt{pytket-dqc} and we adopt it: its 25-qubit
+geometric mean improves from $35.3$ to $27.5$ and the 36-qubit from
+$12.3$ to $10.6$, so \dSABRE{}'s margin narrows to $-44.3\%$ at 25
+qubits and the 36-qubit comparison crosses to parity.  We report the
+narrower figures.  Separately, the communication bound is not enforced
+by the distributors at all---setting it leaves every reported cost
+unchanged, because the check happens only at circuit materialisation---
+and on that test four of six 25-qubit distributions turn out not to be
+executable on the device, needing $7$ to $19$ link qubits per core
+against the $2$ available.
+
 \item \textbf{Comparison methodology, and a change of emphasis.}  A new
 table states what one EPR pair buys under each compiler's cost model,
 and the differing primitives are addressed by a layout-controlled
@@ -249,7 +268,8 @@ non-equivalence in two ways rather than only flagging it: a
 layout-controlled comparison in which \dSABRE{} and the baseline start
 from the same partition, and a sweep bounding how many gates one EPR
 pair may serve.
-\where{Section~IV-A, Table~III; layout-controlled results and
+\where{Section~IV-A and Table~III; Section~IV-C and Table~V
+(physical-architecture comparison); layout-controlled results and
 lifetime sweep in Section~IV-B}
 
 %%─────────────────────────────────────────────────────────────────────
