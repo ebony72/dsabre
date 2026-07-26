@@ -55,6 +55,16 @@ SUITES = {
     "64q": dict(arch=build_h_grid_architecture(2, 3, 4),
                 circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_64"),
                 suffix="_nativegates_ibm_qiskit_opt3_64.qasm"),
+    # Large-circuit scalability rows.  Only QFT is reported in the main table.
+    "100q": dict(arch=build_h_grid_architecture(2, 3, 5),
+                 circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_100"),
+                 suffix="_nativegates_ibm_qiskit_opt3_100.qasm"),
+    "200q": dict(arch=build_h_grid_architecture(4, 3, 5),
+                 circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_200"),
+                 suffix="_nativegates_ibm_qiskit_opt3_200.qasm"),
+    "360q": dict(arch=build_h_grid_architecture(2, 3, 9),
+                 circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_360"),
+                 suffix="_nativegates_ibm_qiskit_opt3_360.qasm"),
 }
 
 # The 64q qnn file in the circuit directory was replaced with a 63-CX circuit;
@@ -65,6 +75,9 @@ EXPECTED_CX = {
     "36q": {"bv": 17, "dj": 35, "qaoa": 1200, "qpeexact": 1019, "vqe_su2": 105, "wstate": 70},
     "64q": {"ae": 1962, "ghz": 63, "graphstate": 64, "qft": 1966, "qnn": 8126,
             "random": 1627, "qpeexact": 2139, "qaoa": 3920, "multiplier": 13040},
+    "100q": {"qft": 3420},
+    "200q": {"qft": 7220},
+    "360q": {"qft": 13300},
 }
 OVERRIDES = {("64q", "qnn"): "qnn_OLD_DEEP_nativegates_ibm_qiskit_opt3_64.qasm.bak"}
 

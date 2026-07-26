@@ -32,6 +32,9 @@ PUBLISHED = {
     "64q": {"ae": 141, "ghz": 5, "graphstate": 9, "qft": 181,
             "qnn": ("735", "d"), "random": ("968", "d"), "qpeexact": 96,
             "qaoa": 472, "multiplier": ("2957", "d")},
+    "100q": {"qft": 114},
+    "200q": {"qft": ("447", "d")},
+    "360q": {"qft": ("195", "d")},
 }
 
 
@@ -171,6 +174,37 @@ def panel(suite):
     return "\n".join(lines)
 
 
+def large_panel():
+    """The QFT scalability rows, built from the same JSONs as the suites."""
+    rows = [r"\multicolumn{9}{@{}l}{\emph{QFT scalability, H-grid, each router "
+            r"from its own layout}} \\", r"\addlinespace[1pt]"]
+    de, tk = [], []
+    for suite in ("100q", "200q", "360q"):
+        p = os.path.join(R, f"results_{suite}.json")
+        if not os.path.exists(p):
+            continue
+        rec = next((x for x in json.load(open(p))["results"]
+                    if x["circuit"] == "qft"), None)
+        if rec is None:
+            continue
+        ts = rec.get("ts") or {}
+        dse = rec["routers"]["dSE"]
+        te, tl = ts.get("eprs"), ts.get("ls", ts.get("ts_ls"))
+        ee, el = dse.get("eprs"), dse.get("ls")
+        tks, tkv = tket_cell(suite, "qft")
+        label = suite + ("$^{\\ast}$" if te is None else "")
+        rows.append(" & ".join([
+            label, str(rec["cx"]),
+            str(te) if te is not None else "---",
+            str(tl) if tl is not None else "---",
+            str(ee), str(el), tks,
+            fmt_pct(ee, te), fmt_pct(ee, tkv),
+        ]) + " \\\\")
+        if ee: de.append(ee)
+        if tkv: tk.append(tkv)
+    return "\n".join(rows)
+
+
 def main():
     global PHYSICAL
     PHYSICAL = _load_physical()
@@ -180,6 +214,10 @@ def main():
         if i:
             parts.append("\\midrule")
         parts.append(panel(suite))
+    lp = large_panel()
+    if lp:
+        parts.append("\\midrule")
+        parts.append(lp)
     body = "\n".join(parts)
     path = os.path.join(OUT, "main_merged.tex")
     with open(path, "w") as f:
