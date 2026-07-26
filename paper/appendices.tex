@@ -1045,3 +1045,91 @@ python code/run_fill_sweep.py dsabre
 /opt/anaconda3/envs/dmaps/bin/python \
     code/run_fill_sweep.py dmaps
 \end{verbatim}
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{Entanglement-Lifetime Sensitivity}
+\label{app:dmax}
+
+Section~\ref{sec:main_results} of the main paper reports that
+\texttt{pytket-dqc}'s e-bit advantage on structured circuits is
+conditional on the hardware sustaining entanglement across many gates.
+This appendix gives the per-circuit sweep behind that conclusion.
+
+Every \texttt{pytket-dqc} e-bit count assumes an \emph{unbounded}
+entanglement lifetime: the link qubit created by one starting process
+stays entangled until the last gate of its hyperedge has executed.
+Bandini \emph{et al.}~\cite{bandini2026optimized} argue this is
+unrealistic, since EPR-pair quality decays quickly, and cap
+gates-per-EPR at $D_{\max}$, proposing $D_{\max}{=}3$ as realistic.
+We re-score \texttt{pytket-dqc}'s distributions under this bound with a
+counter that generalises its own cost model: an established link serves
+at most $D_{\max}$ gates before it dies and must be re-established from
+a still-live neighbour on the hyperedge's Steiner tree.  The counter is
+conservative in \texttt{pytket-dqc}'s favour---intermediate links age
+only when they themselves serve gates, embedded and home-server gates
+age nothing, and wall-clock time is ignored---and reproduces
+\texttt{pytket-dqc}'s own cost exactly at $D_{\max}{=}\infty$ on every
+distribution evaluated.  \dSABRE{} needs no adjustment at any
+$D_{\max}$: a teledata EPR pair is consumed instantaneously by its
+teleport, so teledata counts are lifetime-invariant by construction.
+
+\begin{table}[t]
+\centering
+\caption{{Entanglement-lifetime sensitivity on the 64q suite:
+  \texttt{pytket-dqc} e-bits when one EPR pair may serve at most
+  $D_{\max}$ gates (best completed distributor per cell,
+  counter as described in the text).  The $D_{\max}{=}\infty$ column
+  reproduces the setting of Table~\ref{tab:main64} up to seed and
+  pipeline variation and is in aggregate \emph{more} favourable to
+  \texttt{pytket-dqc} (gmean $+33.4\%$ vs $+20.0\%$).  \dSABRE{} EPR
+  (Table~\ref{tab:main64}) is $D_{\max}$-invariant.
+  $\Delta_{3}$ compares \dSABRE{} against the $D_{\max}{=}3$ column;
+  negative favours \dSABRE{}.}}
+\label{tab:dmax}
+\setlength{\tabcolsep}{3pt}
+\small
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}l r rrrrr r@{}}
+\toprule
+ & \dSABRE & \multicolumn{5}{c}{\texttt{pytket-dqc} e-bits at $D_{\max}$} & \\
+\cmidrule(lr){3-7}
+Circuit & EPR & $\infty$ & $10$ & $5$ & $3$ & $1$ & $\Delta_{3}$ (\%) \\
+\midrule
+ae         & 242 & 137 &  191 &  292 &  423 & 1118 & $-42.8$ \\
+ghz        &   9 &   5 &    5 &    5 &    5 &    5 & $+80.0$ \\
+graphstate &  16 &   6 &    6 &    6 &    6 &    6 & $+166.7$ \\
+qft        & 204 & 190 &  265 &  400 &  572 & 1416 & $-64.3$ \\
+qnn        & 508 & 540 & 1009 & 1592 & 2435 & 6866 & $-79.1$ \\
+random     & 721 & 908 &  908 &  922 &  967 & 1453 & $-25.4$ \\
+qpeexact   & 271 &  79 &  136 &  245 &  378 & 1064 & $-28.3$ \\
+qaoa       & 529 & 472 &  548 &  878 & 1282 & 3402 & $-58.7$ \\
+multiplier & 1514 & 2950 & 3352 & 4008 & 5004 & 10930 & $-69.7$ \\
+\midrule
+\textbf{gmean} $\Delta$ (\%) & & $+33.4$ & $+5.6$ & $-20.5$ & $\mathbf{-37.9}$ & $-68.5$ & \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Table~\ref{tab:dmax} reports the 64q sweep.  Three structural
+observations.  (i)~The circuits on which gate teleportation wins at
+$D_{\max}{=}\infty$ are exactly those whose distributions hold links
+across many gates; QNN's winning distribution requires individual link
+qubits to serve up to $102$ gates while remaining entangled across
+$4262$ of the circuit's $8126$ CX time-slots, more than half its
+execution.  (ii)~GHZ and Graphstate are $D_{\max}$-\emph{insensitive}:
+their hyperedges hold roughly one gate each, so these residual wins
+reflect partition quality rather than held entanglement, and the
+shared-mapping experiment of the main paper shows \dSABRE{} matches
+them when routed from the same partition.  (iii)~Dense circuits move
+least (Random $908\!\to\!967$, Multiplier $2950\!\to\!5004$): with no or
+short shared-control runs there is little amortisation to lose, and
+\dSABRE{} already led those rows.
+
+The same sweep on the smaller suites only widens \dSABRE{}'s margins.
+At $D_{\max}{=}3$ the best \texttt{pytket-dqc} pipeline inflates AE-25
+from $48$ to $136$ e-bits and QFT-25 from $59$ to $164$, and
+QPEexact-36 inflates from $44$ to $192$, turning the one structured 36q
+circuit it won into a $66\%$ \dSABRE{} advantage.  A $D_{\max}$-aware
+re-partition could soften, though not eliminate, this inflation;
+\texttt{pytket-dqc} currently offers no such option.

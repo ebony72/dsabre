@@ -47,8 +47,9 @@ as a separate mechanism.
 justification.}  Proposition~1 (unified objective), Proposition~2 (the
 BFS-layer extended set is the ordering that makes a depth discount
 well-defined, which topological filling cannot provide), and
-Proposition~3 (progress and termination, with a bound of one core-graph
-diameter of EPR pairs per forced escape).  Each is attached to an
+Proposition~3 (forced progress, bounding a stall at twice the
+core-graph diameter in EPR pairs under a stated capacity condition,
+and separating unconditional termination from completion).  Each is attached to an
 experimental result it explains rather than standing alone.
 
 \item \textbf{One scoring term removed.}  The hop-gain reward
@@ -261,10 +262,13 @@ BFS layering is the \emph{only} construction under which the depth
 discount is well-defined, with a counterexample family showing
 topological filling can exclude a gate that becomes executable one layer
 ahead---this predicts the ablation result and its growth with circuit
-size.  Proposition~3 gives progress and termination guarantees, with an
-EPR bound of one core-graph diameter per forced escape, and explains
-why \dSABRE{} completes circuits on which a fixed safety-valve cap
-fails.
+size.  Proposition~3 bounds the cost of escaping a stall at twice the
+core-graph diameter in EPR pairs, and is deliberately careful about
+what it does and does not promise: termination is unconditional, but
+completion rests on a capacity condition that can fail if a region of
+the chip saturates.  This is what explains \dSABRE{} completing
+circuits on which a fixed safety-valve cap fails, without claiming more
+than the algorithm delivers.
 \where{Propositions 1--3 in Sections~III-A, III-D, III-F}
 
 \begin{comment}

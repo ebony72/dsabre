@@ -51,6 +51,16 @@ SUITES = {
     ),
 }
 
+# The ablation runs on a fixed six-circuit core of each suite rather than on
+# whatever .qasm files the directory happens to hold.  Two reasons: the
+# geometric means stay comparable with earlier ablation tables, and the 13k-CX
+# multiplier would dominate wall time across five configurations without
+# changing any conclusion.  The main-results tables report the full suites.
+ABLATION_CIRCUITS = {
+    "25q": ["ae", "ghz", "graphstate", "qft", "qnn", "random"],
+    "64q": ["ae", "ghz", "graphstate", "qft", "qnn", "random"],
+}
+
 BASE_CFG = HardwareConfig()
 
 MECH_CONFIGS = [
@@ -71,10 +81,12 @@ def gmean(lst):
     return prod(lst) ** (1 / len(lst)) if lst else float("nan")
 
 
-def load_circuits(circuit_dir, suffix):
+def load_circuits(circuit_dir, suffix, keep=None):
     circs = []
     for qf in sorted(glob.glob(os.path.join(circuit_dir, "*.qasm"))):
         cname = os.path.basename(qf).replace(suffix, "")
+        if keep is not None and cname not in keep:
+            continue
         qc = QuantumCircuit.from_qasm_file(qf)
         qc = qc.remove_final_measurements(inplace=False)
         qc = PassManager([RemoveBarriers()]).run(qc)
@@ -158,8 +170,10 @@ def main():
 
     for suite_label, info in SUITES.items():
         print(f"\n════ Suite {suite_label} ════", flush=True)
-        circuits = load_circuits(info["circuit_dir"], info["suffix"])
-        print(f"  {len(circuits)} circuits", flush=True)
+        circuits = load_circuits(info["circuit_dir"], info["suffix"],
+                                 keep=ABLATION_CIRCUITS.get(suite_label))
+        print(f"  {len(circuits)} circuits: "
+              f"{', '.join(c['name'] for c in circuits)}", flush=True)
 
         results["mechanism_ablation"][suite_label] = run_mech(suite_label, circuits, info["arch"])
         results["passes_sweep"][suite_label]       = run_passes_sweep(suite_label, circuits, info["arch"])
