@@ -1133,3 +1133,123 @@ QPEexact-36 inflates from $44$ to $192$, turning the one structured 36q
 circuit it won into a $66\%$ \dSABRE{} advantage.  A $D_{\max}$-aware
 re-partition could soften, though not eliminate, this inflation;
 \texttt{pytket-dqc} currently offers no such option.
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{Supporting Tables}
+\label{app:supporting}
+
+This appendix collects three tables referenced from the main paper:
+benchmark circuit properties, wall-clock compile times on the 64-qubit
+suite, and the cost-model sensitivity sweep.
+
+\begin{table}[t]
+\centering
+\caption{Benchmark circuit properties (measurements/barriers stripped)}
+\label{tab:circuits}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Suite & Circuit    & Qubits & CX gates & Depth & CX/qubit \\
+\midrule
+\multirow{6}{*}{25q}
+ & AE         & 25 &  558 & 395 & 22.3 \\
+ & QFT        & 25 &  580 & 173 & 23.2 \\
+ & QNN        & 25 & 1223 & 259 & 48.9 \\
+ & Random     & 25 & 1124 & 589 & 45.0 \\
+ & GHZ        & 25 &   24 &  27 &  1.0 \\
+ & Graphstate & 25 &   25 &  19 &  1.0 \\
+\midrule
+\multirow{6}{*}{36q}
+ & BV         & 36 &   17 &  23 &  0.5 \\
+ & DJ         & 36 &   35 &  41 &  1.0 \\
+ & W-state    & 36 &   70 & 145 &  1.9 \\
+ & VQE-SU2   & 36 &  105 &  56 &  2.9 \\
+ & QPEexact   & 36 & 1019 & 347 & 28.3 \\
+ & QAOA       & 36 & 1200 & 256 & 33.3 \\
+\midrule
+\multirow{9}{*}{64q}
+ & AE         & 64 & 1962 & 1058 & 30.7 \\
+ & QFT        & 64 & 1966 &  446 & 30.7 \\
+ & QNN        & 64 & 8126 &  650 & 127.0 \\
+ & Random     & 64 & 1627 &  403 & 25.4 \\
+ & GHZ        & 64 &   63 &   66 &  1.0 \\
+ & Graphstate & 64 &   64 &   25 &  1.0 \\
+ & \rev{QPEexact}   & \rev{64} & \rev{2139} & \rev{626} & \rev{33.4} \\
+ & \rev{QAOA}       & \rev{64} & \rev{3920} & \rev{493} & \rev{61.2} \\
+ & \rev{Multiplier} & \rev{64} & \rev{13040} & \rev{22469} & \rev{203.8} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\caption{Compilation time in seconds (64-qubit suite, H-grid
+  $2{\times}3$ $4{\times}4$).  \TeleSABRE{}: best-seed wall-clock
+  time.  \dSABRE{}: total time for three routing passes
+  (fwd$\to$bwd$\to$fwd) from the best SabreLayout seed.
+  \TeleSABRE{} is a compiled C++ binary; \dSABRE{} is pure-Python
+  with NetworkX\@.  $^{\ast}$\TeleSABRE{} fails to converge on Random
+  \rev{and QAOA}.}
+\label{tab:timing}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Circuit & CX & \TeleSABRE{} (s) & \dSABRE{} (s) \\
+\midrule
+AE         & 1962 &  1.05 &  12.60 \\
+GHZ        &   63 &  0.02 &   0.09 \\
+Graphstate &   64 &  3.92 &   0.05 \\
+QFT        & 1966 &  1.81 &  10.34 \\
+QNN        & 8126 & 25.21 & 123.60 \\
+Random$^{\ast}$ & 1627 & --- & 16.69 \\
+\rev{QPEexact}   & \rev{2139}  & \rev{4.87}  & \rev{8.58} \\
+\rev{QAOA$^{\ast}$} & \rev{3920} & --- & \rev{26.63} \\
+\rev{Multiplier} & \rev{13040} & \rev{85.69} & \rev{462.44} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\caption{Cost-model sensitivity: geometric-mean cost reduction of
+  \dSABRE{} over \TeleSABRE{} as $c_{\mathrm{tele}}$ varies
+  ($c_{\mathrm{swap}}=3$ fixed).  Negative is better.  64q excludes
+  the Random circuit on which \TeleSABRE{} aborts.}
+\label{tab:sensitivity}
+\setlength{\tabcolsep}{6pt}
+\small
+\begin{tabular}{@{}r rrr@{}}
+\toprule
+$c_{\mathrm{tele}}$ & 25q & 36q & 64q \\
+\midrule
+10 & $\mathbf{-39.2}$ & $\mathbf{-47.0}$ & $\mathbf{-44.6}$ \\
+20 & $\mathbf{-39.8}$ & $\mathbf{-47.0}$ & $\mathbf{-46.9}$ \\
+50 & $\mathbf{-40.3}$ & $\mathbf{-47.0}$ & $\mathbf{-49.5}$ \\
+100 & $\mathbf{-40.5}$ & $\mathbf{-46.8}$ & $\mathbf{-50.9}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\noindent
+\textbf{Circuit properties} (Table~\ref{tab:circuits}) list qubit
+count, CX count, depth, and CX per qubit for every benchmark circuit
+after transpilation to the IBM native gate set with measurements and
+barriers removed.
+
+\noindent
+\textbf{Compile time} (Table~\ref{tab:timing}) is discussed in the main
+paper: \dSABRE{} is a pure-Python implementation calling NetworkX
+inside the routing loop, against \TeleSABRE{}'s compiled
+C\texttt{++} binary with cached distance lookups, and the ratio between
+them stays bounded across a $200\times$ range of circuit size.
+
+\noindent
+\textbf{Cost-model sensitivity} (Table~\ref{tab:sensitivity}) sweeps
+the teleport cost $c_{\mathrm{tele}}$ from 10 to 100 with
+$c_{\mathrm{swap}}{=}3$ fixed.  The gap to \TeleSABRE{} widens as
+$c_{\mathrm{tele}}$ grows, so the conclusions hold across the range
+separating microwave-coupled from photonic-link hardware.

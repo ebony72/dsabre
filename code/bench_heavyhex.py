@@ -41,6 +41,12 @@ NUM_CORES = 4
 HW = HardwareConfig(deadlock_limit=100, max_backup_attempts=100,
                     max_iterations=20000)
 
+# The six circuits common to every suite, spanning dense (QNN, Random),
+# structured (AE, QFT) and sparse (GHZ, Graphstate) interaction graphs.  This
+# is a topology-sensitivity check, not a headline suite; the 13k-CX multiplier
+# would dominate wall time on a diameter-12 core without adding evidence.
+CIRCUITS = ["ae", "ghz", "graphstate", "qft", "qnn", "random"]
+
 
 def export_device_json(arch, path: str, name: str) -> str:
     """Write the architecture in TeleSABRE's device-JSON schema.
@@ -108,6 +114,8 @@ def main():
 
     for qf in sorted(glob.glob(os.path.join(CIRCUIT_DIR, "*.qasm"))):
         cname = os.path.basename(qf).replace(SUFFIX, "")
+        if cname not in CIRCUITS:
+            continue
         t0 = time.time()
         qc, dag = load_qasm(qf)
         from qiskit.converters import circuit_to_dag
