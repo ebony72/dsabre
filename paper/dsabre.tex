@@ -81,12 +81,12 @@ than a constraint checked outside it contributes more than any other
 component.  Across 21 MQT-Bench circuits at 25--64 logical
 qubits \dSABRE{} cuts geometric-mean EPR consumption by $41$--$46\%$
 against \TeleSABRE{}, and routes three dense circuits on which it fails
-to converge.  It also uses $12$--$57\%$ fewer EPR pairs than the
-gate-teleportation compiler \texttt{pytket-dqc} on the smaller suites;
-\texttt{pytket-dqc} leads at 64 qubits only while entanglement lifetime
-is unbounded.  The margin is $48\%$ on a non-grid architecture of IBM
+to converge.  The margin is $48\%$ on a non-grid architecture of IBM
 heavy-hex cores with no parameter retuned, and a QFT sweep to 360
-qubits confirms scalability.}  Code
+qubits confirms scalability.  We also compare against the gate-teleportation
+compiler \texttt{pytket-dqc}, whose different cost model makes raw
+counts unequal work; Section~\ref{sec:experiments} reports that
+comparison with its accounting.}  Code
 and online appendices are at \url{https://github.com/ebony72/dsabre}.
 \end{abstract}
 
@@ -162,7 +162,7 @@ potential---immediate front-layer distance plus depth-discounted
 lookahead distance---charged against the resources the move spends and
 penalised for the core capacity it consumes
 (Section~\ref{sec:principle}, Proposition~\ref{prop:unified}).  Prior
-SABRE-style distributed routers score teleports with a separate
+\SABRE{}-style distributed routers score teleports with a separate
 communication-graph energy, so their two phases optimise different
 objectives.  Making capacity a term of that one score, rather than a
 constraint checked outside it, is what carries the result: removing the
@@ -198,22 +198,25 @@ safety-valve cap offers no progress argument at all.}
 \item \textbf{Comprehensive empirical validation.}
 Across MQT-Bench suites at 25, 36, and 64 qubits on multi-core grid
 architectures, \dSABRE{} reduces geometric-mean EPR consumption by
-\rev{$41$--$46\%$} over \TeleSABRE{}~\cite{russo2025telesabre}.  \rev{It also
-reduces EPRs by $12$--$57\%$ over \texttt{pytket-dqc}~\cite{pytketdqc2024}
-(strongest Steiner-embedding distributor) on the 25- and 36-qubit suites,
-while on the 64-qubit suite that method's gate embedding is more
-e-bit-efficient on structured circuits---at the cost of ignoring
-intra-core SWAPs and of runtimes orders of magnitude longer.}  \dSABRE{}
+\rev{$41$--$46\%$} over \TeleSABRE{}~\cite{russo2025telesabre}, our
+closest prior work and the one baseline that shares \dSABRE{}'s cost
+model, physical architecture, and intra-core SWAP accounting---so this
+is the comparison we headline.  \rev{We also evaluate against
+\texttt{pytket-dqc}~\cite{pytketdqc2024}, a gate-teleportation
+compiler, but its e-bit counts are not equal work: it charges no
+intra-core routing, is insensitive to how many physical links join two
+cores, and assumes unbounded entanglement lifetime.  We therefore
+report that comparison with its accounting rather than as a headline
+figure (Section~\ref{sec:setup}).}  \dSABRE{}
 uses a \rev{\texttt{SabreLayout}-based initial layout with per-core
 communication-slot reservation}.  Ablation
 studies, cost-ratio sweeps, and a scalability sweep up to 360-qubit QFT
-confirm that the gains are mainly driven by the heuristic design and congestion
-mechanisms.
+\rev{locate the gains in the scoring design}.
 
 \end{itemize}
 
 \textbf{Paper organisation.}
-Section~\ref{sec:background} fixes notation and recaps the SABRE
+Section~\ref{sec:background} fixes notation and recaps the \SABRE{}
 heuristic.  Section~\ref{sec:dsabre} presents \dSABRE{}: the routing
 loop, the intra-core and inter-core scoring rules, the BFS-layer extended set, 
 proactive congestion relief, the checkpoint--rollback escape, and a complexity analysis.  
@@ -412,7 +415,7 @@ with the circuit's gate structure.
 \section{dSABRE}
 \label{sec:dsabre}
 
-\dSABRE{} is a SABRE-style routing algorithm for multi-core
+\dSABRE{} is a \SABRE{}-style routing algorithm for multi-core
 processors.  Routing assumes a fixed initial layout; we use Qiskit
 \texttt{SabreLayout}, and defer the discussion of layout preparation
 and the routing pass schedule to Section~\ref{sec:initial_mapping}.
@@ -452,7 +455,7 @@ discounted work that is coming, with $\gamma^{\mathrm{dep}(g)}$
 discounting a gate by its depth because a deeper gate is more likely to
 be displaced before it is reached.  $\Phi$ is a surrogate, not the true
 cost-to-go: exact at the boundary ($\Phi{=}0$ iff every gate in $F$ is
-executable), and elsewhere the standard SABRE relaxation, which ignores
+executable), and elsewhere the standard \SABRE{} relaxation, which ignores
 that qubits contend for the same slots.}
 
 \rev{An action $a$ (one SWAP, or one teleport with its staging SWAPs)
@@ -693,7 +696,7 @@ For every neighbour pair $(u,v)$ within a core, the score
         + w_e\,\frac{\tilde{\Delta}_E^\mathrm{c}}{|E_\mathrm{c}|}
   \label{eq:intra}
 \end{equation}
-is the SABRE objective for intra-core scoring with the
+is the \SABRE{} objective for intra-core scoring with the
 lookahead-decay weighting of Eq.~\ref{Delta_E_Tilde}.
 The lowest-score SWAP is applied; tie-breaking is by enumeration
 order.  Because the scorer is restricted to a single core and the
@@ -1106,22 +1109,30 @@ uses both primitives and we count each operation once.  Circuits with
 isolated inter-core gates favour teledata; circuits with long
 shared-control CNOT runs (QFT, QPE) favour gate teleportation.
 
-\rev{Three consequences shape how the tables below should be read.
-(i)~\emph{Work per unit differs}, so the $\Delta_{\rm tket}$ columns in
-Tables~\ref{tab:main} and~\ref{tab:main} are unit-consistent but not
-work-consistent.  (ii)~\emph{Scope differs}: \texttt{pytket-dqc} emits
-an e-bit count only and does not model intra-core SWAP routing at all,
-so its column omits a cost \dSABRE{} pays and reports.  (iii)~The
-asymmetry is also \emph{temporal}---a gate-teleportation e-bit must
-stay entangled for the full span of the hyperedge it serves, whereas a
-teledata e-bit is consumed instantaneously by its teleport---so
-\texttt{pytket-dqc}'s counts presuppose an entanglement lifetime that
-hardware may not provide.  We address (i) and (ii) with a
+\rev{Four differences shape how the \texttt{pytket-dqc} column should
+be read, and together they are the reason we do not headline it.
+(i)~\emph{Work per unit differs}: one e-bit buys a whole hyperedge of
+gates, one teledata EPR buys one relocation, so the columns are
+unit-consistent but not work-consistent.  (ii)~\emph{Scope differs}:
+\texttt{pytket-dqc} emits an e-bit count only and does not model
+intra-core SWAP routing at all, so its column omits a cost \dSABRE{}
+pays and reports.  (iii)~\emph{The architecture model differs}: its
+\texttt{NISQNetwork} records \emph{which} core pairs are connected but
+not \emph{how many} physical links join them, so its counts are
+insensitive to interconnect bandwidth.  Doubling the B-grid's
+inter-core links from four to eight leaves its e-bit counts bit-identical
+while both \dSABRE{} and \TeleSABRE{} respond (online appendices).
+(iv)~The asymmetry is also \emph{temporal}: a gate-teleportation e-bit
+must stay entangled for the full span of the hyperedge it serves,
+whereas a teledata EPR is consumed instantaneously, so
+\texttt{pytket-dqc}'s counts presuppose an entanglement lifetime the
+hardware may not provide.  We address (i)--(ii) with a
 layout-controlled comparison in which both compilers start from the
-same qubit-to-core partition, and (iii) with a lifetime sweep; both are
-reported in Section~\ref{sec:main_results}.  Against \TeleSABRE{}, which
-shares \dSABRE{}'s cost model and reports intra-core SWAPs, no such
-correction is needed and the comparison is direct.}
+same qubit-to-core partition, and (iv) with a lifetime sweep; both are
+in Section~\ref{sec:main_results}.  Against \TeleSABRE{}, which shares
+\dSABRE{}'s cost model, physical architecture and intra-core SWAP
+accounting, no such correction is needed and the comparison is direct;
+that is why it is the comparison we headline.}
 
 \begin{table}[t]
 \centering
@@ -1176,7 +1187,7 @@ report \TeleSABRE{}'s EPR count as the sum of teledata and telegate
 operations, so each EPR pair is counted exactly once.  Unless
 stated otherwise, \dSABRE{} is run with its default initial-mapping
 configuration: Qiskit \texttt{SabreLayout} on the corners-removed
-architecture graph, best of three seeds, followed by SABRE-style
+architecture graph, best of three seeds, followed by \SABRE{}-style
 forward$\to$backward$\to$forward routing passes
 (Section~\ref{sec:initial_mapping}).  Subsequent tables and ablations
 inherit this default.  We report two metrics in the main tables:
@@ -1595,7 +1606,7 @@ EPR.  The backward pass starts from the first forward pass's
 output layout $\ell_f$ and routes the reversed DAG, producing
 $\ell_b$ that pre-positions qubits near their early interaction
 partners; the third pass then warm-starts from $\ell_b$.  This is
-the same mechanism as SABRE's backward refinement~\cite{li2019tackling}
+the same mechanism as \SABRE{}'s backward refinement~\cite{li2019tackling}
 and outperforms pure-forward warm-restart. Best of three SabreLayout seeds is reported.
 
 \subsection{Compile Time}
@@ -1726,10 +1737,10 @@ The Introduction already places \dSABRE{} within the
 partition--communicate--schedule decomposition of the DQC compilation
 stack and lists the major lines of work in each stage.  Here we focus
 on what specifically distinguishes \dSABRE{} from the closest prior
-art and on the single-QPU SABRE family that we build on but do not
+art and on the single-QPU \SABRE{} family that we build on but do not
 subsume.
 
-\textbf{SABRE-style distributed routers.}
+\textbf{\SABRE{}-style distributed routers.}
 \TeleSABRE{}~\cite{russo2025telesabre} is our closest prior work and
 direct experimental baseline.  Both routers follow the \SABRE{} loop,
 but differ in how they score inter-core moves: \TeleSABRE{} evaluates
@@ -1856,16 +1867,21 @@ lookahead-driven loop, resolves intra-core front-layer gates by
 SWAP scoring and only scores inter-core teleport
 candidates when the intra-core front is empty, with both phases
 sharing a common decay-weighted lookahead form.
-The empirical takeaway is that three design choices --- an explicit
-capacity penalty that keeps the scorer from teleporting into
-saturated cores, proactive congestion relief triggered by an explicit
-demand vector, and a BFS-layer inter-core extended set that respects
-DAG dependencies --- account for most of the gap to the state of the
-art, both individually and together, and that this gap widens as
-circuits and architectures scale.  More broadly, the results indicate that distributed routing
-benefits less from a richer per-candidate scoring formula than from
-ensuring that the lookahead signal and the architectural
-capacity constraints enter the same scoring step.
+\rev{The empirical takeaway is narrower than we first expected and
+correspondingly firmer.  Two scoring choices account for most of the
+gap to the state of the art: an explicit capacity penalty that keeps
+the scorer out of saturated cores, which contributes more than any
+other single component, and a BFS-layer inter-core extended set that
+respects DAG dependencies.  Proactive congestion relief and the
+checkpoint--rollback escape, which we had expected to carry part of the
+gap, turn out to be neutral on the geometric mean once every core is
+given reserved escape capacity; their value is that \dSABRE{} completes
+circuits on which the state of the art does not converge.  We report
+them on those terms.  More broadly, the results indicate that
+distributed routing benefits less from a richer per-candidate scoring
+formula than from ensuring that the lookahead signal and the
+architectural capacity constraints enter the same scoring step---which
+is what the single potential of Section~\ref{sec:principle} is for.}
 
 \paragraph*{Artefact availability.}
 The \dSABRE{} implementation, the routed-circuit benchmark suites,

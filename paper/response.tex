@@ -77,10 +77,21 @@ margin over \TeleSABRE{} is $48.2\%$ there, slightly larger than on the
 grid architectures, and \TeleSABRE{} additionally fails to converge on
 a circuit \dSABRE{} routes.
 
-\item \textbf{Comparison methodology.}  A new table states what one EPR
-pair buys under each compiler's cost model, and the differing
-communication primitives are addressed by a layout-controlled
-comparison and an entanglement-lifetime sweep.
+\item \textbf{Comparison methodology, and a change of emphasis.}  A new
+table states what one EPR pair buys under each compiler's cost model,
+and the differing primitives are addressed by a layout-controlled
+comparison and an entanglement-lifetime sweep.  Following the
+reviewers' concerns we also changed which comparison the paper
+headlines.  \TeleSABRE{} shares \dSABRE{}'s cost model, physical
+architecture and intra-core SWAP accounting, so it is now the only
+cross-compiler figure quoted in the abstract, introduction and
+conclusion.  \texttt{pytket-dqc}'s e-bit counts are reported in full in
+Section~IV together with the four respects in which they are not equal
+work---no intra-core routing, insensitivity to interconnect bandwidth,
+unbounded entanglement lifetime, and gate grouping---but no longer as a
+headline number.  We removed the favourable \texttt{pytket-dqc}
+figures from the abstract along with the unfavourable ones, since both
+rest on the same uncontrolled cost model.
 
 \item \textbf{Presentation.}  New notation table; rewritten abstract;
 reorganised introduction; consistent \dSABRE{} casing throughout;
