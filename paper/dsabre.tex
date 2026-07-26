@@ -1195,20 +1195,26 @@ Cost analysis is deferred to Section~\ref{sec:cost}.
 
 \begin{table}[t]
 \centering
-\caption{\rev{Main results on the three MQT-Bench suites.  EPR $=$
-  teledata $+$ telegate for \TeleSABRE{}, teledata for \dSABRE{},
-  e-bits for \texttt{pytket-dqc}; SWAP counts intra-core SWAPs only
-  (\texttt{pytket-dqc} does not model intra-core routing, see
-  Table~\ref{tab:primitives}).  Negative $\Delta$EPR favours \dSABRE{}.
-  \TeleSABRE{} is best-of-3 seeds, \texttt{pytket-dqc} best-of-5 with
-  its strongest completed distributor, \dSABRE{} best-of-3
-  \texttt{SabreLayout} seeds under the fwd$\to$bwd$\to$fwd schedule.
-  $^{\ast}$\TeleSABRE{} fails to converge; the TS geometric mean is
-  taken over the circuits it completes, so a second row reports the
+\caption{\rev{Main results.  EPR $=$ teledata $+$ telegate for
+  \TeleSABRE{}, teledata for \dSABRE{}, e-bits for \texttt{pytket-dqc};
+  SWAP counts intra-core SWAPs only (\texttt{pytket-dqc} does not model
+  intra-core routing, Table~\ref{tab:primitives}).  Negative
+  $\Delta$EPR favours \dSABRE{}.  \TeleSABRE{} is best-of-3 seeds,
+  \dSABRE{} best-of-3 \texttt{SabreLayout} seeds under the
+  fwd$\to$bwd$\to$fwd schedule.  \texttt{pytket-dqc} is best-of-5 with
+  its strongest completed distributor, run on the network model that
+  matches this device---per-core data capacity $M{-}\deg(c)$ after
+  reserving communication ports, communication capacity $\deg(c)$
+  (Section~\ref{sec:fair}); this is a stronger baseline than the
+  permissive default and the figures below are correspondingly tighter
+  than those in the conference version.
+  $^{\ast}$\TeleSABRE{} fails to converge; its geometric mean is taken
+  over the circuits it completes, so a second row reports the
   \texttt{pytket-dqc} comparison over all circuits \dSABRE{} routed.
-  $^{\ddagger}$\textsc{CoverEmbeddingSteinerDetached} did not scale to
-  or embed this circuit within a 20-minute budget;
-  \textsc{PartitioningHeterogeneous} is reported instead.}}
+  $^{\ddagger}$\textsc{CoverEmbeddingSteinerDetached} did not complete
+  within its budget; \textsc{PartitioningHeterogeneous} is reported.
+  $^{\S}$Architecture not covered by the physical-model sweep; the
+  permissive-default figure is shown.}}
 \label{tab:main}
 \setlength{\tabcolsep}{3pt}
 \small
@@ -1271,19 +1277,23 @@ multiplier & 13040 & 2202 & 11232 & 1514 & 10109 & 2957$^{\ddagger}$ & $-31.2$ &
 
 \textbf{25q.}
 \dSABRE{} reduces geometric-mean EPRs over \TeleSABRE{} by
-\textbf{40.6\%} and over pytket-dqc by \textbf{56.6\%}
+\textbf{40.6\%} and over pytket-dqc by \rev{\textbf{44.3\%}}
 (Table~\ref{tab:main}).  Per-circuit
 reductions versus \TeleSABRE{} range from parity on AE to $-81.8\%$
 on Graphstate, with no regressions on this suite.
-Even against pytket-dqc's strongest Steiner-embedding distributor,
-\dSABRE{} wins on all six circuits ($-45.9$ to $-66.7\%$): state
+\rev{Against pytket-dqc, given the device's own capacity, \dSABRE{}
+wins on five of six circuits and ties on Graphstate: state
 teleportation amortises a single EPR pair over many subsequent local
 gates, and at this scale that outweighs the gate-embedding savings
-pytket-dqc extracts by reusing shared control qubits.
+pytket-dqc extracts by reusing shared control qubits.  Under the
+permissive default the margin would read $-56.6\%$; we report the
+tighter figure.}
 
 \textbf{36q.}
-\dSABRE{} reduces geometric-mean EPRs by \textbf{46.3\%} vs.\ \TeleSABRE{}
-and \textbf{12.3\%} vs.\ pytket-dqc (Table~\ref{tab:main}).  Per-circuit
+\dSABRE{} reduces geometric-mean EPRs by \textbf{46.3\%} vs.\ \TeleSABRE{},
+\rev{and is at parity with pytket-dqc ($+1.8\%$) once that compiler is
+given the device's own capacity (Table~\ref{tab:main}); under the
+permissive default the same comparison reads $-12.3\%$}.  Per-circuit
 reductions versus \TeleSABRE{} are large ($-35\%$ to $-80\%$, DJ at parity).
 The simple structured circuits BV, VQE-SU2, and W-state are essentially
 solved (1 EPR on BV; 6--10 EPRs on the others).  Against pytket-dqc's

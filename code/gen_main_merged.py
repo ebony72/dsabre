@@ -10,7 +10,7 @@ is not re-run by benchmark.py.
 Writes tables/main_merged.tex (the table body, to be \input or pasted).
 """
 
-import json, os
+import json, os, glob
 from math import prod
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -18,10 +18,13 @@ R   = os.path.join(_HERE, "results")
 OUT = os.path.join(_HERE, "tables")
 os.makedirs(OUT, exist_ok=True)
 
-# pytket-dqc e-bits, strongest completed distributor per cell.
-# "d" marks cells where CoverEmbeddingSteinerDetached did not scale or embed
-# and PartitioningHeterogeneous is reported instead.
-TKET = {
+# pytket-dqc e-bits under the PHYSICAL network model (data capacity
+# M-deg(c), communication capacity deg(c)) -- see bench_pytket_fair.py and
+# Section IV-C of the paper.  Read from results_pytket_fair*.json so the table
+# cannot drift from the measurement.  PUBLISHED holds the older permissive-model
+# numbers, used only where the fair sweep has no entry (the large-circuit rows,
+# whose architectures the fair sweep does not cover) and marked in the caption.
+PUBLISHED = {
     "25q": {"ae": 48, "ghz": 3, "graphstate": 4, "qft": 61, "qnn": 115,
             "random": 479},
     "36q": {"bv": 3, "dj": 3, "qaoa": 148, "qpeexact": 49, "vqe_su2": 9,
@@ -30,6 +33,26 @@ TKET = {
             "qnn": ("735", "d"), "random": ("968", "d"), "qpeexact": 96,
             "qaoa": 472, "multiplier": ("2957", "d")},
 }
+
+
+def _load_physical():
+    """Physical-model e-bits keyed by (suite, circuit), from the fair sweep."""
+    out = {}
+    for fn in sorted(glob.glob(os.path.join(R, "results_pytket_fair*.json"))):
+        try:
+            recs = json.load(open(fn))["results"]
+        except Exception:
+            continue
+        for r in recs:
+            c = r.get("C_physical", {}).get("ebits")
+            if c is not None:
+                out[(r["suite"], r["circuit"])] = (c, r.get("C_physical", {}).get("method"))
+    return out
+
+
+PHYSICAL = None   # populated in main()
+
+TKET = PUBLISHED  # retained name for the fallback path
 
 ORDER = {
     "25q": ["ae", "ghz", "graphstate", "qft", "qnn", "random"],
@@ -65,12 +88,17 @@ def fmt_pct(a, b, bold=False):
 
 
 def tket_cell(suite, name):
-    v = TKET.get(suite, {}).get(name)
+    """Physical-model e-bits if the fair sweep measured them, else published."""
+    if PHYSICAL and (suite, name) in PHYSICAL:
+        v, method = PHYSICAL[(suite, name)]
+        mark = "$^{\\ddagger}$" if method and method != "CoverEmbeddingSteinerDetached" else ""
+        return f"{v}{mark}", int(v)
+    v = PUBLISHED.get(suite, {}).get(name)
     if v is None:
         return "---", None
     if isinstance(v, tuple):
-        return v[0] + "$^{\\ddagger}$", int(v[0])
-    return str(v), int(v)
+        return v[0] + "$^{\\ddagger}$$^{\\S}$", int(v[0])
+    return f"{v}$^{{\\S}}$", int(v)
 
 
 def panel(suite):
@@ -84,6 +112,7 @@ def panel(suite):
              "\\addlinespace[1pt]"]
     m_ts, m_de = [], []          # matched sets, for the TS gmean
     m_tsl, m_del = [], []
+    m_tk = []                    # tket values over the same matched circuits
     all_de, all_del, all_tk = [], [], []
 
     for r in recs:
@@ -114,6 +143,7 @@ def panel(suite):
             m_ts.append(te); m_de.append(ee)
             if tl is not None: m_tsl.append(tl)
             if el is not None: m_del.append(el)
+            if tkv is not None: m_tk.append(tkv)
         if ee is not None:
             all_de.append(ee)
             if el is not None: all_del.append(el)
@@ -125,7 +155,9 @@ def panel(suite):
         f"\\textbf{{gmean}} ({len(m_ts)})", "",
         f"{g_ts:.1f}", f"{gmean(m_tsl):.0f}" if m_tsl else "---",
         f"{g_de:.1f}", f"{gmean(m_del):.0f}" if m_del else "---",
-        "", fmt_pct(g_de, g_ts, bold=True), "",
+        f"{gmean(m_tk):.1f}" if m_tk else "---",
+        fmt_pct(g_de, g_ts, bold=True),
+        fmt_pct(g_de, gmean(m_tk), bold=True) if m_tk else "---",
     ]) + " \\\\")
 
     # A second gmean row over every circuit dSABRE routed, for the tket
@@ -140,6 +172,9 @@ def panel(suite):
 
 
 def main():
+    global PHYSICAL
+    PHYSICAL = _load_physical()
+    print(f'physical-model cells available: {len(PHYSICAL)}')
     parts = []
     for i, suite in enumerate(["25q", "36q", "64q"]):
         if i:

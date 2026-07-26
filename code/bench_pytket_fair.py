@@ -30,7 +30,7 @@ silently assumes.
 Output: code/results/results_pytket_fair.json
 """
 
-import sys, os, json, glob, time, argparse
+import sys, os, json, glob, time, argparse, signal
 from math import prod
 
 sys.setrecursionlimit(50000)
@@ -111,6 +111,30 @@ def build_networks(arch, n_logical):
     }, dict(K=K, M=M, deg=deg, even_cap=even_cap, phys_cap=phys_cap)
 
 
+class _Timeout(Exception):
+    pass
+
+
+def _alarm(signum, frame):
+    raise _Timeout()
+
+
+def _call_with_timeout(fn, seconds):
+    """Run fn() but abort it after `seconds`.
+
+    A single CoverEmbeddingSteinerDetached call on a 13k-CX circuit does not
+    return in any practical time, and a per-seed budget checked between calls
+    cannot interrupt it, so the bound has to be a signal.
+    """
+    old = signal.signal(signal.SIGALRM, _alarm)
+    signal.alarm(int(seconds))
+    try:
+        return fn()
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old)
+
+
 def distribute(circ, network, budget_s):
     """Best-of-NUM_SEEDS with the strongest distributor that completes."""
     from pytket_dqc.distributors import (CoverEmbeddingSteinerDetached,
@@ -119,14 +143,16 @@ def distribute(circ, network, budget_s):
                        ("PartitioningHeterogeneous", PartitioningHeterogeneous)):
         best, t0 = None, time.perf_counter()
         for seed in range(NUM_SEEDS):
-            if time.perf_counter() - t0 > budget_s:
+            remaining = budget_s - (time.perf_counter() - t0)
+            if remaining <= 1:
                 break
             try:
-                d = ctor().distribute(circ, network, seed=seed)
+                d = _call_with_timeout(
+                    lambda: ctor().distribute(circ, network, seed=seed), remaining)
                 c = d.cost()
                 if best is None or c < best[0]:
                     best = (c, d)
-            except Exception:
+            except (_Timeout, Exception):
                 continue
         if best is not None:
             return best[0], best[1], name
@@ -196,12 +222,19 @@ def main():
     from pytket_dqc.utils import DQCPass
 
     out_path = os.path.join(_RESULTS_DIR, "results_pytket_fair.json")
+    done = set()
+    if os.path.exists(out_path):
+        try:
+            prev = json.load(open(out_path))
+            done = {(r["suite"], r["circuit"]) for r in prev["results"]}
+        except Exception:
+            prev = None
     payload = {"meta": {"date": time.strftime("%Y-%m-%d"), "seeds": NUM_SEEDS,
                         "models": {
                             "A_published": "even split of logical qubits, unbounded ebit memory",
                             "B_ports": "same data capacity, server_ebit_mem = deg(core)",
                             "C_physical": "data capacity M-deg(core), server_ebit_mem = deg(core)"}},
-               "results": []}
+               "results": (prev["results"] if done else [])}
 
     for suite in suites:
         s = SUITES[suite]
@@ -210,6 +243,9 @@ def main():
         for qf in sorted(glob.glob(os.path.join(s["circuit_dir"], "*.qasm"))):
             cname = os.path.basename(qf).replace(s["suffix"], "")
             if cname not in EXPECTED_CX[suite]:
+                continue
+            if (suite, cname) in done:
+                print(f"  {cname}: already recorded, skipping", flush=True)
                 continue
             path = qf
             if (suite, cname) in OVERRIDES:
