@@ -248,6 +248,126 @@
         "time_s": 239.1
       },
       "C_fits_port_bound": false
+    },
+    {
+      "suite": "64q",
+      "circuit": "qnn",
+      "n_logical": 64,
+      "cores": 6,
+      "qubits_per_core": 16,
+      "degree": {
+        "0": 2,
+        "1": 3,
+        "2": 2,
+        "3": 2,
+        "4": 3,
+        "5": 2
+      },
+      "phys_cap": [
+        14,
+        13,
+        14,
+        14,
+        13,
+        14
+      ],
+      "A_published": {
+        "ebits": 657,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 481.6
+      },
+      "A_required_ebit_mem": -6,
+      "B_ports": {
+        "ebits": 657,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 482.4
+      },
+      "C_physical": {
+        "ebits": 605,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 479.0
+      },
+      "C_fits_port_bound": false
+    },
+    {
+      "suite": "64q",
+      "circuit": "qpeexact",
+      "n_logical": 64,
+      "cores": 6,
+      "qubits_per_core": 16,
+      "degree": {
+        "0": 2,
+        "1": 3,
+        "2": 2,
+        "3": 2,
+        "4": 3,
+        "5": 2
+      },
+      "phys_cap": [
+        14,
+        13,
+        14,
+        14,
+        13,
+        14
+      ],
+      "A_published": {
+        "ebits": 97,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 239.6
+      },
+      "A_required_ebit_mem": -5,
+      "B_ports": {
+        "ebits": 97,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 239.5
+      },
+      "C_physical": {
+        "ebits": 118,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 239.9
+      },
+      "C_fits_port_bound": false
+    },
+    {
+      "suite": "64q",
+      "circuit": "random",
+      "n_logical": 64,
+      "cores": 6,
+      "qubits_per_core": 16,
+      "degree": {
+        "0": 2,
+        "1": 3,
+        "2": 2,
+        "3": 2,
+        "4": 3,
+        "5": 2
+      },
+      "phys_cap": [
+        14,
+        13,
+        14,
+        14,
+        13,
+        14
+      ],
+      "A_published": {
+        "ebits": 948,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 341.5
+      },
+      "A_required_ebit_mem": -4,
+      "B_ports": {
+        "ebits": 948,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 341.3
+      },
+      "C_physical": {
+        "ebits": 925,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 324.6
+      },
+      "C_fits_port_bound": false
     }
   ]
 }

@@ -84,17 +84,24 @@ in two correctable respects.  Its per-server communication capacity
 defaults to \emph{unbounded}, whereas a core has one communication port
 per inter-core link ($2$--$3$ here); and the server sizes passed are an
 even split of the logical qubit count rather than the physical capacity
-$M-\deg(c)$.  Section~IV-C re-runs it with both corrected.  The data
-correction \emph{helps} \texttt{pytket-dqc} and we adopt it: its 25-qubit
-geometric mean improves from $35.3$ to $27.5$ and the 36-qubit from
-$12.3$ to $10.6$, so \dSABRE{}'s margin narrows to $-44.3\%$ at 25
-qubits and the 36-qubit comparison crosses to parity.  We report the
-narrower figures.  Separately, the communication bound is not enforced
-by the distributors at all---setting it leaves every reported cost
-unchanged, because the check happens only at circuit materialisation---
-and on that test four of six 25-qubit distributions turn out not to be
-executable on the device, needing $7$ to $19$ link qubits per core
-against the $2$ available.
+$M-\deg(c)$.  Section~IV-C re-runs it with both corrected, and Table~IV now reports
+the corrected figures throughout.  On the smaller suites the data
+correction \emph{helps} \texttt{pytket-dqc}: its geometric mean improves
+from $35.3$ to $27.5$ at 25 qubits and $12.3$ to $10.6$ at 36, so
+\dSABRE{}'s margin narrows to $-44.3\%$ and the 36-qubit comparison
+crosses to parity ($+1.8\%$).  At 64 qubits it goes the other way
+($168.0$ to $176.3$), narrowing \dSABRE{}'s deficit from $+20.0\%$ to
+$+14.7\%$.  We report all of these in place of the earlier numbers.
+
+Separately, the communication bound is not enforced by the distributors
+at all: setting it leaves every reported cost unchanged, because the
+check happens only at circuit materialisation.  Auditing that,
+\textbf{13 of the 21 distributions cannot be built within the
+communication capacity the device provides}---AE alone needs at least
+$19$ link qubits per core against the $2$ available.  We think this is
+the most useful single fact we can give a reader weighing the two
+columns, and it is why the e-bit comparison is no longer a headline
+figure.
 
 \item \textbf{Comparison methodology, and a change of emphasis.}  A new
 table states what one EPR pair buys under each compiler's cost model,

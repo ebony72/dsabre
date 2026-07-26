@@ -1231,39 +1231,39 @@ Circuit & CX & EPR & SWAP & EPR & SWAP & e-bits & vs.\ TS & vs.\ tket \\
 \multicolumn{9}{@{}l}{\emph{25 logical qubits, B-grid $2{\times}2$ of $4{\times}4$ cores (64 physical)}} \\
 \addlinespace[1pt]
 ae & 558 & 23 & 297 & 23 & 284 & 48 & $+0.0$ & $-52.1$ \\
-ghz & 24 & 2 & 29 & 1 & 6 & 3 & $-50.0$ & $-66.7$ \\
-graphstate & 25 & 11 & 51 & 2 & 15 & 4 & $-81.8$ & $-50.0$ \\
-qft & 580 & 39 & 355 & 33 & 334 & 61 & $-15.4$ & $-45.9$ \\
-qnn & 1223 & 51 & 587 & 48 & 663 & 115 & $-5.9$ & $-58.3$ \\
-random & 1124 & 292 & 1273 & 178 & 1241 & 479 & $-39.0$ & $-62.8$ \\
+ghz & 24 & 2 & 29 & 1 & 6 & 2 & $-50.0$ & $-50.0$ \\
+graphstate & 25 & 11 & 51 & 2 & 15 & 2 & $-81.8$ & $+0.0$ \\
+qft & 580 & 39 & 355 & 33 & 334 & 57 & $-15.4$ & $-42.1$ \\
+qnn & 1223 & 51 & 587 & 48 & 663 & 127 & $-5.9$ & $-62.2$ \\
+random & 1124 & 292 & 1273 & 178 & 1241 & 314 & $-39.0$ & $-43.3$ \\
 \cmidrule(lr){1-9}
-\textbf{gmean} (6) &  & 25.8 & 221 & 15.3 & 138 &  & $\mathbf{-40.6}$ &  \\
+\textbf{gmean} (6) &  & 25.8 & 221 & 15.3 & 138 & 27.5 & $\mathbf{-40.6}$ & $\mathbf{-44.3}$ \\
 \midrule
 \multicolumn{9}{@{}l}{\emph{36 logical qubits, same B-grid}} \\
 \addlinespace[1pt]
-bv & 17 & 5 & 34 & 1 & 12 & 3 & $-80.0$ & $-66.7$ \\
-dj & 35 & 3 & 53 & 3 & 23 & 3 & $+0.0$ & $+0.0$ \\
-qaoa & 1200 & 232 & 1027 & 137 & 1015 & 148 & $-40.9$ & $-7.4$ \\
-qpeexact & 1019 & 100 & 771 & 65 & 586 & 49 & $-35.0$ & $+32.7$ \\
-vqe\_su2 & 105 & 16 & 80 & 10 & 56 & 9 & $-37.5$ & $+11.1$ \\
-wstate & 70 & 12 & 88 & 6 & 25 & 6 & $-50.0$ & $+0.0$ \\
+bv & 17 & 5 & 34 & 1 & 12 & 1 & $-80.0$ & $+0.0$ \\
+dj & 35 & 3 & 53 & 3 & 23 & 2 & $+0.0$ & $+50.0$ \\
+qaoa & 1200 & 232 & 1027 & 137 & 1015 & 144 & $-40.9$ & $-4.9$ \\
+qpeexact & 1019 & 100 & 771 & 65 & 586 & 52 & $-35.0$ & $+25.0$ \\
+vqe\_su2 & 105 & 16 & 80 & 10 & 56 & 12 & $-37.5$ & $-16.7$ \\
+wstate & 70 & 12 & 88 & 6 & 25 & 8 & $-50.0$ & $-25.0$ \\
 \cmidrule(lr){1-9}
-\textbf{gmean} (6) &  & 20.1 & 147 & 10.8 & 78 &  & $\mathbf{-46.3}$ &  \\
+\textbf{gmean} (6) &  & 20.1 & 147 & 10.8 & 78 & 10.6 & $\mathbf{-46.3}$ & $\mathbf{+1.8}$ \\
 \midrule
 \multicolumn{9}{@{}l}{\emph{64 logical qubits, H-grid $2{\times}3$ of $4{\times}4$ cores (96 physical)}} \\
 \addlinespace[1pt]
-ae & 1962 & 323 & 1508 & 242 & 1493 & 141 & $-25.1$ & $+71.6$ \\
-ghz & 63 & 11 & 111 & 9 & 57 & 5 & $-18.2$ & $+80.0$ \\
-graphstate & 64 & 76 & 379 & 16 & 89 & 9 & $-78.9$ & $+77.8$ \\
-qft & 1966 & 410 & 1872 & 204 & 1563 & 181 & $-50.2$ & $+12.7$ \\
-qnn & 8126 & 1365 & 6292 & 508 & 5229 & 735$^{\ddagger}$ & $-62.8$ & $-30.9$ \\
-random$^{\ast}$ & 1627 & --- & --- & 721 & 3608 & 968$^{\ddagger}$ & --- & $-25.5$ \\
-qpeexact & 2139 & 310 & 1624 & 271 & 1792 & 96 & $-12.6$ & $+182.3$ \\
-qaoa$^{\ast}$ & 3920 & --- & --- & 529 & 3688 & 472 & --- & $+12.1$ \\
-multiplier & 13040 & 2202 & 11232 & 1514 & 10109 & 2957$^{\ddagger}$ & $-31.2$ & $-48.8$ \\
+ae & 1962 & 323 & 1508 & 242 & 1493 & 142 & $-25.1$ & $+70.4$ \\
+ghz & 63 & 11 & 111 & 9 & 57 & 9 & $-18.2$ & $+0.0$ \\
+graphstate & 64 & 76 & 379 & 16 & 89 & 7 & $-78.9$ & $+128.6$ \\
+qft & 1966 & 410 & 1872 & 204 & 1563 & 204 & $-50.2$ & $+0.0$ \\
+qnn & 8126 & 1365 & 6292 & 508 & 5229 & 605$^{\ddagger}$ & $-62.8$ & $-16.0$ \\
+random$^{\ast}$ & 1627 & --- & --- & 721 & 3608 & 925$^{\ddagger}$ & --- & $-22.1$ \\
+qpeexact & 2139 & 310 & 1624 & 271 & 1792 & 118 & $-12.6$ & $+129.7$ \\
+qaoa$^{\ast}$ & 3920 & --- & --- & 529 & 3688 & 473$^{\ddagger}$ & --- & $+11.8$ \\
+multiplier & 13040 & 2202 & 11232 & 1514 & 10109 & 2891$^{\ddagger}$ & $-31.2$ & $-47.6$ \\
 \cmidrule(lr){1-9}
-\textbf{gmean} (7) &  & 269.5 & 1452 & 147.0 & 1016 &  & $\mathbf{-45.5}$ &  \\
-\textbf{gmean} (9) &  & --- & --- & 202.2 & 1350 & 168.5 & --- & $\mathbf{+20.0}$ \\
+\textbf{gmean} (7) &  & 269.5 & 1452 & 147.0 & 1016 & 120.9 & $\mathbf{-45.5}$ & $\mathbf{+21.6}$ \\
+\textbf{gmean} (9) &  & --- & --- & 202.2 & 1350 & 176.3 & --- & $\mathbf{+14.7}$ \\
 \midrule
 \multicolumn{9}{@{}l}{\emph{QFT scalability, H-grid, each router from its own layout}} \\
 \addlinespace[1pt]
@@ -1323,18 +1323,20 @@ resolves the earlier star-circuit weakness on GHZ: it now improves
 ($9$ vs.\ $11$) rather than regressing, as no core is born fully packed
 and the local $\Delta$-form score is no longer forced to chase the
 next CX out of a saturated core.}
-\rev{Against pytket-dqc's strongest distributor the comparison
-\emph{reverses} on this suite: the 9-circuit geometric mean is
-$+20.0\%$.  Steiner-tree gate embedding reuses a few EPR pairs across
-many controlled operations, and it is markedly more e-bit-efficient on
-the structured circuits (QPEexact $+182.3\%$, GHZ $+80.0\%$, Graphstate
-$+77.8\%$, AE $+71.6\%$, QFT $+12.7\%$); \dSABRE{} leads on the three
-densest circuits (QNN $-30.9\%$, Random $-25.5\%$, Multiplier
-$-48.8\%$), on which that method does not scale or embed and a plain
-partitioner is used.  Three things qualify the reversal, each examined
-below: the e-bit column charges no intra-core SWAPs, the two compilers
-start from different partitions, and the embedding presumes unbounded
-entanglement lifetime.}  On Random \rev{and QAOA}, \TeleSABRE{} fails
+\rev{Against pytket-dqc the comparison \emph{reverses} on this suite:
+the 9-circuit geometric mean is $+14.7\%$ even after that compiler is
+given the device's own capacity (Section~\ref{sec:fair}).  Steiner-tree
+gate embedding reuses a few EPR pairs across many controlled
+operations, and it is markedly more e-bit-efficient on the structured
+circuits (QPEexact $+129.7\%$, Graphstate $+128.6\%$, AE $+70.4\%$;
+GHZ and QFT at parity); \dSABRE{} leads on the densest circuits
+(Multiplier $-47.6\%$, Random $-22.1\%$, QNN $-16.0\%$), on which the
+embedding method does not scale or embed and a plain partitioner is
+used.  Three things qualify the reversal, each examined below: the
+e-bit column charges no intra-core SWAPs, the two compilers start from
+different partitions, and---most consequentially here---seven of these
+nine distributions cannot be executed within the communication capacity
+the device provides at all (Section~\ref{sec:fair}).}  On Random \rev{and QAOA}, \TeleSABRE{} fails
 to converge on any of three seeds; \dSABRE{} completes \rev{both ($721$
 and $529$ EPR)} under default scoring and proactive relief alone,
 without triggering checkpoint--rollback.
@@ -1370,7 +1372,7 @@ no adjustment at any $D_{\max}$: a teledata EPR is consumed
 instantaneously by its teleport, so teledata counts are
 lifetime-invariant by construction.}
 
-\rev{The $+20.0\%$ reversal of Table~\ref{tab:main} exists only above
+\rev{The $+14.7\%$ reversal of Table~\ref{tab:main} exists only above
 a lifetime threshold.  Sweeping $D_{\max}$ over the 64q suite, the
 geometric-mean gap crosses parity between $D_{\max}{=}10$ and
 $D_{\max}{=}5$ and becomes a \dSABRE{} win of $\mathbf{37.9\%}$ at the
@@ -1378,7 +1380,7 @@ realistic $D_{\max}{=}3$ ($68.5\%$ at $D_{\max}{=}1$).  The circuits
 \texttt{pytket-dqc} wins under an unbounded lifetime are exactly those
 whose distributions hold links across many gates, and they inflate
 $2.7$--$4.8\times$ at $D_{\max}{=}3$: QPEexact, its largest unbounded
-win ($+182.3\%$), inflates $79\!\to\!378$ e-bits and flips to a
+win, inflates $79\!\to\!378$ e-bits and flips to a
 $28.3\%$ \dSABRE{} advantage, and its winning QNN distribution requires
 individual link qubits to stay entangled across more than half the
 circuit's execution.  Circuits whose hyperedges hold roughly one gate
@@ -1419,28 +1421,34 @@ and communication capacity $\deg(c)$, and re-run the same distributor
 with the same seed budget.  Table~\ref{tab:fair} reports the result.
 Two things follow, pulling in opposite directions.}
 
-\rev{First, the correction \emph{helps} \texttt{pytket-dqc}, because
-the physical data capacity is the more generous of the two: its
-geometric mean improves from $35.3$ to $27.5$ on the 25-qubit suite and
-from $12.3$ to $10.6$ on the 36-qubit suite.  \dSABRE{}'s margin
-narrows from $-56.6\%$ to $-44.3\%$ at 25 qubits, and at 36 qubits the
-comparison crosses over to parity ($+1.8\%$, i.e.\ \texttt{pytket-dqc}
-marginally ahead) where the published model showed $-12.3\%$.  This is
-the honest figure and we report it in place of the earlier one.}
+\rev{First, the correction changes the numbers in both directions, and
+on the smaller suites it \emph{helps} \texttt{pytket-dqc}, because the
+physical data capacity is the more generous of the two: its geometric
+mean improves from $35.3$ to $27.5$ at 25 qubits and from $12.3$ to
+$10.6$ at 36.  \dSABRE{}'s margin narrows from $-56.6\%$ to $-44.3\%$
+at 25 qubits, and at 36 qubits the comparison crosses over to parity
+($+1.8\%$, \texttt{pytket-dqc} marginally ahead) where the permissive
+model showed $-12.3\%$.  On the 64-qubit H-grid the same change goes
+the other way ($168.0$ to $176.3$): the extra data capacity shifts the
+KaHyPar partition without paying for itself, and \dSABRE{}'s deficit
+narrows from $+20.0\%$ to $+14.7\%$.  These are the figures
+Table~\ref{tab:main} now reports, in place of the earlier ones.}
 
 \rev{Second, the communication bound is not respected by the
 distributors at all.  Setting \texttt{server\_ebit\_mem} leaves every
 reported cost unchanged, because \texttt{cost()} is computed from the
 hyperedge structure and the bound is checked only when the distribution
 is materialised into a circuit.  Asking for that circuit is therefore a
-test of whether the reported answer is executable at all, and for half
-the circuits it is not: the last column of Table~\ref{tab:fair} gives
-the smallest uniform communication capacity under which each
-distribution can be built.  On the 25-qubit suite four of six
-distributions need $7$ to $19$ link qubits per core against the $2$ the
-device provides; AE needs $19$, nearly ten times the hardware budget.
-The two circuits that fit ($1$ each) are GHZ and Graphstate, whose
-hyperedges hold roughly one gate apiece.}
+test of whether the reported answer is executable at all, and most of
+the time it is not: \textbf{13 of the 21 distributions cannot be built
+within the communication capacity the device provides}---four of six at
+25 qubits, two of six at 36, and seven of nine at 64.  The last column
+of Table~\ref{tab:fair} gives the smallest uniform capacity under which
+each can be built.  AE needs at least $19$ link qubits per core at 25
+qubits and at least $18$ at 64, against the $2$ or $3$ the device has.
+The circuits that do fit, at one link qubit each, are GHZ and
+Graphstate on both suites---precisely those whose hyperedges hold
+roughly one gate apiece.}
 
 \rev{The pattern is consistent: the distributions that need the most
 communication memory are the ones that amortise the most gates onto a
@@ -1490,7 +1498,10 @@ a repaired count.}
   larger circuits, so ${>}k$ denotes a lower bound: it was still
   failing at $k$ when the budget expired.  Either way a value above
   $2$ means the distribution cannot be executed on this device, and
-  those rows are marked $^{\dagger}$.}}
+  those rows are marked $^{\dagger}$; \emph{n/d} marks the one case
+  where the scan expired before establishing a useful bound, though the
+  cheap per-distribution check still shows that distribution does not
+  fit.}}
 \label{tab:fair}
 \setlength{\tabcolsep}{4pt}
 \small
@@ -1522,6 +1533,20 @@ vqe\_su2               &   9 &  12 &  10 &  1 \\
 wstate                 &   6 &   8 &   6 &  1 \\
 \cmidrule(lr){1-5}
 \textbf{gmean}         & 12.3 & 10.6 & 10.8 & \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{64 logical qubits, H-grid, 2--3 ports per core}} \\
+\addlinespace[1pt]
+ae$^{\dagger}$         &  141 &  142 &  242 & ${>}18$ \\
+ghz                    &    5 &    9 &    9 &  1 \\
+graphstate             &    9 &    7 &   16 &  1 \\
+qft$^{\dagger}$        &  183 &  204 &  204 & ${>}7$ \\
+qnn$^{\dagger}$        &  657 &  605 &  508 & ${>}6$ \\
+random$^{\dagger}$     &  948 &  925 &  721 & ${>}4$ \\
+qpeexact$^{\dagger}$   &   97 &  118 &  271 & ${>}5$ \\
+qaoa$^{\dagger}$       &  513 &  473 &  529 & ${>}7$ \\
+multiplier$^{\dagger}$ & 2956 & 2891 & 1514 & n/d \\
+\cmidrule(lr){1-5}
+\textbf{gmean}         & 168.0 & 176.3 & 202.2 & \\
 \bottomrule
 \end{tabular}%
 }
