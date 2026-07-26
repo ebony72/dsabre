@@ -64,6 +64,47 @@ See also: `../CLAUDE.md` for the full project reference.
 - Always use `flush=True` on ALL print statements
 - Save to JSON early and often; don't rely on stdout alone for results
 
+### DO NOT regenerate benchmark circuits with the installed MQT Bench
+
+`~/Documents/telesabre/circuits/` is **shared** by dsabre, cphm, SFC, dqcbench
+and dqc-fusion. The paper's circuits are **MQT Bench v1.1.0** downloads (2024).
+The installed generator is **v2.2.2**, and for the same benchmark name it emits
+a *structurally different* circuit. Regenerating in place silently changes
+published numbers for every project at once.
+
+Known casualty — **`qnn_64` must have 8126 CX gates** (depth 650):
+
+| version | qnn @ 64 qubits |
+|---|---|
+| v1.1.0 (paper, Table VI) | **8126 CX**, depth 650 |
+| v2.2.2 (installed) | **63 CX** — a linear chain, `reps=1` |
+
+On 2026-07-09 a `cphm` session judged the deep circuit "a stale legacy file
+structurally inconsistent with qnn_100/qnn_200" and overwrote it with the
+v2.2.2 output, labelling the shallow one "CORRECTED" (see
+`cphm/code/fix_qnn_64.py`). It is not corrected — 8126 CX is the count in the
+submitted TCAD manuscript. The original survives only as
+`qnn_OLD_DEEP_nativegates_ibm_qiskit_opt3_64.qasm.bak` in the same directory.
+Flagged again in an SFC session on 2026-07-10; still unfixed.
+
+**Provenance check** — every legitimate suite circuit begins with
+
+```
+// Benchmark was created by MQT Bench on 2024-03-..
+// MQT Bench version: 1.1.0
+```
+
+A suite `.qasm` with no header, or a different version, has been regenerated
+and cannot be compared against published numbers. The current `qnn_64` has no
+header and retains `creg meas[64]`, which the suite convention strips.
+
+**If you need a circuit that does not exist yet**, generate it under a *new*
+name (as `code/gen_new_64q_circuits.py` does for qaoa/multiplier) and never
+overwrite an existing one. Benchmark drivers should preflight CX counts
+against the published table and abort on mismatch — see `EXPECTED_CX` in
+`code/bench_heavyhex.py` and `code/bench_pytket_fair.py`, which read the
+`.bak` explicitly rather than trusting the directory copy.
+
 ---
 
 ## TeleSABRE Setup
