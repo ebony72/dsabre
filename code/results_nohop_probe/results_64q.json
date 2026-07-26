@@ -1,0 +1,378 @@
+{
+  "meta": {
+    "date": "2026-07-26",
+    "suite": "64q",
+    "arch": "H-grid 2x3 4x4 (96 qubits)",
+    "layout": "SabreLayout corners-removed, best of 3 seeds",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+    "ts_seeds": 3,
+    "sl_seeds": 3,
+    "routers": {
+      "dS": "General_dSABRE_Router  (router.py)",
+      "dSE": "dSABRE_BurstExt        (dsabre_ext.py)"
+    }
+  },
+  "results": [
+    {
+      "suite": "64q",
+      "circuit": "ae",
+      "qubits": 64,
+      "cx": 1962,
+      "ts": {
+        "eprs": 323,
+        "teledata": 307,
+        "telegate": 16,
+        "ls": 1508,
+        "seed": 0,
+        "time_s": 0.99
+      },
+      "routers": {
+        "dS": {
+          "eprs": 221,
+          "ls": 1484,
+          "time_s": 7.919,
+          "aborted": false,
+          "relief_candidates": 104,
+          "relief_picks": 23,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 232,
+          "ls": 1516,
+          "time_s": 8.791,
+          "aborted": false,
+          "relief_candidates": 32,
+          "relief_picks": 8,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "ghz",
+      "qubits": 64,
+      "cx": 63,
+      "ts": {
+        "eprs": 11,
+        "teledata": 11,
+        "telegate": 0,
+        "ls": 111,
+        "seed": 0,
+        "time_s": 0.02
+      },
+      "routers": {
+        "dS": {
+          "eprs": 9,
+          "ls": 57,
+          "time_s": 0.02,
+          "aborted": false,
+          "relief_candidates": 4,
+          "relief_picks": 1,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 9,
+          "ls": 57,
+          "time_s": 0.021,
+          "aborted": false,
+          "relief_candidates": 4,
+          "relief_picks": 1,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "graphstate",
+      "qubits": 64,
+      "cx": 64,
+      "ts": {
+        "eprs": 76,
+        "teledata": 72,
+        "telegate": 4,
+        "ls": 379,
+        "seed": 0,
+        "time_s": 3.98
+      },
+      "routers": {
+        "dS": {
+          "eprs": 17,
+          "ls": 96,
+          "time_s": 0.055,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 16,
+          "ls": 89,
+          "time_s": 0.055,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "multiplier",
+      "qubits": 64,
+      "cx": 13040,
+      "ts": {
+        "eprs": 2202,
+        "teledata": 2155,
+        "telegate": 47,
+        "ls": 11232,
+        "seed": 0,
+        "time_s": 89.43
+      },
+      "routers": {
+        "dS": {
+          "eprs": 1382,
+          "ls": 9481,
+          "time_s": 398.547,
+          "aborted": false,
+          "relief_candidates": 64,
+          "relief_picks": 13,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 1796,
+          "ls": 10382,
+          "time_s": 452.689,
+          "aborted": false,
+          "relief_candidates": 96,
+          "relief_picks": 22,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "qaoa",
+      "qubits": 64,
+      "cx": 3920,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 820,
+          "ls": 4611,
+          "time_s": 23.958,
+          "aborted": false,
+          "relief_candidates": 84,
+          "relief_picks": 19,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 529,
+          "ls": 3688,
+          "time_s": 26.126,
+          "aborted": false,
+          "relief_candidates": 6,
+          "relief_picks": 1,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "qft",
+      "qubits": 64,
+      "cx": 1966,
+      "ts": {
+        "eprs": 410,
+        "teledata": 326,
+        "telegate": 84,
+        "ls": 1872,
+        "seed": 0,
+        "time_s": 1.97
+      },
+      "routers": {
+        "dS": {
+          "eprs": 231,
+          "ls": 1651,
+          "time_s": 8.55,
+          "aborted": false,
+          "relief_candidates": 44,
+          "relief_picks": 11,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 204,
+          "ls": 1563,
+          "time_s": 6.098,
+          "aborted": false,
+          "relief_candidates": 42,
+          "relief_picks": 9,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "qnn",
+      "qubits": 64,
+      "cx": 63,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 9,
+          "ls": 56,
+          "time_s": 0.049,
+          "aborted": false,
+          "relief_candidates": 4,
+          "relief_picks": 1,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 9,
+          "ls": 56,
+          "time_s": 0.054,
+          "aborted": false,
+          "relief_candidates": 4,
+          "relief_picks": 1,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "qpeexact",
+      "qubits": 64,
+      "cx": 2139,
+      "ts": {
+        "eprs": 310,
+        "teledata": 308,
+        "telegate": 2,
+        "ls": 1624,
+        "seed": 0,
+        "time_s": 4.8
+      },
+      "routers": {
+        "dS": {
+          "eprs": 212,
+          "ls": 1550,
+          "time_s": 6.079,
+          "aborted": false,
+          "relief_candidates": 102,
+          "relief_picks": 18,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 266,
+          "ls": 1819,
+          "time_s": 7.293,
+          "aborted": false,
+          "relief_candidates": 114,
+          "relief_picks": 35,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "random",
+      "qubits": 64,
+      "cx": 1627,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 788,
+          "ls": 3982,
+          "time_s": 12.136,
+          "aborted": false,
+          "relief_candidates": 52,
+          "relief_picks": 15,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 767,
+          "ls": 3750,
+          "time_s": 14.824,
+          "aborted": false,
+          "relief_candidates": 60,
+          "relief_picks": 18,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "vqe_su2",
+      "qubits": 64,
+      "cx": 189,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 23,
+          "ls": 135,
+          "time_s": 0.195,
+          "aborted": false,
+          "relief_candidates": 12,
+          "relief_picks": 2,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 25,
+          "ls": 129,
+          "time_s": 0.182,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "wstate",
+      "qubits": 64,
+      "cx": 126,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 13,
+          "ls": 98,
+          "time_s": 0.076,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 18,
+          "ls": 103,
+          "time_s": 0.078,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    }
+  ]
+}

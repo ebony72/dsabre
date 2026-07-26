@@ -36,11 +36,12 @@ class HardwareConfig:
     cap_penalty: float = 15.0
     capacity_threshold: int = 3
     # Bonus per inter-core hop that moves a qubit closer to its target core.
-    # Retired in the TCAD revision: the front-layer term already carries the
-    # directional signal on every architecture evaluated (ablation measured
-    # 0.0% on 25q, +1.8% on 64q, within seed noise).  Kept as a weight so the
-    # ablation remains reproducible; 0.0 removes the term from the score.
-    hop_gain: float = 0.0
+    # Retained: the term is exactly inert on the B-grid suites (all 12
+    # circuits tie) but its value grows with circuit size on the H-grid --
+    # removing it costs +18.6% EPR on the 13k-CX multiplier and +6.4% on
+    # random, +2.2% on the 64q geometric mean.  Setting this to 0.0
+    # reproduces the four-term ablation row.
+    hop_gain: float = 5.0
 
     # ── Proactive congestion relief ────────────────────────────────────────────
     # Score bonus for teleports that relieve a congested core.

@@ -52,11 +52,16 @@ core-graph diameter in EPR pairs under a stated capacity condition,
 and separating unconditional termination from completion).  Each is attached to an
 experimental result it explains rather than standing alone.
 
-\item \textbf{One scoring term removed.}  The hop-gain reward
-$g_\mathrm{hop}$ is retired.  Ablation showed it inert, and
-Proposition~1 explains why: it re-counts a directional signal that
-$\Delta_F$ already carries.  The score is now four terms with one fewer
-hyperparameter, and all reported numbers are regenerated without it.
+\item \textbf{A negative result we report rather than hide.}  We tested
+whether the hop-gain term $g_\mathrm{hop}$ could be retired as
+redundant, since the existing ablation showed it inert.  Re-running
+every suite with $w_h{=}0$ showed the ablation subset was
+misleading---it excludes the three largest circuits---and that removing
+the term costs $18.6\%$ EPR on the 13\,040-CX multiplier and $2.2\%$ on
+the 64-qubit geometric mean.  The term is kept, and Section~III-C now
+justifies it by measurement and explains the scale dependence, which we
+believe answers the reviewers' question about term necessity better
+than a deletion would have.
 
 \item \textbf{Mechanism roles reported honestly.}  The capacity penalty
 is now presented as the central mechanism it measurably is; congestion
@@ -190,15 +195,21 @@ unified optimization goal.
 \end{comment}
 
 \response
-Addressed by the same restructure, plus one concrete consequence: the
-decomposition was not minimal, and we have reduced it.  The hop-gain
-term is removed, because Proposition~1 shows it re-counts a signal
-$\Delta_F$ already carries on a graph whose inter-core links are
-weighted $w_\mathrm{link} \gg 1$, and the ablation confirms every
-circuit in two suites ties exactly without it.  The remaining four
-terms map one-to-one onto the three groups of the design principle.
-\where{Section~III-C, Eq.~(6) and following; Table~III;
-Section~IV-E}
+Addressed by the same restructure, and by testing the question
+empirically rather than asserting an answer.  Four of the five terms
+are now \emph{derived}: Proposition~1 shows they are exactly
+$\mathrm{cost}$, $\mathrm{pen}$, and $\Delta\Phi$.  The fifth,
+$g_\mathrm{hop}$, is the one term the proposition does not imply, so we
+tried to remove it.  That experiment failed in an informative way: the
+term is exactly inert on all twelve B-grid circuits, but removing it
+costs $18.6\%$ EPR on the largest circuit in the suite and $2.2\%$ on
+the 64-qubit geometric mean, because $\Delta_F$ is evaluated at a
+specific landing port and under-reports core-level progress as
+intra-core distances grow.  We keep the term and now say exactly what
+it buys and where.  We also note the methodological trap, since it bears
+on how ablations should be read: measured only on the six-circuit
+subset the term looks like noise.
+\where{Section~III-C; Section~IV-E and Table~XI}
 
 \begin{comment}
 A more explicit discussion of the equivalence (or lack thereof) between
