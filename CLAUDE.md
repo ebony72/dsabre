@@ -109,13 +109,14 @@ A suite `.qasm` with no header, or a different version, has been regenerated
 and cannot be compared against published numbers. The current `qnn_64` has no
 header and retains `creg meas[64]`, which the suite convention strips.
 
-Note `qnn_100` and `qnn_200` in the circuits directory are still the shallow
-v2.2.2 form (99 and 199 CX — a linear chain, too shallow to discriminate
-between routers). Deep equivalents were generated on 2026-07-27 by
-`code/gen_deep_qnn.py` under **new** names, `qnn_zz_..._{100,200}.qasm`
-(19,898 and 79,798 CX), so adopting them is each project's explicit choice.
-They are quadratic in n, so budget accordingly: the largest circuit in any
-current suite is multiplier_64 at 13,040 CX.
+The whole `qnn` family is now the deep ZZ form and consistent across sizes —
+1223 CX at 25q, 8126 at 64q, 19,898 at 100q, 79,798 at 200q, each entangling
+every qubit pair. `qnn_100`/`qnn_200` were switched from the shallow v2.2.2
+form on 2026-07-27 (`code/gen_deep_qnn.py`); their previous contents are kept
+as `qnn_SHALLOW_v2.2.2_..._{100,200}.qasm.bak`. These are quadratic in n and
+dwarf every other circuit in the suites (multiplier_64 is 13,040 CX), so budget
+routing time accordingly and expect pytket-dqc's embedding distributors to fall
+back on them.
 
 **If you need a circuit that does not exist yet**, generate it under a *new*
 name (as `code/gen_new_64q_circuits.py` and `code/gen_deep_qnn.py` do) and

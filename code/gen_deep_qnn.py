@@ -1,6 +1,6 @@
 """
 gen_deep_qnn.py — generate deep (ZZ-feature-map) QNN circuits at 100 and 200
-qubits, under NEW names so nothing existing is overwritten.
+qubits, matching the v1.1.0 construction used at 25 and 64 qubits.
 
 Background.  MQT Bench v1.1.0 built its `qnn` benchmark from a ZZFeatureMap,
 whose data encoding entangles every pair of qubits; v2.2.2 switched to a
@@ -23,9 +23,14 @@ multiplier_64 at 13,040 CX.  Budget routing time accordingly, and do not expect
 pytket-dqc's embedding distributors to complete on them - they already fall
 back on the 8126-CX qnn_64.
 
-Output (new names, existing files untouched):
-  ~/Documents/telesabre/circuits/qasm_100/qnn_zz_nativegates_ibm_qiskit_opt3_100.qasm
-  ~/Documents/telesabre/circuits/qasm_200/qnn_zz_nativegates_ibm_qiskit_opt3_200.qasm
+These were adopted as the canonical qnn_100 / qnn_200 on 2026-07-27; the
+previous shallow files are kept beside them as
+qnn_SHALLOW_v2.2.2_..._{100,200}.qasm.bak.  The script refuses to overwrite an
+existing file, so re-running it is a no-op until you move the current one away.
+
+Output:
+  ~/Documents/telesabre/circuits/qasm_100/qnn_nativegates_ibm_qiskit_opt3_100.qasm
+  ~/Documents/telesabre/circuits/qasm_200/qnn_nativegates_ibm_qiskit_opt3_200.qasm
 """
 
 import os
@@ -70,7 +75,7 @@ def build(n):
 def main():
     for n in SIZES:
         out_dir = os.path.expanduser(f"~/Documents/telesabre/circuits/qasm_{n}")
-        path = os.path.join(out_dir, f"qnn_zz_nativegates_ibm_qiskit_opt3_{n}.qasm")
+        path = os.path.join(out_dir, f"qnn_nativegates_ibm_qiskit_opt3_{n}.qasm")
         if os.path.exists(path):
             print(f"n={n}: {os.path.basename(path)} exists, refusing to "
                   f"overwrite", flush=True)
