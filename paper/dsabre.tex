@@ -1485,10 +1485,12 @@ a repaired count.}
   (\emph{physical}: data capacity $M{-}\deg(c)$, communication capacity
   $\deg(c)$).  \dSABRE{} EPR counts are from Table~\ref{tab:main}.
   \emph{ports needed} is the smallest uniform communication capacity
-  under which the published distribution can be materialised; the
-  device provides $2$.  ${>}k$ means the search was still failing at
-  $k$ when its time budget expired.  Rows in which the distribution
-  cannot be executed on the device are marked $^{\dagger}$.}}
+  under which the published distribution can be materialised, against
+  the $2$ the device provides.  The search is budget-limited on the
+  larger circuits, so ${>}k$ denotes a lower bound: it was still
+  failing at $k$ when the budget expired.  Either way a value above
+  $2$ means the distribution cannot be executed on this device, and
+  those rows are marked $^{\dagger}$.}}
 \label{tab:fair}
 \setlength{\tabcolsep}{4pt}
 \small

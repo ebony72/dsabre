@@ -30,7 +30,7 @@ silently assumes.
 Output: code/results/results_pytket_fair.json
 """
 
-import sys, os, json, glob, time, argparse, signal
+import sys, os, json, glob, time, argparse, signal, shutil
 from math import prod
 
 sys.setrecursionlimit(50000)
@@ -159,7 +159,7 @@ def distribute(circ, network, budget_s):
     return None, None, None
 
 
-def required_ebit_mem(dist, cap_hint, max_try=64, budget_s=180.0):
+def required_ebit_mem(dist, cap_hint, max_try=64, budget_s=420.0):
     """Smallest uniform communication capacity that materialises `dist`.
 
     Scans upward from 1.  A capacity below what the distribution needs fails
@@ -249,8 +249,14 @@ def main():
                 continue
             path = qf
             if (suite, cname) in OVERRIDES:
-                path = os.path.join(s["circuit_dir"], OVERRIDES[(suite, cname)])
-                print(f"  [{cname}] using {os.path.basename(path)}", flush=True)
+                src = os.path.join(s["circuit_dir"], OVERRIDES[(suite, cname)])
+                # pytket's loader insists on a .qasm extension, and the paper's
+                # qnn circuit only survives as a .bak; stage a copy rather than
+                # renaming anything in the user's circuit directory.
+                path = os.path.join(_RESULTS_DIR, f"_staged_{suite}_{cname}.qasm")
+                shutil.copyfile(src, path)
+                print(f"  [{cname}] using {os.path.basename(src)} "
+                      f"(staged as .qasm)", flush=True)
 
             circ = circuit_from_qasm(path, maxwidth=128)
             DQCPass().apply(circ)
