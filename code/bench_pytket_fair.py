@@ -67,9 +67,9 @@ SUITES = {
                  suffix="_nativegates_ibm_qiskit_opt3_360.qasm"),
 }
 
-# The 64q qnn file in the circuit directory was replaced with a 63-CX circuit;
-# the 8126-CX circuit the paper reports survives only as a .bak.  Same override
-# and preflight as bench_heavyhex.py.
+# Preflight: abort if a circuit does not carry the CX count the paper reports,
+# so a regenerated file cannot be benchmarked under the same name.  (The 64q
+# qnn was such a case between 2026-07-09 and 2026-07-27.)
 EXPECTED_CX = {
     "25q": {"ae": 558, "ghz": 24, "graphstate": 25, "qft": 580, "qnn": 1223, "random": 1124},
     "36q": {"bv": 17, "dj": 35, "qaoa": 1200, "qpeexact": 1019, "vqe_su2": 105, "wstate": 70},
@@ -79,7 +79,7 @@ EXPECTED_CX = {
     "200q": {"qft": 7220},
     "360q": {"qft": 13300},
 }
-OVERRIDES = {("64q", "qnn"): "qnn_OLD_DEEP_nativegates_ibm_qiskit_opt3_64.qasm.bak"}
+OVERRIDES = {}   # circuit directory is canonical again
 
 
 def gmean(v):

@@ -48,16 +48,12 @@ HW = HardwareConfig(deadlock_limit=100, max_backup_attempts=100,
 CIRCUITS = ["ae", "ghz", "graphstate", "qft", "qnn", "random"]
 
 # CX counts the main-text 64q table reports, used as a preflight check.  The
-# qnn entry in circuits/qasm_64 was replaced on 2026-07-09 by a 63-CX circuit;
-# the 8126-CX circuit the paper reports survives only as a .bak alongside it.
-# We read that file rather than editing the circuit directory, and abort on any
-# other mismatch instead of silently benchmarking a different circuit.
+# qnn entry was replaced on 2026-07-09 by a 63-CX circuit and restored from its
+# .bak on 2026-07-27; the check stays so a future regeneration cannot silently
+# swap a circuit under us again.
 EXPECTED_CX = {"ae": 1962, "ghz": 63, "graphstate": 64, "qft": 1966,
                "qnn": 8126, "random": 1627}
-OVERRIDES = {
-    "qnn": os.path.join(
-        CIRCUIT_DIR, "qnn_OLD_DEEP_nativegates_ibm_qiskit_opt3_64.qasm.bak"),
-}
+OVERRIDES = {}   # circuit directory is canonical again
 
 
 def export_device_json(arch, path: str, name: str) -> str:
