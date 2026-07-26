@@ -1,0 +1,48 @@
+{
+  "sizes": [
+    24,
+    36,
+    48,
+    56
+  ],
+  "device": "B-grid 2x2 4x4 (64 phys)",
+  "note": "Numbers reconstructed from stdout of the dmaps run after json.dump was truncated by SIGKILL on a separate write.",
+  "rows": [
+    {
+      "n": 24,
+      "epr": 118,
+      "local_swap": 238,
+      "remote_cx": 44,
+      "remote_swap": 37,
+      "total_time": 17.5,
+      "fill_pct": 37.5
+    },
+    {
+      "n": 36,
+      "epr": 406,
+      "local_swap": 803,
+      "remote_cx": 132,
+      "remote_swap": 137,
+      "total_time": 70.3,
+      "fill_pct": 56.2
+    },
+    {
+      "n": 48,
+      "epr": 518,
+      "local_swap": 1301,
+      "remote_cx": 162,
+      "remote_swap": 178,
+      "total_time": 103.5,
+      "fill_pct": 75.0
+    },
+    {
+      "n": 56,
+      "epr": 831,
+      "local_swap": 1523,
+      "remote_cx": 265,
+      "remote_swap": 283,
+      "total_time": 124.7,
+      "fill_pct": 87.5
+    }
+  ]
+}

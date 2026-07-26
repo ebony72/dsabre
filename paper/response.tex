@@ -1,0 +1,465 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\newcommand{\dSABRE}{d\textsc{sabre}}
+\newcommand{\TeleSABRE}{Tele\textsc{sabre}}
+
+% Reviewer comment / author response formatting
+\newenvironment{comment}{\medskip\noindent\itshape}{\par}
+\newcommand{\response}{\smallskip\noindent\textbf{Response.}\ }
+\newcommand{\where}[1]{\textcolor{blue}{[#1]}}
+
+\title{Response to Reviewers\\[2pt]
+\large Manuscript TCAD-2026-0901\\
+``\dSABRE{}: A SABRE-Style Router for Multi-Core Distributed Quantum
+Computers''}
+\author{Sanjiang Li}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent
+We thank the three reviewers and the editors for a careful and
+constructive set of reviews.  The revision responds to all points; the
+substantive changes are marked in blue in the manuscript, and
+\where{like this} in this letter to point at where each change lands.
+
+\section*{Summary of changes}
+
+\begin{enumerate}[leftmargin=*]
+
+\item \textbf{A unifying design principle, stated first and proved.}
+The reviewers' central shared concern was that \dSABRE{} reads as a
+collection of heuristics rather than a principled formulation.
+Section~III now opens with a single routing potential $\Phi$, and
+Proposition~1 proves that both the intra-core SWAP score and the
+inter-core teleport score are the same quantity---the change in $\Phi$,
+charged for resources spent and penalised for capacity consumed.  Every
+scoring term is now derived from that principle rather than introduced
+as a separate mechanism.
+
+\item \textbf{Three propositions replace purely empirical
+justification.}  Proposition~1 (unified objective), Proposition~2 (the
+BFS-layer extended set is the ordering that makes a depth discount
+well-defined, which topological filling cannot provide), and
+Proposition~3 (progress and termination, with a bound of one core-graph
+diameter of EPR pairs per forced escape).  Each is attached to an
+experimental result it explains rather than standing alone.
+
+\item \textbf{One scoring term removed.}  The hop-gain reward
+$g_\mathrm{hop}$ is retired.  Ablation showed it inert, and
+Proposition~1 explains why: it re-counts a directional signal that
+$\Delta_F$ already carries.  The score is now four terms with one fewer
+hyperparameter, and all reported numbers are regenerated without it.
+
+\item \textbf{Mechanism roles reported honestly.}  The capacity penalty
+is now presented as the central mechanism it measurably is; congestion
+relief and checkpoint--rollback are reframed as \emph{feasibility}
+mechanisms and reported in terms of completion rather than EPR
+reduction, since on the corrected initial layout their effect on the
+geometric mean is neutral.
+
+\item \textbf{A non-grid architecture.}  A new experiment runs the
+64-qubit suite on a ring of four IBM 27-qubit heavy-hex cores, with no
+router or layout changes, addressing the tension between the abstract
+architecture model and the grid-only evaluation.
+
+\item \textbf{Comparison methodology.}  A new table states what one EPR
+pair buys under each compiler's cost model, and the differing
+communication primitives are addressed by a layout-controlled
+comparison and an entanglement-lifetime sweep.
+
+\item \textbf{Presentation.}  New notation table; rewritten abstract;
+reorganised introduction; consistent \dSABRE{} casing throughout;
+abbreviations expanded at first use; Figure~4 caption rewritten;
+compile-time claim justified.
+
+\end{enumerate}
+
+\subsection*{An important note on the reported numbers}
+
+While preparing this revision we found and fixed a defect in the
+initial-layout stage that affected the numbers in the submitted
+manuscript.  The corner-reservation rule was written for a monolithic
+chip: it removed the four globally lowest-degree physical qubits, which
+under core-major qubit numbering all lie in core~0, so every other core
+was left with no reserved communication or escape slot and was
+regularly packed full by \texttt{SabreLayout}.  The fix reserves the
+most-remote corners of \emph{every} core, with the count chosen
+adaptively from the fill ratio.
+
+All benchmark tables have been regenerated on the corrected layout.
+The correction \emph{strengthens} the headline results and removes two
+weaknesses a reader could reasonably have questioned: the GHZ-64q
+regression is now a win, and \dSABRE{} now beats \TeleSABRE{} on the
+100-qubit QFT it previously lost.  We also upgraded the
+\texttt{pytket-dqc} baseline from its partitioning allocator to its
+strongest Steiner-embedding distributor; this is a harder baseline that
+wins several structured circuits under an unbounded entanglement
+lifetime, and Section~IV reports that outcome plainly rather than
+selecting the weaker configuration.  We judged that presenting the
+strongest available baseline was the right response to the reviewers'
+questions about comparison fairness, even though it narrows some
+margins.
+
+%%─────────────────────────────────────────────────────────────────────
+\section*{Reviewer 1}
+
+\begin{comment}
+The overall design of dSABRE appears to be primarily driven by a
+collection of heuristic optimizations addressing several observed
+failure modes rather than being derived from a unified optimization
+principle\ldots{} the method reads more like a set of incremental fixes
+layered onto a baseline routing framework.
+\end{comment}
+
+\response
+We agree this was the manuscript's main weakness, and it is the change
+we invested most in.  Section~III-A now states the design principle
+before any mechanism appears: \dSABRE{} chooses the action minimising
+$\mathrm{cost}(a) + \mathrm{pen}(a) + \Delta\Phi(a)$, where $\Phi$ is a
+single circuit-wide potential combining immediate front-layer distance
+with depth-discounted lookahead.  Proposition~1 proves that both
+scoring rules in the paper are instances of this expression.
+\where{Section~III-A, Eqs.~(2)--(3), Proposition~1}
+
+Crucially, the revision also draws a line that was previously blurred.
+Congestion relief and checkpoint--rollback are \emph{not} additional
+score terms; they exist because a greedy minimiser can leave the region
+where $\Phi$ is a usable surrogate.  We now say so explicitly and
+report their value as feasibility rather than EPR reduction.
+\where{end of Section~III-A; Contributions bullet~3}
+
+\begin{comment}
+The exclusive use of teledata, while TELESABRE supports both teledata
+and telegate, is not sufficiently motivated\ldots{} raises questions
+about fairness and completeness of the comparison.
+\end{comment}
+
+\response
+Three points, all now in the manuscript.  First, on fairness: the
+restriction handicaps \dSABRE{}, not \TeleSABRE{}.  \dSABRE{} uses a
+strict subset of \TeleSABRE{}'s primitives and still wins on the large
+majority of circuits, so the comparison understates rather than
+overstates the result.  Second, on motivation: teledata is not merely a
+simplification but the lifetime-robust primitive.  A teledata EPR pair
+is consumed instantaneously by its teleport, whereas gate teleportation
+requires a link to remain entangled for the span of the gate group it
+serves; the new lifetime sweep quantifies exactly what that assumption
+is worth.  Third, on completeness: we agree telegate support is a real
+extension, and it is now stated as scoped future work rather than left
+implicit.
+\where{Section~IV-A ``What one EPR pair buys'' and Table~V;
+lifetime sweep in Section~IV-B; Section~VI}
+
+\begin{comment}
+The architecture is described as an abstract graph GA treated as a
+black box, yet the experimental setup relies specifically on a grid-of-grids
+structure\ldots{} the reported performance differences across circuit
+families suggest that the method is sensitive to underlying topology.
+\end{comment}
+
+\response
+This was a fair criticism of the evidence, and we have added the
+missing experiment rather than argued the point.  Section~IV now
+reports the 64-qubit suite on a ring of four IBM 27-qubit heavy-hex
+cores---irregular degree, six degree-1 leaves, intra-core diameter 12
+against 6 for the grid.  No router or layout code is specialised for
+it: the corner-reservation rule is defined by vertex degree and
+remoteness, so it selects leaf qubits instead of grid corners
+automatically.  \TeleSABRE{} is run on the same architecture.
+\where{new Section~IV-D, Table~IX}
+
+On topology sensitivity specifically: the GHZ regression the reviewer
+noted was in fact a symptom of the initial-layout defect described
+above, not of the scoring rule.  With every core given reserved escape
+capacity, GHZ-64q improves rather than regresses.  We report this
+mechanism explicitly.
+\where{Section~IV-B, 64q discussion}
+
+\begin{comment}
+The mathematical formulation does not fully clarify why this particular
+decomposition of terms is necessary, nor how each term contributes to a
+unified optimization goal.
+\end{comment}
+
+\response
+Addressed by the same restructure, plus one concrete consequence: the
+decomposition was not minimal, and we have reduced it.  The hop-gain
+term is removed, because Proposition~1 shows it re-counts a signal
+$\Delta_F$ already carries on a graph whose inter-core links are
+weighted $w_\mathrm{link} \gg 1$, and the ablation confirms every
+circuit in two suites ties exactly without it.  The remaining four
+terms map one-to-one onto the three groups of the design principle.
+\where{Section~III-C, Eq.~(6) and following; Table~III;
+Section~IV-E}
+
+\begin{comment}
+A more explicit discussion of the equivalence (or lack thereof) between
+different EPR usage models would help strengthen the validity of the
+reported improvements.
+\end{comment}
+
+\response
+Agreed; this discussion was scattered across the experimental section
+and two appendices.  It is now consolidated into one place with a
+table stating, for each compiler, what a single EPR pair purchases and
+whether intra-core SWAP cost is modelled at all.  We then address the
+non-equivalence in two ways rather than only flagging it: a
+layout-controlled comparison in which \dSABRE{} and the baseline start
+from the same partition, and a sweep bounding how many gates one EPR
+pair may serve.
+\where{Section~IV-A, Table~V; layout-controlled results and
+lifetime sweep in Section~IV-B}
+
+%%─────────────────────────────────────────────────────────────────────
+\section*{Reviewer 2}
+
+We thank the reviewer for the detailed and balanced assessment, and in
+particular for the observation about relative mechanism importance,
+which prompted a substantive change in how the paper reports its own
+results.
+
+\begin{comment}
+The level of novelty appears moderate\ldots{} many of the contributions
+can be viewed as heuristic refinements of existing routing
+methodologies rather than fundamentally new algorithmic concepts.
+\end{comment}
+
+\response
+We have repositioned the claim rather than inflating it.  The
+contribution is not a longer score---after this revision it is a
+shorter one---but the observation that a distributed router's two
+movement decisions can and should be derived from one potential.  Prior
+SABRE-style distributed routers design the local SWAP heuristic and the
+inter-core energy as separate objects, with no guarantee they agree
+about which qubit should move; unifying them is what allows the
+architecture's capacity constraint to enter the score at all, and the
+ablation attributes more of the improvement to that single signal than
+to anything else.  Related Work now argues this distinction directly
+instead of enumerating feature differences.
+\where{Contributions bullet~1; Section~V, ``SABRE-style distributed
+routers''}
+
+\begin{comment}
+The paper relies predominantly on empirical evidence\ldots{} there is
+limited theoretical insight into why the proposed scoring formulation
+should consistently outperform alternative approaches.
+\end{comment}
+
+\response
+The revision adds three propositions, each tied to a specific
+experimental result so that theory and evidence explain one another
+rather than sitting in separate sections.  Proposition~1 (unification)
+is what licenses the removal of a redundant term.  Proposition~2 shows
+BFS layering is the \emph{only} construction under which the depth
+discount is well-defined, with a counterexample family showing
+topological filling can exclude a gate that becomes executable one layer
+ahead---this predicts the ablation result and its growth with circuit
+size.  Proposition~3 gives progress and termination guarantees, with an
+EPR bound of one core-graph diameter per forced escape, and explains
+why \dSABRE{} completes circuits on which a fixed safety-valve cap
+fails.
+\where{Propositions 1--3 in Sections~III-A, III-D, III-F}
+
+\begin{comment}
+Since the considered approaches employ different communication
+primitives, direct comparisons based solely on EPR counts do not always
+provide a fully controlled evaluation.
+\end{comment}
+
+\response
+See the response to Reviewer~1's fifth point.  Beyond the consolidated
+cost-model discussion, we added two controlled comparisons: identical
+initial partitions for both compilers, and a bound on gates served per
+EPR pair.  The second is the more informative: under an unbounded
+lifetime the gate-teleportation baseline wins several structured
+circuits, but its advantage crosses parity between 10 and 5 gates per
+pair and inverts at the value proposed in the recent literature.  We
+report both regimes.
+\where{Section~IV-B, layout-controlled paragraph and
+Table~VIII}
+
+\begin{comment}
+The ablation study indicates that the capacity-aware penalty
+contributes a significant fraction of the observed gains, whereas some
+of the remaining mechanisms provide comparatively modest improvements.
+A clearer discussion of the relative importance of the different design
+choices would help readers.
+\end{comment}
+
+\response
+This observation was correct and we have restructured the paper's
+claims around it.  The capacity penalty is now presented as the central
+mechanism throughout---abstract, contributions, and ablation---rather
+than as one of three co-equal ideas.  The hop-gain term, being inert,
+is removed entirely.  Congestion relief, which the submitted version
+credited with a large geometric-mean effect, is on the corrected
+initial layout neutral; we now say so plainly and reclassify it, with
+checkpoint--rollback, as a feasibility mechanism whose value is
+completing circuits that otherwise fail.  We would rather report this
+than retain an overstated claim.
+\where{Abstract; Contributions bullets~1 and~3; Section~IV-E and
+Table~XI}
+
+\begin{comment}
+Incorporating latency, scheduling effects, fidelity considerations, or
+more application-oriented distributed workloads would further
+strengthen the practical relevance.
+\end{comment}
+
+\response
+Partly addressed, partly scoped.  Three application-oriented circuits
+(QPE, QAOA, and a 13\,040-CX arithmetic multiplier) are added to the
+64-qubit suite, taking the evaluation to 21 circuits.  Fidelity enters
+through the lifetime bound, which is a fidelity-motivated constraint:
+capping gates-per-EPR is how a decaying link appears in a cost model.
+Latency is partly visible already, since intra-core SWAP count---the
+dominant contributor to routed depth---is reported beside EPR count in
+every table and falls alongside it.  A genuine joint objective over
+EPR, depth, and error rates would require a device error model and a
+scheduling pass inside the loop, both outside the routing stage this
+paper addresses; we now state that limitation explicitly rather than
+leaving it implicit.
+\where{Tables~VI--VII; Section~IV-B; new paragraph in Section~VI}
+
+%%─────────────────────────────────────────────────────────────────────
+\section*{Reviewer 3}
+
+We thank the reviewer for the detailed presentation review; these
+comments led to the most visible changes in the manuscript.
+
+\begin{comment}
+1. The Abstract should be rewritten to clearly state the motivation for
+the problem and provide a concise summary of the main contributions.
+\end{comment}
+
+\response
+The abstract is rewritten in three paragraphs: what a DQC is and why
+EPR consumption is the objective; the design principle and the three
+consequences that follow from it; and the results.  Ablation
+percentages have been removed from the abstract, and all abbreviations
+are expanded.
+\where{Abstract}
+
+\begin{comment}
+2. The overall organization needs improvement\ldots{} after introducing
+the second problem class, the discussion becomes overly detailed,
+causing the reader to lose track of the overall structure before the
+third class is presented.
+\end{comment}
+
+\response
+The three problem classes are now presented in parallel form, one or
+two sentences each, with no digression between them.  The material on
+communication primitives that previously interrupted class~(ii) has
+moved to Background~II-B, where those primitives are properly
+introduced, and the paragraph on why EPR consumption is the objective
+now follows the enumeration instead of being embedded inside it.
+\where{Section~I, paragraphs 2--3}
+
+\begin{comment}
+3. In the Contributions section, the notations $\Delta_F$ and
+$\Delta_E$ are introduced without definition\ldots{} the term `comm
+port' should be defined or expanded upon.
+\end{comment}
+
+\response
+The contributions are now written in prose with no undefined symbols;
+$\Delta_F$ and $\Delta_E$ first appear in Section~III where they are
+defined.  ``Comm port'' is expanded to ``communication port''
+throughout.  More broadly, and following the reviewer's overall
+recommendation, all notation is now collected in a single table at the
+start of Section~III.
+\where{Contributions; Table~II}
+
+\begin{comment}
+4. In the Background section, the statement ``Together, CX and
+arbitrary 1Q gates form a universal gate set'' should specify the 1Q
+gate sets.
+\end{comment}
+
+\response
+Corrected and made precise: CX together with the full single-qubit
+unitary group $U(2)$ is exactly universal, with a citation; a finite
+basis such as $\{\mathrm{CX},H,T\}$ suffices for approximate
+universality, and we note this is the basis the benchmark circuits are
+transpiled into.
+\where{Section~II-A}
+
+\begin{comment}
+5. The claim that DSABRE is slower than TeleSABRE for circuit
+compilation requires further justification.
+\end{comment}
+
+\response
+Expanded into a justified argument with three strands: the measured
+growth rate matches the derived complexity rather than exceeding it, so
+the gap is a bounded constant across a $200\times$ range of circuit
+size rather than an asymptotic penalty; the two implementations differ
+exactly as that constant predicts (compiled C\texttt{++} with cached
+distance lookups versus pure Python calling NetworkX inside the routing
+loop); and the ordering inverts on Graphstate, where \dSABRE{} is
+$78\times$ faster, showing the constant is not intrinsic.  We also note
+that nothing in the complexity analysis is language-specific, and that
+the absolute cost is modest against the EPR savings it buys.
+\where{Section~IV-G}
+
+\begin{comment}
+6. The caption of Figure 4 is unclear and should be revised.
+\end{comment}
+
+\response
+Rewritten.  The caption now opens with one sentence saying what the
+figure shows and what decision is being made, then describes the two
+execution steps, and only then walks the three candidates---each of
+which now isolates a single decision factor.  The dense parenthetical
+definitions have moved into the running-example text.
+\where{Figure~4 caption; Table~IV}
+
+\begin{comment}
+Editorial 1. The acronym DSABRE is written inconsistently\ldots{}
+Editorial 2. Abbreviations should be expanded when they first appear.
+\end{comment}
+
+\response
+Both fixed.  The name is now set by a single macro rendering
+``\dSABRE{}'' with a lowercase initial everywhere, matching the title;
+the same was done for \TeleSABRE{}.  EPR, DAG, MQT-Bench, DQC, QPU and
+the remaining abbreviations are expanded at first use, including in the
+abstract.
+\where{Throughout}
+
+\begin{comment}
+I strongly recommend defining all notation systematically in one place.
+\end{comment}
+
+\response
+Done: Table~II collects every symbol used in the technical section with
+its meaning and defining equation.
+\where{Table~II}
+
+%%─────────────────────────────────────────────────────────────────────
+\section*{Area Editor and Associate Editor}
+
+The four required revisions map onto the changes above:
+sharpening the core novelty (Summary items~1, 2 and Reviewer~2's first
+point); justifying design choices and how they cohere (items~1--4);
+improving exposition and notation (item~7 and all of Reviewer~3);
+and strengthening the experimental comparisons with attention to
+differing communication primitives and EPR cost models (items~5, 6).
+
+We note in closing that this revision removes a scoring term, reports a
+mechanism as neutral that the submitted version credited with a large
+effect, and adopts a stronger baseline that wins several circuits.  We
+believe a paper that states these plainly is more useful than one that
+does not, and that the central result---a unified scoring principle in
+which architectural capacity is a first-class term---is better
+supported for it.
+
+\end{document}

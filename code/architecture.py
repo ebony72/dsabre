@@ -146,6 +146,59 @@ def build_b_grid_architecture(r: int, s: int, m: int) -> DistributedArchitecture
     return DistributedArchitecture(intra_graphs, inter_links)
 
 
+# IBM Falcon r5.11 27-qubit heavy-hex coupling map (ibmq_montreal / ibm_hanoi
+# family).  28 edges, six degree-1 leaves, diameter 12 — an irregular,
+# non-grid core topology used to test architecture independence.
+IBM_HEAVY_HEX_27 = [
+    (0, 1), (1, 2), (1, 4), (2, 3), (3, 5), (4, 7), (5, 8), (6, 7), (7, 10),
+    (8, 9), (8, 11), (10, 12), (11, 14), (12, 13), (12, 15), (13, 14),
+    (14, 16), (15, 18), (16, 19), (17, 18), (18, 21), (19, 20), (19, 22),
+    (21, 23), (22, 25), (23, 24), (24, 25), (25, 26),
+]
+
+
+def _heavy_hex_ports(tile: nx.Graph) -> Tuple[int, int]:
+    """The two most distant non-leaf qubits of a heavy-hex tile.
+
+    Comm ports must not be degree-1 leaves: a leaf port is a dead end, and the
+    layout's corner reservation already claims leaves as escape slots.  Picking
+    the farthest-apart pair spreads the two ports to opposite ends of the tile,
+    mirroring the boundary-port placement of the grid architectures.
+    """
+    dist = dict(nx.all_pairs_shortest_path_length(tile))
+    cands = sorted(n for n in tile if tile.degree(n) >= 2)
+    return max(((u, v) for i, u in enumerate(cands) for v in cands[i + 1:]),
+               key=lambda uv: (dist[uv[0]][uv[1]], -uv[0], -uv[1]))
+
+
+def build_heavy_hex_architecture(num_cores: int = 4) -> DistributedArchitecture:
+    """Ring of IBM 27-qubit heavy-hex cores (4 cores = 108 physical qubits).
+
+    Each core is a Falcon-family heavy-hex tile rather than a 2-D grid, and the
+    cores form a cycle with one inter-core link per adjacent pair (4 links at
+    num_cores=4, matching the B-grid's link budget).  Core c reaches c-1 through
+    its low port and c+1 through its high port.
+    """
+    qpc = len(set(sum(map(list, IBM_HEAVY_HEX_27), [])))  # 27
+
+    intra_graphs, ports = {}, {}
+    for c in range(num_cores):
+        sg = nx.Graph()
+        sg.add_nodes_from(c * qpc + n for n in range(qpc))
+        sg.add_edges_from((c * qpc + u, c * qpc + v, {"weight": 1})
+                          for u, v in IBM_HEAVY_HEX_27)
+        intra_graphs[c] = sg
+        lo, hi = _heavy_hex_ports(nx.Graph(IBM_HEAVY_HEX_27))
+        ports[c] = (c * qpc + lo, c * qpc + hi)
+
+    inter_links = [(ports[c][1], ports[(c + 1) % num_cores][0])
+                   for c in range(num_cores)]
+    if num_cores == 2:                      # a 2-cycle would duplicate the link
+        inter_links = inter_links[:1]
+
+    return DistributedArchitecture(intra_graphs, inter_links)
+
+
 def build_h_grid_architecture(r: int, s: int, m: int) -> DistributedArchitecture:
     """H-grid: R×S array of M×M cores with skewed vertical inter-core links.
 

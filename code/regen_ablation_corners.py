@@ -56,9 +56,11 @@ BASE_CFG = HardwareConfig()
 MECH_CONFIGS = [
     ("full",           BASE_CFG),
     ("no_lookahead",   replace(BASE_CFG, weight_extended=0.0)),
-    ("no_hop_gain",    replace(BASE_CFG, hop_gain=0.0)),
     ("no_cap_penalty", replace(BASE_CFG, cap_penalty=0.0)),
     ("no_relief",      replace(BASE_CFG, enable_congestion_relief=False)),
+    # The hop-gain term was retired in the TCAD revision; BASE_CFG now has
+    # hop_gain=0, so this row restores it to show what the removal cost.
+    ("with_hop_gain",  replace(BASE_CFG, hop_gain=5.0)),
 ]
 
 PASS_COUNTS = [1, 2, 3, 4]
