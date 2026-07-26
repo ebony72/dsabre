@@ -64,43 +64,30 @@
 
 %%─────────────────────────────────────────────────────────────────────────────
 \begin{abstract}
-\rev{A distributed quantum computer (DQC) executes a circuit across
-several small processing cores linked by entanglement.  Every gate
-whose operands sit in different cores must first be made local, and
-each such repair consumes an Einstein--Podolsky--Rosen (EPR) pair---a
-resource that is orders of magnitude slower to produce than a local
-gate, and therefore the quantity a distributed router must minimise.
-Existing \SABRE{}-style distributed routers score the two kinds of
-repair with unrelated heuristics: a distance heuristic for local SWAPs,
-and a separate communication-graph energy for inter-core teleports.}
-
-\rev{We present \dSABRE{}, a \SABRE{}-style router for multi-core
-processors built on a single principle: both moves are scored as the
-change they induce in one circuit-wide potential---immediate distance
-plus depth-discounted lookahead over the circuit's directed acyclic
-graph (DAG) of gate dependencies---charged against the resources they
-spend and penalised for the core capacity they consume.  Three
-consequences follow.  Core capacity becomes a term of the score rather
-than a constraint checked outside it, and ablation shows it contributes
-more than any other single component.  The lookahead set is built in
-breadth-first DAG layers, which we prove is the ordering that makes a
-depth discount meaningful and topological filling cannot provide.  A
-checkpoint--rollback escape gives a termination guarantee that a fixed
-safety-valve cap does not.}
-
-\rev{Across 21 circuits from the Munich Quantum Toolkit benchmark suite
-(MQT-Bench) at 25, 36, and 64 logical qubits, \dSABRE{} reduces
-geometric-mean EPR consumption by $41$--$46\%$ against \TeleSABRE{},
-and routes three dense circuits on which it fails to converge.  Against
-the gate-teleportation compiler \texttt{pytket-dqc}, \dSABRE{} uses
-$12$--$57\%$ fewer EPR pairs on the smaller suites; on the 64-qubit
-suite \texttt{pytket-dqc}'s Steiner-tree embedding is more efficient
-under unbounded entanglement lifetime, but that advantage inverts once
-one EPR pair may serve only a bounded number of gates.  On a non-grid
-architecture of IBM heavy-hex cores, reached without retuning a single
-parameter, the margin is $48\%$; a QFT sweep to 360 qubits confirms
-scalability.}  Code and online appendices are
-available at \url{https://github.com/ebony72/dsabre}.
+\rev{A distributed quantum computer (DQC) runs a circuit across several
+small cores linked by entanglement.  Any gate whose operands sit in
+different cores must first be made local, and each such repair consumes
+an Einstein--Podolsky--Rosen (EPR) pair---orders of magnitude costlier
+than a local gate, and so the quantity a distributed router must
+minimise.  Existing \SABRE{}-style distributed routers score the two
+kinds of repair with unrelated heuristics: a distance heuristic for
+local SWAPs, and a separate communication-graph energy for inter-core
+teleports.  We present \dSABRE{}, which scores both as the change they
+induce in one circuit-wide potential---immediate distance plus
+depth-discounted lookahead over the circuit's directed acyclic graph
+(DAG)---charged for the resources they spend and penalised for the core
+capacity they consume.  Making capacity a term of that potential rather
+than a constraint checked outside it contributes more than any other
+component.  Across 21 MQT-Bench circuits at 25--64 logical
+qubits \dSABRE{} cuts geometric-mean EPR consumption by $41$--$46\%$
+against \TeleSABRE{}, and routes three dense circuits on which it fails
+to converge.  It also uses $12$--$57\%$ fewer EPR pairs than the
+gate-teleportation compiler \texttt{pytket-dqc} on the smaller suites;
+\texttt{pytket-dqc} leads at 64 qubits only while entanglement lifetime
+is unbounded.  The margin is $48\%$ on a non-grid architecture of IBM
+heavy-hex cores with no parameter retuned, and a QFT sweep to 360
+qubits confirms scalability.}  Code
+and online appendices are at \url{https://github.com/ebony72/dsabre}.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -184,14 +171,14 @@ change (Section~\ref{sec:ablation}).}
 
 \item \textbf{BFS-layer inter-core extended set.}
 The inter-core scorer builds its lookahead set layer by layer over
-the remaining DAG so that gates sharing a wire with the front are
-captured before unrelated wires displace them, with each gate's BFS
-depth driving the decay exponent $\gamma^{\mathrm{dep}(g)}$.
-\rev{Proposition~\ref{prop:bfs} shows this ordering is what makes the
-depth discount meaningful, and that topological filling cannot provide
-it.}  Substituting a topological-order extended set increases
-geometric-mean EPR by \rev{$7$--$11\%$} across the three suites, with
-the gain growing with circuit size (Section~\ref{sec:ablation}).
+the remaining DAG, so that gates sharing a wire with the front are
+captured before unrelated wires displace them and a gate's influence
+decays with its depth.  \rev{Proposition~\ref{prop:bfs} shows this
+ordering is what makes such a depth discount meaningful, and that
+topological filling cannot provide it.}  Substituting a
+topological-order extended set increases geometric-mean EPR by
+\rev{$6.8$--$10.9\%$} across the three suites, with the gain growing
+with circuit size (Section~\ref{sec:ablation}).
 
 \item \rev{\textbf{Feasibility mechanisms, reported as such.}
 Two mechanisms exist to keep the greedy rule deployable rather than to
@@ -310,7 +297,28 @@ after which the qubit participates in local gates there.
 \emph{Telegate}~\cite{eisert2000optimal} executes a non-local 2Q gate directly
 across two cores via a shared EPR pair, without physically relocating either
 qubit.
-\dSABRE{} uses teledata exclusively; \TeleSABRE{} exploits both variants.
+\rev{\dSABRE{} uses teledata exclusively, and because \TeleSABRE{}
+exploits both variants this deserves a justification rather than a
+statement.  The two primitives have different cost structures.  Teledata
+pays once per relocation and then makes \emph{every} subsequent gate on
+that qubit local, so its cost amortises over a qubit's whole residence
+in a core; telegate pays once per non-local gate, or once per group of
+gates if consecutive non-local gates on a shared control are amortised
+onto one entangled state.  Which is cheaper is circuit-dependent, and
+Section~\ref{sec:setup} makes the accounting explicit.  They differ,
+however, in one respect that is not circuit-dependent: a teledata EPR
+pair is consumed instantaneously by its teleport, whereas an amortised
+telegate requires a link to stay entangled for the span of the gate
+group it serves.  Teledata therefore delivers its cost under any
+entanglement lifetime, while gate-teleportation counts are contingent on
+the hardware sustaining entanglement---an assumption we test directly in
+Section~\ref{sec:main_results}.  On fairness, the restriction cuts
+against \dSABRE{}, not for it: it competes with a strict subset of
+\TeleSABRE{}'s primitives and still wins on the large majority of
+circuits, so the comparison understates rather than flatters the
+result.  Adding telegate candidates to the scorer is a genuine
+extension and we scope it as future work
+(Section~\ref{sec:future}).}
 
 \subsection{Distributed Quantum Architecture}
 \label{sec:arch}
@@ -1036,8 +1044,9 @@ quantum phase estimation (QPEexact, hierarchical).
 
 \emph{Suite~3 (64-qubit):} the same six circuit families as Suite~1 scaled to
 64~logical qubits (AE, QFT, QNN, Random, GHZ, Graphstate), run on the larger
-H-grid architecture\rev{, extended with three further circuits that complete
-the algorithmic-class coverage at the largest scale: QPEexact
+H-grid architecture\rev{, extended with three further circuits that
+broaden the evaluation towards application-oriented workloads and
+complete the algorithmic-class coverage at the largest scale: QPEexact
 (phase-estimation family, the class on which gate teleportation is
 strongest), QAOA (dense max-cut cost layers with shared-control $ZZ$
 structure), and a 16-bit Multiplier (arithmetic, the suite's largest
@@ -1390,7 +1399,13 @@ than on the H-grid ($-48.2\%$ against $-45.5\%$), on a topology neither
 router was tuned for and with no parameter retuned---which is the claim
 Section~\ref{sec:arch} makes.  \TeleSABRE{} additionally fails to
 converge on QNN here, a circuit it completes on the H-grid, while
-\dSABRE{} routes it.}
+\dSABRE{} routes it.  The capacity and congestion machinery transfers
+without adjustment in particular: the threshold $\tau$ and multiplier
+$c_{\mathrm{pen}}$ keep their defaults, and the fill-adaptive rule
+selects $k{=}4$ reserved leaves per core from the $59\%$ fill on its
+own.  Since these were the mechanisms whose architecture-dependence
+would most plausibly limit the model, their transfer is the part of
+this result we regard as load-bearing.}
 
 \rev{The absolute numbers move in an instructive way.  EPR counts
 \emph{fall} for both routers relative to the H-grid (\dSABRE{}: AE
@@ -1501,7 +1516,12 @@ finiteness is the one that matters most.
 The extended-set lookahead is second, contributing $+11\%$ on 25q and
 $+27\%$ on 64q; removing it collapses the scorer to a near-myopic
 policy, and its value grows with circuit size as dependency chains
-lengthen.  \rev{The hop-gain reward is the one term whose value is
+lengthen.  \rev{Substituting a topological-order extended-set
+construction costs $6.8\%$ on 25q and $8.6\%$ on 64q as tabulated, and
+$10.9\%$ on the 36q suite, which is not shown; the gain grows with the
+depth of the remaining DAG, as Proposition~\ref{prop:bfs} predicts.}
+
+\rev{The hop-gain reward is the one term whose value is
 \emph{scale-dependent}, and it carries a methodological warning.  On
 this subset it looks marginal ($+1.8\%$ on 64q, exactly zero on 25q,
 where all twelve B-grid circuits tie to the EPR).  Measured on the full

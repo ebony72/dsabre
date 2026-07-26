@@ -398,7 +398,7 @@ These findings support adopting SL\,+\,sabre as the default
 configuration: it is the best layout--schedule pair tested and
 requires no \TeleSABRE{} infrastructure.  The slightly tighter
 headline gmean ($15.2$ on 25q, $98.4$\,/\,$100.2$-region on 64q)
-reported in Tables~\ref{tab:main25}/\ref{tab:main64} reflects the
+reported in Table~\ref{tab:main} reflects the
 same SL+sabre combination with the corners-removal preprocessing
 and BFS-layer extended set tuned to current defaults.
 
@@ -453,7 +453,7 @@ graph of each architecture: a $2{\times}2$ grid (4 QPUs) for the
 25q/36q B-grid and a $2{\times}3$ grid (6 QPUs) for the 64q H-grid.
 
 Per-suite gmean results for the own-mapping comparison appear in
-Tables~\ref{tab:main25}--\ref{tab:main64} of the main text.  Here we
+Tables~\ref{tab:main}--\ref{tab:main} of the main text.  Here we
 report the shared-mapping comparison, which isolates routing quality
 from layout quality.
 
@@ -1079,10 +1079,10 @@ teleport, so teledata counts are lifetime-invariant by construction.
   \texttt{pytket-dqc} e-bits when one EPR pair may serve at most
   $D_{\max}$ gates (best completed distributor per cell,
   counter as described in the text).  The $D_{\max}{=}\infty$ column
-  reproduces the setting of Table~\ref{tab:main64} up to seed and
+  reproduces the setting of Table~\ref{tab:main} up to seed and
   pipeline variation and is in aggregate \emph{more} favourable to
   \texttt{pytket-dqc} (gmean $+33.4\%$ vs $+20.0\%$).  \dSABRE{} EPR
-  (Table~\ref{tab:main64}) is $D_{\max}$-invariant.
+  (Table~\ref{tab:main}) is $D_{\max}$-invariant.
   $\Delta_{3}$ compares \dSABRE{} against the $D_{\max}{=}3$ column;
   negative favours \dSABRE{}.}}
 \label{tab:dmax}

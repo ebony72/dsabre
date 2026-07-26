@@ -58,7 +58,7 @@ redundant, since the existing ablation showed it inert.  Re-running
 every suite with $w_h{=}0$ showed the ablation subset was
 misleading---it excludes the three largest circuits---and that removing
 the term costs $18.6\%$ EPR on the 13\,040-CX multiplier and $2.2\%$ on
-the 64-qubit geometric mean.  The term is kept, and Section~III-C now
+the 64-qubit geometric mean.  The term is kept, and Section~III-D now
 justifies it by measurement and explains the scale dependence, which we
 believe answers the reviewers' question about term necessity better
 than a deletion would have.
@@ -162,8 +162,8 @@ serves; the new lifetime sweep quantifies exactly what that assumption
 is worth.  Third, on completeness: we agree telegate support is a real
 extension, and it is now stated as scoped future work rather than left
 implicit.
-\where{Section~IV-A ``What one EPR pair buys'' and Table~V;
-lifetime sweep in Section~IV-B; Section~VI}
+\where{Section~II-B; Section~IV-A ``What one EPR pair buys'' and
+Table~III; lifetime sweep in Section~IV-B; Section~VI}
 
 \begin{comment}
 The architecture is described as an abstract graph GA treated as a
@@ -191,7 +191,7 @@ logical qubits more coarsely than six 16-qubit cores but are twice as
 wide.  Larger cores trade inter-core EPR pairs for intra-core SWAPs,
 and \dSABRE{} makes that trade without retuning because both are scored
 against the same potential.
-\where{new Section~IV-D, Table~IX}
+\where{new Section~IV-C, Table~V}
 
 On topology sensitivity specifically: the GHZ regression the reviewer
 noted was in fact a symptom of the initial-layout defect described
@@ -221,7 +221,7 @@ intra-core distances grow.  We keep the term and now say exactly what
 it buys and where.  We also note the methodological trap, since it bears
 on how ablations should be read: measured only on the six-circuit
 subset the term looks like noise.
-\where{Section~III-C; Section~IV-E and Table~XI}
+\where{Section~III-D; Section~IV-D and Table~VI}
 
 \begin{comment}
 A more explicit discussion of the equivalence (or lack thereof) between
@@ -238,7 +238,7 @@ non-equivalence in two ways rather than only flagging it: a
 layout-controlled comparison in which \dSABRE{} and the baseline start
 from the same partition, and a sweep bounding how many gates one EPR
 pair may serve.
-\where{Section~IV-A, Table~V; layout-controlled results and
+\where{Section~IV-A, Table~III; layout-controlled results and
 lifetime sweep in Section~IV-B}
 
 %%─────────────────────────────────────────────────────────────────────
@@ -292,7 +292,7 @@ completion rests on a capacity condition that can fail if a region of
 the chip saturates.  This is what explains \dSABRE{} completing
 circuits on which a fixed safety-valve cap fails, without claiming more
 than the algorithm delivers.
-\where{Propositions 1--3 in Sections~III-A, III-D, III-F}
+\where{Propositions~1--3 in Sections~III-A, III-E, III-G; proofs of 2 and 3 in the appendices}
 
 \begin{comment}
 Since the considered approaches employ different communication
@@ -309,8 +309,8 @@ lifetime the gate-teleportation baseline wins several structured
 circuits, but its advantage crosses parity between 10 and 5 gates per
 pair and inverts at the value proposed in the recent literature.  We
 report both regimes.
-\where{Section~IV-B, layout-controlled paragraph and
-Table~VIII}
+\where{Section~IV-B, layout-controlled paragraph and the
+lifetime sweep}
 
 \begin{comment}
 The ablation study indicates that the capacity-aware penalty
@@ -331,8 +331,8 @@ initial layout neutral; we now say so plainly and reclassify it, with
 checkpoint--rollback, as a feasibility mechanism whose value is
 completing circuits that otherwise fail.  We would rather report this
 than retain an overstated claim.
-\where{Abstract; Contributions bullets~1 and~3; Section~IV-E and
-Table~XI}
+\where{Abstract; Contributions bullets~1 and~3; Section~IV-D and
+Table~VI}
 
 \begin{comment}
 Incorporating latency, scheduling effects, fidelity considerations, or
@@ -353,7 +353,7 @@ EPR, depth, and error rates would require a device error model and a
 scheduling pass inside the loop, both outside the routing stage this
 paper addresses; we now state that limitation explicitly rather than
 leaving it implicit.
-\where{Tables~VI--VII; Section~IV-B; new paragraph in Section~VI}
+\where{Table~IV (64q panel); Section~IV-B; new paragraph in Section~VI}
 
 %%─────────────────────────────────────────────────────────────────────
 \section*{Reviewer 3}
@@ -403,7 +403,7 @@ defined.  ``Comm port'' is expanded to ``communication port''
 throughout.  More broadly, and following the reviewer's overall
 recommendation, all notation is now collected in a single table at the
 start of Section~III.
-\where{Contributions; Table~II}
+\where{Contributions; Table~I}
 
 \begin{comment}
 4. In the Background section, the statement ``Together, CX and
@@ -435,7 +435,7 @@ loop); and the ordering inverts on Graphstate, where \dSABRE{} is
 $78\times$ faster, showing the constant is not intrinsic.  We also note
 that nothing in the complexity analysis is language-specific, and that
 the absolute cost is modest against the EPR savings it buys.
-\where{Section~IV-G}
+\where{Section~IV-F}
 
 \begin{comment}
 6. The caption of Figure 4 is unclear and should be revised.
@@ -447,7 +447,7 @@ figure shows and what decision is being made, then describes the two
 execution steps, and only then walks the three candidates---each of
 which now isolates a single decision factor.  The dense parenthetical
 definitions have moved into the running-example text.
-\where{Figure~4 caption; Table~IV}
+\where{Figure~4 caption; Table~II}
 
 \begin{comment}
 Editorial 1. The acronym DSABRE is written inconsistently\ldots{}
@@ -469,7 +469,7 @@ I strongly recommend defining all notation systematically in one place.
 \response
 Done: Table~II collects every symbol used in the technical section with
 its meaning and defining equation.
-\where{Table~II}
+\where{Table~I}
 
 %%─────────────────────────────────────────────────────────────────────
 \section*{Area Editor and Associate Editor}
