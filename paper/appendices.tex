@@ -1253,3 +1253,49 @@ the teleport cost $c_{\mathrm{tele}}$ from 10 to 100 with
 $c_{\mathrm{swap}}{=}3$ fixed.  The gap to \TeleSABRE{} widens as
 $c_{\mathrm{tele}}$ grows, so the conclusions hold across the range
 separating microwave-coupled from photonic-link hardware.
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{Deferred Proofs}
+\label{app:proofs}
+
+This appendix carries the proofs of Propositions~\ref{prop:bfs}
+and~\ref{prop:progress}, whose statements are in the main paper.
+
+\subsection{Proposition~\ref{prop:bfs} (Depth monotonicity)}
+
+\begin{IEEEproof}
+\rev{The first claim is the defining property of breadth-first
+expansion: layer $k{+}1$ is emitted only after layer $k$ is exhausted.
+For the second, take $L{+}1$ disjoint qubit wires; on wire~$0$ place a
+chain of $L$ 2Q gates $g_1,\dots,g_L$ with $\mathrm{dep}(g_i){=}i$, and
+on wire~$1$ a single 2Q gate $h$ with $\mathrm{dep}(h){=}1$ whose
+predecessor is the front gate of that wire.  A topological order may
+emit the entire chain of wire~0 before visiting wire~1, filling the
+size-$L$ budget with $g_1,\dots,g_L$ and excluding $h$; BFS emits
+$g_1$ and $h$ in layer~1.  The excluded $h$ is a gate that becomes
+executable one layer ahead, so its distance term is the one a teleport
+decision most needs.}
+\end{IEEEproof}
+
+
+\subsection{Proposition~\ref{prop:progress} (Forced progress)}
+
+\begin{IEEEproof}
+\rev{The escape ignores the score and teleports $q_1$ hop by hop along
+$\mathrm{core\_path}(c_1,c_2)$, a shortest path in the core graph, so
+each successful hop strictly decreases
+$\dcore(\mathrm{core}(q_1),c_2)$ and at most $\dcore(c_1,c_2)\le D$
+hops are required.  A hop into a full core first evacuates one occupant
+to a neighbouring core with a free slot, which the capacity condition
+supplies; that evacuation is itself a teleport, so a hop costs at most
+two EPR pairs and the traversal at most $2D$.  Once both operands share
+a core, the escape swaps $q_1$ along an intra-core shortest path
+towards $q_2$, of length at most the core diameter, making $g$
+executable and removing it from $W$.  For the final claim, $|W|$ is a
+non-negative integer that never increases, and every iteration either
+decreases it or counts towards $L_\mathrm{deadlock}$; after
+$N_\mathrm{backup}^\mathrm{max}$ recoveries that fail to decrease $|W|$
+the router aborts.  The loop therefore cannot run forever, exiting
+either with $W=\emptyset$ or with an explicit abort.}
+\end{IEEEproof}
+

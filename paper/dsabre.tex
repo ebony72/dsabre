@@ -263,11 +263,9 @@ states along the coupling graph.
 A circuit is represented as a \emph{directed acyclic graph} (DAG) in which each
 node is a gate and each directed edge records a data dependency (qubit produced
 by gate $g_1$ consumed by gate $g_2$).
-The construction rule is: for every qubit $q$, connect each gate acting on $q$
-to the \emph{next} gate acting on $q$ by a directed edge; the edge means the
-second gate cannot begin until the first has written its output on $q$.
-One-qubit gates therefore contribute at most one outgoing edge per operand,
-while 2Q gates contribute one per operand pair.
+For every qubit $q$, each gate acting on $q$ is connected to the
+\emph{next} gate acting on $q$: the second cannot begin until the first
+has written its output on $q$.
 Figure~\ref{fig:dag-example} shows a small example, where \emph{circuit depth} is the length of the longest path through the DAG.
 
 \begin{figure}[t]
@@ -397,13 +395,10 @@ candidate SWAP \rev{(negative when the SWAP moves them closer)}; $d^g$ is
 shortest-path distance on the coupling graph.
 All extended-set gates contribute with equal weight; the $\tfrac{1}{|E|}$
 factor normalises the lookahead term to the same scale as the front term.
-\SABRE{} also couples its router with an initial-layout optimiser: starting
-from a random qubit assignment it routes the circuit $C$ forward, then
-immediately routes the reverse circuit $C^{-1}$ using the final layout of
-the forward pass as the new starting point; the layout produced by the
-reverse pass is fed back as the initial layout for the next forward pass.
-After several bidirectional sweeps the heuristic has annealed towards a
-layout that is self-consistent with the circuit's gate structure.
+\SABRE{} also couples its router with an initial-layout optimiser:
+alternating forward and reverse-circuit passes, each seeded with the
+previous pass's final layout, anneal towards a layout self-consistent
+with the circuit's gate structure.
 
 %%─────────────────────────────────────────────────────────────────────────────
 \section{dSABRE}
@@ -428,13 +423,12 @@ every symbol used in this section.
 \label{sec:principle}
 
 \rev{\dSABRE{} moves qubits with two different actions---an intra-core
-SWAP and an inter-core teleport---but it does not score them with two
-unrelated heuristics.  Both are chosen by the same rule: \emph{take the
-action that buys the largest reduction in one circuit-wide potential
-per unit of resource it spends, subject to a penalty for violating core
-capacity}.  This subsection states that potential; the two subsections
-that follow instantiate it at the two scopes, and every term appearing
-there is a component of it rather than a separate heuristic.}
+SWAP and an inter-core teleport---but scores them with one rule:
+\emph{take the action that buys the largest reduction in a single
+circuit-wide potential per unit of resource it spends, subject to a
+penalty for violating core capacity}.  The two subsections that follow
+instantiate that rule at the two scopes, and every term appearing there
+is a component of it rather than a separate heuristic.}
 
 \rev{Fix a layout $\ell$ and let $d(g;\ell)$ be the weighted distance
 between the two operands of a 2Q gate $g$ on the full-chip graph
@@ -445,14 +439,13 @@ Define the \emph{routing potential}}
   \rev{\Phi(\ell) \;=\; \sum_{g\in F} d(g;\ell)
         \;+\; w_e \sum_{g\in E} \gamma^{\mathrm{dep}(g)}\,d(g;\ell) ,}
 \end{equation}
-\rev{the front-layer term measuring work that must be done now and the
-lookahead term measuring discounted work that is coming, with the
-decay $\gamma^{\mathrm{dep}(g)}$ discounting a gate by its depth
-because a deeper gate is more likely to be displaced by intervening
-routing decisions before it is reached.  $\Phi$ is a surrogate, not the
-true cost-to-go: it is exact at the boundary ($\Phi=0$ iff every gate
-in $F$ is executable) and everywhere else it is the standard SABRE
-relaxation, which ignores that qubits contend for the same slots.}
+\rev{the first term measuring work that must be done now, the second
+discounted work that is coming, with $\gamma^{\mathrm{dep}(g)}$
+discounting a gate by its depth because a deeper gate is more likely to
+be displaced before it is reached.  $\Phi$ is a surrogate, not the true
+cost-to-go: exact at the boundary ($\Phi{=}0$ iff every gate in $F$ is
+executable), and elsewhere the standard SABRE relaxation, which ignores
+that qubits contend for the same slots.}
 
 \rev{An action $a$ (one SWAP, or one teleport with its staging SWAPs)
 transforms $\ell$ into $\ell_a$.  Write
@@ -464,11 +457,9 @@ capacity constraint that $\Phi$ omits.  \dSABRE{} greedily minimises}
        \;+\; \underbrace{\mathrm{pen}(a)}_{\text{capacity}}
        \;+\; \underbrace{\Delta\Phi(a)}_{\text{progress bought}} .}
 \end{equation}
-\rev{The three groups answer three different questions---what does this
-move cost, is it legal-in-practice, and how much closer does it get
-us---and Eq.~\ref{eq:principle} is the only place they are traded off.
-The following proposition, proved by unfolding the definitions, is what
-makes the rest of this section a specialisation rather than a list.}
+\rev{The three groups answer three questions---what the move costs,
+whether it is legal in practice, and how much closer it gets us---and
+Eq.~\ref{eq:principle} is the only place they are traded off.}
 
 \begin{proposition}[\rev{Unified objective}]\label{prop:unified}
 \rev{The intra-core SWAP score (Eq.~\ref{eq:intra}) and the inter-core
@@ -504,17 +495,16 @@ per-core cardinality is shared across candidates, and the size of $E$
 is instead bounded by the cap $|E|_{\max}$.}
 \end{IEEEproof}
 
-\rev{Two consequences are worth stating, because they are what the
-experiments later test.  First, the capacity term is \emph{not} a
-tie-breaker bolted onto a distance heuristic: it is the one place where
-the architecture's finiteness enters a score that is otherwise a pure
-relaxation, and Section~\ref{sec:ablation} finds it the single largest
-contributor to \dSABRE{}'s advantage.  Second, because the same $\Phi$
-is used at both scopes, a lookahead gate influences an intra-core SWAP
-and an inter-core teleport through the same discounted distance, so the
-two phases cannot pull against each other---which is what distinguishes
-\dSABRE{} from routers that score teleports with a separate
-communication-graph energy (Section~\ref{sec:related}).}
+\rev{Two consequences are what the experiments later test.  The
+capacity term is not a tie-breaker bolted onto a distance heuristic: it
+is the one place where the architecture's finiteness enters an
+otherwise pure relaxation, and Section~\ref{sec:ablation} finds it the
+largest single contributor to \dSABRE{}'s advantage.  And because the
+same $\Phi$ serves both scopes, a lookahead gate influences a SWAP and
+a teleport through the same discounted distance, so the two phases
+cannot pull against each other---unlike routers that score teleports
+with a separate communication-graph energy
+(Section~\ref{sec:related}).}
 
 \rev{The mechanisms of Sections~\ref{sec:relief} and~\ref{sec:recovery}
 are deliberately \emph{not} additional score terms.  They exist because
@@ -894,19 +884,7 @@ property: for every $L$ there is a DAG in which $E_{\mathrm{topo}}$
 omits a depth-$1$ gate while admitting $L$ gates of depth up to $L$.}
 \end{proposition}
 
-\begin{IEEEproof}
-\rev{The first claim is the defining property of breadth-first
-expansion: layer $k{+}1$ is emitted only after layer $k$ is exhausted.
-For the second, take $L{+}1$ disjoint qubit wires; on wire~$0$ place a
-chain of $L$ 2Q gates $g_1,\dots,g_L$ with $\mathrm{dep}(g_i){=}i$, and
-on wire~$1$ a single 2Q gate $h$ with $\mathrm{dep}(h){=}1$ whose
-predecessor is the front gate of that wire.  A topological order may
-emit the entire chain of wire~0 before visiting wire~1, filling the
-size-$L$ budget with $g_1,\dots,g_L$ and excluding $h$; BFS emits
-$g_1$ and $h$ in layer~1.  The excluded $h$ is a gate that becomes
-executable one layer ahead, so its distance term is the one a teleport
-decision most needs.}
-\end{IEEEproof}
+\rev{The proof is in the online appendices.}
 
 \rev{This is why the gain from BFS layering grows with circuit size
 (Section~\ref{sec:ablation}): the deeper and wider the remaining DAG,
@@ -999,24 +977,7 @@ SWAPs bounded by the core diameter, so $|W|$ strictly decreases.
 Independently of the capacity condition, \dSABRE{} always halts.}
 \end{proposition}
 
-\begin{IEEEproof}
-\rev{The escape ignores the score and teleports $q_1$ hop by hop along
-$\mathrm{core\_path}(c_1,c_2)$, a shortest path in the core graph, so
-each successful hop strictly decreases
-$\dcore(\mathrm{core}(q_1),c_2)$ and at most $\dcore(c_1,c_2)\le D$
-hops are required.  A hop into a full core first evacuates one occupant
-to a neighbouring core with a free slot, which the capacity condition
-supplies; that evacuation is itself a teleport, so a hop costs at most
-two EPR pairs and the traversal at most $2D$.  Once both operands share
-a core, the escape swaps $q_1$ along an intra-core shortest path
-towards $q_2$, of length at most the core diameter, making $g$
-executable and removing it from $W$.  For the final claim, $|W|$ is a
-non-negative integer that never increases, and every iteration either
-decreases it or counts towards $L_\mathrm{deadlock}$; after
-$N_\mathrm{backup}^\mathrm{max}$ recoveries that fail to decrease $|W|$
-the router aborts.  The loop therefore cannot run forever, exiting
-either with $W=\emptyset$ or with an explicit abort.}
-\end{IEEEproof}
+\rev{The proof is in the online appendices.}
 
 \rev{The distinction in the last sentence is deliberate.  Termination
 is unconditional, but \emph{completion} rests on the capacity
@@ -1034,34 +995,22 @@ converge on the denser circuits of Section~\ref{sec:main_results}.}
 \subsection{Computational Complexity}
 \label{sec:complexity}
 
-Let $N{=}|C|$, $n$ be the circuit width, $K$ the number of cores, $M$
-qubits per core ($P{=}KM$), and $L$ the extended-set capacity
-(constant).  Architecture distance tables are precomputed once in
-$O(KM^2\!\log M + K^2\!\log K)$ (Section~\ref{sec:arch}) and are not
-charged per circuit.
-
-Per iteration, inter-core scoring generates $O(n)$ candidates each
-costing $O(L)$, and intra-core scoring evaluates $O(M)$ SWAP
-candidates per core at cost $O(|F_c|+L)$, summing to
-$T_\mathrm{iter} = O(Mn + P)$.  In the common case $n\ge K$ (e.g.\
-$n/K \in \{6.25, 9.0, 10.7\}$ on our suites) this is $O(Mn)$.  The
-extended set is rebuilt at most $N$ times at $O(KL)$ each, adding
-$O(NK)$ total.  On a grid-of-grids the physical diameter is
-$O(\sqrt{P})$, bounding inserted operations by $O(N\sqrt{P})$; the
-checkpoint--rollback escape adds a constant
-$N_\mathrm{backup}^\mathrm{max}\cdot L_\mathrm{deadlock}$ iterations.
-Combining,
+Let $N{=}|C|$ be the gate count, $n$ the circuit width, $K$ the number
+of cores and $M$ qubits per core ($P{=}KM$).  Architecture distance
+tables are precomputed once in $O(KM^2\!\log M + K^2\!\log K)$
+(Section~\ref{sec:arch}) and are not charged per circuit.  Per
+iteration, inter-core scoring generates $O(n)$ candidates and
+intra-core scoring $O(M)$ per core, giving $O(Mn+P)$, which is $O(Mn)$
+whenever $n\ge K$ as on all our suites.  With physical diameter
+$O(\sqrt{P})$ bounding the inserted operations,
 \begin{equation}
   T_\mathrm{total} = O\!\left(N\sqrt{P}\cdot Mn\right).
   \label{eq:complexity}
 \end{equation}
-Compared to flat \SABRE{}~\cite{li2019tackling} on the same $P$ qubits
-($O(Pn)$ per iteration), restricting intra-core scoring to core-local
-edges yields a factor-$K$ per-iteration improvement that grows with
-the number of cores.  Empirically this scales well in practice: the
-largest circuit we route (360-qubit QFT with 13,300 CX gates on a 486-qubit H-grid) routes
-in $801$\,s of pure-Python wall time
-(Section~\ref{sec:scalability}).
+Restricting intra-core scoring to core-local edges yields a factor-$K$
+per-iteration improvement over flat \SABRE{}~\cite{li2019tackling} on
+the same $P$ qubits, growing with core count.  \rev{The derivation is
+in the online appendices.}
 
 %%─────────────────────────────────────────────────────────────────────────────
 \section{Experimental Evaluation}
@@ -1150,7 +1099,7 @@ shared-control CNOT runs (QFT, QPE) favour gate teleportation.
 
 \rev{Three consequences shape how the tables below should be read.
 (i)~\emph{Work per unit differs}, so the $\Delta_{\rm tket}$ columns in
-Tables~\ref{tab:main} and~\ref{tab:large} are unit-consistent but not
+Tables~\ref{tab:main} and~\ref{tab:main} are unit-consistent but not
 work-consistent.  (ii)~\emph{Scope differs}: \texttt{pytket-dqc} emits
 an e-bit count only and does not model intra-core SWAP routing at all,
 so its column omits a cost \dSABRE{} pays and reports.  (iii)~The
@@ -1290,6 +1239,12 @@ multiplier & 13040 & 2202 & 11232 & 1514 & 10109 & 2957$^{\ddagger}$ & $-31.2$ &
 \cmidrule(lr){1-9}
 \textbf{gmean} (7) &  & 269.5 & 1452 & 147.0 & 1016 &  & $\mathbf{-45.5}$ &  \\
 \textbf{gmean} (9) &  & --- & --- & 202.2 & 1350 & 168.5 & --- & $\mathbf{+20.0}$ \\
+\midrule
+\multicolumn{9}{@{}l}{\emph{QFT scalability, H-grid, each router from its own layout}} \\
+\addlinespace[1pt]
+100q &  3420 & 248 & 2414 &  223 &  2723 &  114 & $-10.1$ & $+95.6$ \\
+200q$^{\ast}$ &  7220 & --- & --- &  834 &  7043 &  447$^{\ddagger}$ & --- & $+86.6$ \\
+360q & 13300 & 1109 & 15098 &  626 & 13433 &  195$^{\ddagger}$ & $-43.6$ & $+221.0$ \\
 \bottomrule
 \end{tabular}%
 }
@@ -1688,37 +1643,7 @@ matched-layout setting \dSABRE{} beats \texttt{pytket-dqc} at all
 three sizes, most narrowly at 200q where its SabreLayout
 configuration is marginally worse.}}
 
-\begin{table}[t]
-\centering
-\caption{Large-circuit scalability (QFT).  Each router runs from
-  its own initial layout.  Negative $\Delta$EPR is better.
-  \TeleSABRE{} fails to converge on the 200q circuit within the
-  600\,s timeout.  $^{\dagger}$See caveat on e-bit counting.
-  $^{\ddagger}$\texttt{pytket-dqc}'s
-  \textsc{CoverEmbeddingSteinerDetached} exceeds a 25-minute budget at
-  200q and 360q; the \textsc{PartitioningHeterogeneous} distributor is
-  used for those e-bit counts.}
-\label{tab:large}
-\setlength{\tabcolsep}{3pt}
-\small
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{@{}l r rr rr r rr@{}}
-\toprule
- & & \multicolumn{2}{c}{\TeleSABRE}
- & \multicolumn{2}{c}{\dSABRE}
- & tket$^{\dagger}$ & \multicolumn{2}{c}{$\Delta$EPR (\%)} \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-7}\cmidrule(lr){8-9}
-Suite & CX & EPR & SWAP & EPR & SWAP & e-bits & TS & tket \\
-\midrule
-100q &  3420 & 248 & 2414 &  223 &  2723 &  114 & $-10.1$ & $+95.6$ \\
-200q &  7220 & ---  & ---   &  834 &  7043 &  447$^{\ddagger}$ & ---  & $+86.6$ \\
-360q & 13300 & 1109 & 15098 &  626 & 13433 &  195$^{\ddagger}$ & $-43.6$ & $+221.0$ \\
-\bottomrule
-\end{tabular}%
-}
-\end{table}
-
-Table~\ref{tab:large} shows the QFT scalability trend.  \rev{\dSABRE{}
+Table~\ref{tab:main} shows the QFT scalability trend.  \rev{\dSABRE{}
 beats \TeleSABRE{} at both sizes where the latter converges
 ($-10.1\%$ at 100q, $-43.6\%$ at 360q), and at \emph{200q}
 \TeleSABRE{} fails within the 600\,s timeout while \dSABRE{} completes
@@ -1820,22 +1745,16 @@ while \dSABRE{} currently uses teledata only.
 
 DMapS~\cite{luo2025dmaps} is a concurrent end-to-end DQC compiler
 that pairs a KaHyPar partitioner with a \SABRE{}-derived router and
-shares our joint EPR-plus-local-SWAP objective.  Two design choices
-set it apart from \dSABRE{}: its only cross-core primitive is a
-two-EPR \emph{remote SWAP} (whereas \dSABRE{} uses one-EPR one-way
-teledata into a layout-reserved free slot), and its initial
-allocation comes from a KaHyPar partition of the interaction
-hypergraph (whereas \dSABRE{} uses SabreLayout on
-$G_\arch$).  On the dense circuits in our
-suites \dSABRE{} consumes substantially fewer EPRs --- e.g.\
-$2{-}4\times$ on 25q QFT/QNN/Random and $1.6{-}1.8\times$ on 64q
-QFT/QNN/Random --- while DMapS wins on maximally sparse circuits
-(GHZ, Graphstate, W-state) where KaHyPar partitions interaction
-graphs almost perfectly.  A code-level audit, the full per-circuit
-head-to-head, and a controlled fill-ratio sweep showing parity once
-the device fill ratio approaches~$1$ are included in the online
-appendices accompanying the paper (see ``Artefact availability''
-below).
+shares our joint EPR-plus-local-SWAP objective.  Two design choices set
+it apart: its only cross-core primitive is a two-EPR \emph{remote SWAP}
+(whereas \dSABRE{} uses one-way teledata into a layout-reserved free
+slot), and its initial allocation comes from a KaHyPar partition of the
+interaction graph.  On dense circuits \dSABRE{} consumes substantially
+fewer EPRs---$2$--$4\times$ on 25q QFT/QNN/Random and $1.6$--$1.8\times$
+on 64q---while DMapS wins on maximally sparse circuits where KaHyPar
+partitions almost perfectly.  A code-level audit, the per-circuit
+head-to-head, and a controlled fill-ratio sweep showing parity once the
+device fill ratio approaches~1 are in the online appendices.
 
 Allocation methods built on hypergraph
 partitioning~\cite{andres2019automated,pytketdqc2024} are complementary
@@ -1891,25 +1810,21 @@ adding links without retuning the routing energy can \emph{increase}
 EPR consumption.
 
 \rev{\textbf{Beyond EPR count: latency and fidelity.}
-This paper optimises and reports a resource count, not an execution
-time or an output fidelity, and it is worth being explicit about what
-that leaves out.  Two of the three system-level costs are partly
-visible in our results already.  Intra-core SWAP count, reported beside
-EPR count in every table, is the dominant contributor to routed-circuit
-depth, and \dSABRE{} reduces it alongside EPR rather than trading one
-for the other.  Entanglement quality enters through the lifetime bound
-reported in Section~\ref{sec:main_results}, which is a
-fidelity-motivated constraint:
-capping gates-per-EPR is how a decaying link manifests in a cost model.
-What genuinely remains open is a joint objective.  EPR count, circuit
-depth, and per-operation error rates are not interchangeable---a
-teleport is slow and noisy, a SWAP is fast and cheap, and the exchange
-rate is hardware-specific---so a fidelity-aware router would need a
-device error model and a scheduling pass in the loop, both of which sit
-outside the routing stage \dSABRE{} addresses.  The cost-ratio sweep of
-Section~\ref{sec:cost} is a first step: it shows the conclusions are
-stable across two orders of magnitude of relative teleport cost, which
-is the range separating microwave-coupled from photonic-link hardware.}
+This paper optimises a resource count, not an execution time or an
+output fidelity.  Two of the three system-level costs are already
+partly visible: intra-core SWAP count, the dominant contributor to
+routed depth, is reported beside EPR count in every table and falls
+alongside it, and entanglement quality enters through the lifetime
+bound of Section~\ref{sec:main_results}, since capping gates-per-EPR is
+how a decaying link appears in a cost model.  What remains open is a
+joint objective.  EPR count, depth and per-operation error rates are
+not interchangeable---a teleport is slow and noisy, a SWAP fast and
+cheap, and the exchange rate is hardware-specific---so a fidelity-aware
+router needs a device error model and a scheduling pass in the loop,
+both outside the routing stage \dSABRE{} addresses.  The cost-ratio
+sweep is a first step: the conclusions are stable across the two orders
+of magnitude of relative teleport cost that separate microwave-coupled
+from photonic-link hardware.}
 
 %%─────────────────────────────────────────────────────────────────────────────
 \section{Conclusion}
