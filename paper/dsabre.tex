@@ -88,7 +88,8 @@ $41$--$46\%$ against \TeleSABRE{}, and across the full evaluation
 routes four circuits on which \TeleSABRE{} fails to
 converge. The margin is $48\%$ on a non-grid architecture of IBM
 heavy-hex cores with no parameter retuned, and a quantum Fourier
-transform (QFT) sweep to 360 qubits confirms scalability.}  Code
+transform (QFT) sweep to 360 qubits shows the router remains
+practical at that size.}  Code
 and online appendices are at \url{https://github.com/ebony72/dsabre}.
 \end{abstract}
 
@@ -1331,7 +1332,7 @@ multiplier & 13040 & 2202 & 11232 & 1514 & 10109 & 2891$^{\ddagger}$ & $-31.2$ &
 \textbf{gmean} (7) &  & 269.5 & 1452 & 147.0 & 1016 & 120.9 & $\mathbf{-45.5}$ & $\mathbf{+21.6}$ \\
 \textbf{gmean} (9) &  & --- & --- & 202.2 & 1350 & 176.3 & --- & $\mathbf{+14.7}$ \\
 \midrule
-\multicolumn{9}{@{}l}{\emph{QFT scalability, H-grid, each router from its own layout}} \\
+\multicolumn{9}{@{}l}{\emph{Large QFT (banded, range 19), H-grid, each router from its own layout}} \\
 \addlinespace[1pt]
 100q & 3420 & 248 & 2414 & 223 & 2723 & 137 & $-10.1$ & $+62.8$ \\
 200q$^{\ast}$ & 7220 & --- & --- & 834 & 7043 & 456$^{\ddagger}$ & --- & $+82.9$ \\
@@ -1902,10 +1903,44 @@ we run \dSABRE{}, \TeleSABRE{}, and
 circuit (IBM native-gate, Qiskit opt3).  The architectures scale the
 H-grid of the 64q suite:
 \begin{itemize}\itemsep1pt
-  \item \textbf{100q}: H-grid $2{\times}3$ $5{\times}5$ (150 physical).
-  \item \textbf{200q}: H-grid $4{\times}3$ $5{\times}5$ (300 physical).
-  \item \textbf{360q}: H-grid $2{\times}3$ $9{\times}9$ (486 physical).
+  \item \textbf{100q}: H-grid $2{\times}3$ $5{\times}5$ (150 physical),
+        six 25-qubit cores.
+  \item \textbf{200q}: H-grid $4{\times}3$ $5{\times}5$ (300 physical),
+        twelve 25-qubit cores.
+  \item \textbf{360q}: H-grid $2{\times}3$ $9{\times}9$ (486 physical),
+        six \emph{81}-qubit cores.
 \end{itemize}
+
+\rev{Two properties of this sweep should be stated before its numbers
+are read, because both bear on how comparable the three rows are.}
+
+\rev{\emph{The QFT circuits are not all the same construction.}  The 25-
+and 64-qubit QFTs used in Table~\ref{tab:main}'s main panels are
+MQT-Bench v1.1.0 circuits, in which the two operands of a controlled
+phase may be arbitrarily far apart (interaction range $n{-}1$).  The
+100-, 200- and 360-qubit circuits come from the current MQT-Bench
+release, whose QFT is a \emph{banded} approximation: only qubit pairs
+within distance 19 interact, which we confirmed by regenerating all
+three and matching gate count, depth and interaction-pair count
+exactly.  Their interaction graphs are the 19th power of a path, with
+$19n-190$ pairs.  Both are legitimate approximate QFTs, but they are
+different circuit families and we do not present the five sizes as one
+series.}
+
+\rev{\emph{The 360-qubit row is an easier problem than the 200-qubit
+one, despite being larger.}  With a fixed interaction band of 19, what
+decides how much traffic crosses a core boundary is the number of
+logical qubits per core.  At 100 and 200 qubits that is 17, below the
+band, so most gates straddle a boundary; at 360 qubits it is 60, three
+times the band, so only gates near a boundary cross.  Counting
+directly, $56\%$ and $57\%$ of gates are inherently inter-core at 100
+and 200 qubits against $16.5\%$ at 360.  The 360-qubit row therefore
+presents fewer than half as many cross-core gates as the 200-qubit row
+($1{,}900$ against $4{,}270$) while containing $84\%$ more gates in
+total, and every router's EPR count falls accordingly.  The clean
+scaling pair is 100q$\to$200q, which holds the band and the core size
+fixed and doubles the core count; 360q is best read as a separate
+large-core regime.}
 \noindent
 \TeleSABRE{} is best-of-3-seed with a 600\,s per-seed timeout for
 200q+; \dSABRE{} uses its default configuration;
@@ -1922,7 +1957,7 @@ matched-layout setting \dSABRE{} beats \texttt{pytket-dqc} at all
 three sizes, most narrowly at 200q where its SabreLayout
 configuration is marginally worse.}}
 
-Table~\ref{tab:main} shows the QFT scalability trend.  \rev{\dSABRE{}
+Table~\ref{tab:main} reports the three large-QFT points.  \rev{\dSABRE{}
 beats \TeleSABRE{} at both sizes where the latter converges
 ($-10.1\%$ at 100q, $-43.6\%$ at 360q), and at \emph{200q}
 \TeleSABRE{} fails within the 600\,s timeout while \dSABRE{} completes

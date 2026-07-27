@@ -119,6 +119,19 @@ headline number.  We removed the favourable \texttt{pytket-dqc}
 figures from the abstract along with the unfavourable ones, since both
 rest on the same uncontrolled cost model.
 
+\item \textbf{Two corrections to the scalability sweep.}  Auditing the
+benchmark circuits for this revision showed that the 100/200/360-qubit
+QFTs are a \emph{banded} approximation (interaction range 19) from the
+current MQT-Bench release, whereas the 25- and 64-qubit QFTs of the main
+tables are full-span v1.1.0 circuits.  Section~IV-G now says so and no
+longer presents the five sizes as one series.  It also records why the
+360-qubit row looks anomalously favourable: that architecture uses
+81-qubit cores against 25 at the smaller sizes, so with a fixed band of
+19 only $16.5\%$ of its gates are inherently inter-core against $56$--$57\%$
+at 100 and 200 qubits.  It is a larger circuit but an easier routing
+problem, and we say so rather than letting the row read as a scaling
+result.
+
 \item \textbf{Presentation.}  New notation table; rewritten abstract;
 reorganised introduction; consistent \dSABRE{} casing throughout;
 abbreviations expanded at first use; Figure~4 caption rewritten;

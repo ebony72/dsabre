@@ -64,6 +64,10 @@ ORDER = {
             "qpeexact", "qaoa", "multiplier"],
 }
 
+# The large-QFT rows are a different circuit family from the 25/64q panels:
+# MQT-Bench's current QFT is a banded approximation (interaction range 19),
+# whereas the v1.1.0 circuits used at 25 and 64 qubits are full-span.  See
+# Section IV-G of the paper; they are deliberately not presented as one series.
 PANEL = {
     "25q": r"\emph{25 logical qubits, B-grid $2{\times}2$ of $4{\times}4$ cores (64 physical)}",
     "36q": r"\emph{36 logical qubits, same B-grid}",
