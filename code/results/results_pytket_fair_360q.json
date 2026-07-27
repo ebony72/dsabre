@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "date": "2026-07-27",
+    "seeds": 5,
+    "models": {
+      "A_published": "even split of logical qubits, unbounded ebit memory",
+      "B_ports": "same data capacity, server_ebit_mem = deg(core)",
+      "C_physical": "data capacity M-deg(core), server_ebit_mem = deg(core)"
+    }
+  },
+  "results": [
+    {
+      "suite": "360q",
+      "circuit": "qft",
+      "n_logical": 360,
+      "cores": 6,
+      "qubits_per_core": 81,
+      "degree": {
+        "0": 2,
+        "1": 3,
+        "2": 2,
+        "3": 2,
+        "4": 3,
+        "5": 2
+      },
+      "phys_cap": [
+        79,
+        78,
+        79,
+        79,
+        78,
+        79
+      ],
+      "A_published": {
+        "ebits": 155,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 1479.1
+      },
+      "A_required_ebit_mem": 0,
+      "B_ports": {
+        "ebits": 155,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 1481.9
+      },
+      "C_physical": {
+        "ebits": 285,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 1844.1
+      },
+      "C_fits_port_bound": null
+    }
+  ]
+}
