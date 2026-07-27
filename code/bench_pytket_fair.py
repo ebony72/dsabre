@@ -192,9 +192,18 @@ def required_ebit_mem(dist, cap_hint, max_try=64, budget_s=420.0):
             return -last_failed
         net = NISQNetwork(coupling, sq, server_ebit_mem={s: k for s in sq})
         try:
-            Distribution(dist.circuit, dist.placement, net).to_pytket_circuit(
-                satisfy_bound=True, allow_update=False)
+            # Per-call cap: a materialisation that succeeds has to build the
+            # whole circuit, which on the largest instances does not return in
+            # any practical time.  The loop-level budget cannot interrupt that,
+            # so each attempt gets its own signal-based bound.
+            _call_with_timeout(
+                lambda: Distribution(dist.circuit, dist.placement,
+                                     net).to_pytket_circuit(satisfy_bound=True,
+                                                            allow_update=False),
+                max(30.0, budget_s - (time.perf_counter() - t0)))
             return k
+        except _Timeout:
+            return -last_failed
         except Exception as e:
             if type(e).__name__ != "ConstraintException":
                 return None
@@ -215,11 +224,15 @@ def fits_port_bound(dist):
     """
     from pytket_dqc.circuits.distribution import Distribution
     try:
-        Distribution(dist.circuit, dist.placement,
-                     dist.network).to_pytket_circuit(satisfy_bound=True,
-                                                     allow_update=False)
+        _call_with_timeout(
+            lambda: Distribution(dist.circuit, dist.placement,
+                                 dist.network).to_pytket_circuit(
+                                     satisfy_bound=True, allow_update=False),
+            300.0)
         return True
     except Exception as e:
+        if isinstance(e, _Timeout):
+            return None
         return False if type(e).__name__ == "ConstraintException" else None
 
 
