@@ -1,5 +1,53 @@
 # TODO
 
+## Teleport-commitment mechanisms (2026-08-03→04, not adopted — see TELEPORT_COMMITMENT.md)
+
+Diagnosed that dSE re-scores every pending inter-core gate from scratch each
+iteration with no memory of which one it was mid-move on (90.8% of gates
+needing >=2 teleport hops get interleaved with another gate's teleport;
+~half of all backslide events are the gate's own scored-best move backfiring
+under local congestion, not a side effect of someone else). Four mitigations
+prototyped and ablated on the full 64q suite, all as `HardwareConfig` fields
+defaulting off (no published number affected):
+
+| mechanism | gmean EPR | win/lose/tie |
+|---|---|---|
+| `commit_bonus=8` (soft, favor last-moved gate) | -4.3% | 4/4/1, driven by one outlier (`multiplier`) |
+| `commit_hard_lock` (hard version of same idea) | -5.0% | 4/4/1, more extreme both ways |
+| `cheapest_first_weight=0.3` + `evict_distance_aware` | **-4.2%** | **5/2/2**, best-balanced |
+| `backup_relay_mode` (BFS-relay `_backup_plan`, see below) | -3.6% | 6/2/1 |
+
+**None adopted** — comparable gmean to what's already in the paper's
+mechanism ablation, and every one regresses at least 2 of 9 circuits.
+`cheapest_first_weight` + `evict_distance_aware` is the best-balanced if
+revisited. Full diagnosis, per-mechanism detail, the invariant-preserving
+checkpoint-rollback procedure (`backup_relay_mode`) and its correctness
+caveat (its precondition never actually holds on this suite — normal
+routing already lets cores hit 0 free before deadlock recovery fires, via
+the untouched `_force_make_room` path), and an unresolved optimal-EPR bound
+question are all in `TELEPORT_COMMITMENT.md`.
+
+## Corrected 2026-07-28: TeleSABRE does converge on heavy-hex-ring QNN
+
+`results_heavyhex.json` (run 2026-07-26) recorded `ts: null` for qnn, and the
+paper claimed TeleSABRE "fails to converge on QNN, which it completes on the
+H-grid". **That is wrong.** Re-running the identical architecture (verified
+bit-identical: same `inter_core_links`, same `Gr`) reproduces every dSABRE
+number exactly and gets TeleSABRE **260 EPR / 8135 SWAP**, deterministically,
+on all three seeds in ~11 s each. The 2026-07-26 null was an artefact, most
+likely the 300 s per-seed timeout firing under load.
+
+Consequences, all applied: ring gmean is over six circuits, not five, and the
+margin is **-43.0%** (was -48.2% on the five-circuit basis); the abstract and
+contributions no longer cite heavy-hex QNN as a TeleSABRE non-convergence.
+Old file kept as `results_heavyhex_2026-07-26_TSqnn-nonconvergent.json.bak`.
+
+The other non-convergence claims were re-probed and **hold**: 64q H-grid
+Random and QAOA, and heavy-hex-star AE, QFT and Random, all return
+`Success: false` on all three seeds well inside the timeout. Before citing any
+future `ts: null` as a router failure, re-probe it directly — a timeout and a
+genuine failure are indistinguishable in the results JSON.
+
 ## Open after the 2026-07-17 benchmark regeneration
 
 - ~~360q large-circuit row not regenerated.~~ **DONE 2026-07-18**: `tab:large`
