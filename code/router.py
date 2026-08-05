@@ -220,32 +220,6 @@ class General_dSABRE_Router:
 
     # ── Physical operations ────────────────────────────────────────────────────
 
-    def _local_swap_path(self, p_src, p_dst, core_id, l2p, p2l, metrics,
-                         avoid=None):
-        if p_src == p_dst:
-            return
-        path = self._ipath(core_id, p_src, p_dst)
-        if avoid is not None and avoid != p_src and avoid != p_dst and avoid in path:
-            # Detour around a node that must stay untouched (a comm port that
-            # has to remain free to hold an EPR half at teleport time).
-            try:
-                path = nx.shortest_path(
-                    nx.restricted_view(self.arch.intra[core_id], [avoid], []),
-                    p_src, p_dst,
-                )
-            except nx.NetworkXNoPath:
-                pass  # `avoid` is a cut vertex of this core: no detour exists
-        for i in range(len(path) - 1):
-            a, b = path[i], path[i + 1]
-            qa, qb = p2l[a], p2l[b]
-            if qa is not None: l2p[qa] = b
-            if qb is not None: l2p[qb] = a
-            p2l[a], p2l[b] = qb, qa
-            metrics["ls"]   += 1
-            metrics["cost"] += self.config.cost_local_swap
-            if self.config.trace_routing:
-                metrics["trace"].append(("SWAP", a, b, core_id))
-
     def _evict(self, p_comm, core_id, l2p, p2l, metrics, partner_phys=None):
         """Move the qubit occupying p_comm to a free slot (if any).
 
@@ -286,50 +260,162 @@ class General_dSABRE_Router:
                 if self.config.trace_routing:
                     metrics["trace"].append(("SWAP", a, b, core_id))
 
-    def _apply_teleport(self, a: TeleportAction, l2p, p2l, metrics, partner_phys=None):
-        """Execute teleportation: evict comm qubits, SWAP to staging slot, move.
+    def _apply_teleport(self, a: TeleportAction, l2p, p2l, metrics, partner_phys=None) -> bool:
+        """Atomically execute one teleport macro-action.
+
+        Steps: secure a free slot in both cores, evict both comm ports, SWAP
+        `a.virt` to the staging slot without touching the source port, then
+        teleport it onto the destination port.  Every step is checked; on any
+        failure the layout, counters, and trace are restored to their state
+        at entry and False is returned (the action is a complete no-op).
 
         `partner_phys`, if given, maps a logical qubit with a pending
         front-layer gate to that gate's partner's physical position -- passed
         through to `_evict`/`_force_make_room` for distance-aware eviction.
         """
-        if self._free_slots(a.src_core, self.arch, p2l) == 0:
-            # Source core has zero free slots: _evict below has nowhere to
-            # swap the port's occupant to and would silently no-op, leaving
-            # the port illegally occupied.  Relieve the core with one real
-            # (legal) teleport hop first; `a.virt` itself must stay put, or
-            # the staging-path lookup below would operate on a qubit that
-            # already left this core.
-            self._force_make_room(a.src_core, l2p, p2l, metrics, exclude_virt=a.virt,
-                                  partner_phys=partner_phys)
-        if self._free_slots(a.next_core, self.arch, p2l) == 0:
-            # The relief hop above can land its evacuee in `a.next_core` if
-            # that's where the chosen outgoing link happens to lead --
-            # consuming the one free slot the caller secured there for this
-            # move's destination.  Re-check and top it back up before the
-            # destination evict below relies on it.
-            self._force_make_room(a.next_core, l2p, p2l, metrics, exclude_virt=a.virt,
-                                  partner_phys=partner_phys)
+        arch = self.arch
+        cfg  = self.config
+
+        # Transaction snapshot: layouts, scalar counters, trace length.  The
+        # trace is truncated (not copied) on rollback, so the snapshot stays
+        # O(qubits) no matter how long the routing trace has grown.
+        saved_l2p = l2p.copy()
+        saved_p2l = p2l.copy()
+        saved_counters  = {k: v for k, v in metrics.items()
+                           if not isinstance(v, (list, dict))}
+        saved_trace_len = (len(metrics["trace"])
+                           if metrics.get("trace") is not None else 0)
+
+        def rollback() -> bool:
+            l2p.clear();  l2p.update(saved_l2p)
+            p2l.clear();  p2l.update(saved_p2l)
+            metrics.update(saved_counters)
+            if metrics.get("trace") is not None:
+                del metrics["trace"][saved_trace_len:]
+            return False
+
+        # ── Action validation ─────────────────────────────────────────────
+        # `inter_links_between` returns [] for non-adjacent cores, so the
+        # link-membership check also enforces core adjacency.
+        if a.virt not in l2p:
+            return rollback()
+        if arch.core_of(l2p[a.virt]) != a.src_core:
+            return rollback()
+        if arch.core_of(a.p_comm_src) != a.src_core:
+            return rollback()
+        if arch.core_of(a.p_comm_dst) != a.next_core:
+            return rollback()
+        if (a.p_comm_src, a.p_comm_dst) not in set(
+                arch.inter_links_between(a.src_core, a.next_core)):
+            return rollback()
+        if (a.n_s not in arch.intra[a.src_core]
+                or not arch.intra[a.src_core].has_edge(a.n_s, a.p_comm_src)):
+            return rollback()
+
+        # ── Secure capacity ───────────────────────────────────────────────
+        # A full core leaves _evict below nowhere to swap the port occupant
+        # to; relieve it with one real (legal) teleport hop first.  `a.virt`
+        # itself must stay put (exclude_virt), or the staging-path lookup
+        # below would operate on a qubit that already left this core.
+        if (self._free_slots(a.src_core, arch, p2l) == 0
+                and not self._force_make_room(a.src_core, l2p, p2l, metrics,
+                                              exclude_virt=a.virt,
+                                              partner_phys=partner_phys)):
+            return rollback()
+        if (self._free_slots(a.next_core, arch, p2l) == 0
+                and not self._force_make_room(a.next_core, l2p, p2l, metrics,
+                                              exclude_virt=a.virt,
+                                              partner_phys=partner_phys)):
+            return rollback()
+        # Relieving one core can consume the other's vacancy: the relief hop
+        # lands its evacuee in any neighbour with a free slot, including the
+        # other core of this very move.  Neither port may be treated as
+        # reserved unless both cores hold a vacancy NOW.
+        if (self._free_slots(a.src_core, arch, p2l) == 0
+                or self._free_slots(a.next_core, arch, p2l) == 0):
+            return rollback()
+        # Room-making moves other qubits, but must not have moved this
+        # move's own qubit out of the source core.
+        if a.virt not in l2p or arch.core_of(l2p[a.virt]) != a.src_core:
+            return rollback()
+
+        # ── Evict and reserve both comm ports ─────────────────────────────
+        # _evict has no return value; verify success from p2l directly.
         self._evict(a.p_comm_src, a.src_core,  l2p, p2l, metrics, partner_phys=partner_phys)
+        if p2l[a.p_comm_src] is not None:
+            return rollback()
         self._evict(a.p_comm_dst, a.next_core, l2p, p2l, metrics, partner_phys=partner_phys)
-        # The staging path must not route through the just-evicted source comm
-        # port: both comm ports have to be free at teleport time (EPR halves).
-        self._local_swap_path(l2p[a.virt], a.n_s, a.src_core, l2p, p2l, metrics,
-                              avoid=a.p_comm_src)
-        virt = p2l[a.n_s]
+        if p2l[a.p_comm_dst] is not None:
+            return rollback()
+
+        # ── Staging path that cannot reoccupy the source port ─────────────
+        # Both comm ports must be free at teleport time (EPR halves).  A path
+        # through the source port would push a bystander qubit back onto the
+        # just-evicted port on its final SWAP, so when the port is a cut
+        # vertex and no avoiding path exists, the candidate is not executable
+        # -- fail it rather than fall back to the port-crossing path.
+        current_phys = l2p[a.virt]
+        if current_phys == a.p_comm_src:
+            return rollback()
+        if current_phys == a.n_s:
+            staging_path = [current_phys]
+        else:
+            try:
+                staging_path = nx.shortest_path(
+                    nx.restricted_view(arch.intra[a.src_core], [a.p_comm_src], []),
+                    current_phys, a.n_s,
+                )
+            except (nx.NetworkXNoPath, nx.NodeNotFound):
+                return rollback()
+
+        for i in range(len(staging_path) - 1):
+            u, v = staging_path[i], staging_path[i + 1]
+            if u == a.p_comm_src or v == a.p_comm_src:
+                return rollback()
+            qu, qv = p2l[u], p2l[v]
+            if qu is not None: l2p[qu] = v
+            if qv is not None: l2p[qv] = u
+            p2l[u], p2l[v] = qv, qu
+            metrics["ls"]   += 1
+            metrics["cost"] += cfg.cost_local_swap
+            if cfg.trace_routing:
+                metrics["trace"].append(("SWAP", u, v, a.src_core))
+
+        # ── Pre-teleport validation ───────────────────────────────────────
+        # Both ports free and the staging slot holds exactly a.virt -- the
+        # teleport must never move a bystander (or nothing) while recording
+        # a.virt in the trace.
+        if (p2l[a.p_comm_src] is not None
+                or p2l[a.p_comm_dst] is not None
+                or p2l[a.n_s] != a.virt
+                or l2p.get(a.virt) != a.n_s):
+            return rollback()
+
+        # ── Commit ────────────────────────────────────────────────────────
         p2l[a.n_s] = None
-        if virt is not None: l2p[virt] = a.p_comm_dst
-        p2l[a.p_comm_dst] = virt
-        hop_cost = (self.config.cost_teleport
-                    + self.config.cost_teleport_per_hop
-                    * self.arch.core_dist[a.src_core][a.next_core])
+        p2l[a.p_comm_dst] = a.virt
+        l2p[a.virt] = a.p_comm_dst
+        hop_cost = (cfg.cost_teleport
+                    + cfg.cost_teleport_per_hop
+                    * arch.core_dist[a.src_core][a.next_core])
         metrics["teles"] += 1
         metrics["eprs"]  += 1
         metrics["cost"]  += hop_cost
-        if self.config.trace_routing:
+        if cfg.trace_routing:
+            # Record a.n_s, the slot virt actually teleports from -- not the
+            # stale a.p_src captured at scoring time.
             metrics["trace"].append(
-                ("TELE", a.virt, a.p_src, a.p_comm_dst, a.src_core, a.next_core)
+                ("TELE", a.virt, a.n_s, a.p_comm_dst, a.src_core, a.next_core)
             )
+
+        # ── Postcondition: both layout maps stayed mutually consistent ────
+        for logical, physical in l2p.items():
+            if p2l.get(physical) != logical:
+                return rollback()
+        for physical, logical in p2l.items():
+            if logical is not None and l2p.get(logical) != physical:
+                return rollback()
+        return True
 
     # ── Intra-core helpers ─────────────────────────────────────────────────────
 
@@ -545,11 +631,12 @@ class General_dSABRE_Router:
             p_src = l2p[filler]
             n_s = min(arch.intra[nxt].neighbors(p_comm_src),
                       key=lambda n: self._idist(nxt, p_src, n))
-            self._apply_teleport(
-                TeleportAction(None, filler, p_src, n_s, p_comm_src, p_comm_dst,
-                              nxt, cur, cur, score=0.0),
-                l2p, p2l, metrics,
-            )
+            if not self._apply_teleport(
+                    TeleportAction(None, filler, p_src, n_s, p_comm_src, p_comm_dst,
+                                  nxt, cur, cur, score=0.0),
+                    l2p, p2l, metrics,
+            ):
+                return False
             metrics["relay_hops"] += 1
         return True
 
@@ -609,11 +696,12 @@ class General_dSABRE_Router:
                     arch.intra[cur_core].neighbors(p_comm_src),
                     key=lambda n: self._idist(cur_core, l2p[q1], n),
                 )
-                self._apply_teleport(
-                    TeleportAction(stuck, q1, l2p[q1], n_s, p_comm_src, p_comm_dst,
-                                   cur_core, next_core, c2, score=0.0),
-                    l2p, p2l, metrics,
-                )
+                if not self._apply_teleport(
+                        TeleportAction(stuck, q1, l2p[q1], n_s, p_comm_src, p_comm_dst,
+                                       cur_core, next_core, c2, score=0.0),
+                        l2p, p2l, metrics,
+                ):
+                    break
                 moved_any = True
         else:
             for hop_idx in range(len(arch.core_path[c1][c2]) - 1):
@@ -630,11 +718,12 @@ class General_dSABRE_Router:
                         list(arch.intra[cur_core].neighbors(p_comm_src)),
                         key=lambda n: self._idist(cur_core, l2p[q1], n),
                     )
-                    self._apply_teleport(
-                        TeleportAction(stuck, q1, l2p[q1], n_s, p_comm_src, p_comm_dst,
-                                       cur_core, next_core, c2, score=0.0),
-                        l2p, p2l, metrics,
-                    )
+                    if not self._apply_teleport(
+                            TeleportAction(stuck, q1, l2p[q1], n_s, p_comm_src, p_comm_dst,
+                                           cur_core, next_core, c2, score=0.0),
+                            l2p, p2l, metrics,
+                    ):
+                        continue  # rolled back cleanly: try the next link
                     moved_any = hopped = True
                     break
                 if not hopped:
@@ -851,10 +940,24 @@ class General_dSABRE_Router:
                         metrics["aborted"] = True
                         break
                 else:
-                    best = candidates[0]
-                    self._apply_teleport(best, l2p, p2l, metrics, partner_phys=partner_phys)
-                    committed_nid  = best.node._node_id
-                    extended_cache = None
+                    # A candidate can be rejected atomically (rolled back) if
+                    # its preconditions no longer hold at execution time; fall
+                    # through the score-sorted list until one commits.
+                    applied = None
+                    for cand in candidates:
+                        if self._apply_teleport(cand, l2p, p2l, metrics,
+                                                partner_phys=partner_phys):
+                            applied = cand
+                            break
+                    if applied is not None:
+                        committed_nid  = applied.node._node_id
+                        extended_cache = None
+                    elif not self._fallback_local_swap(front_inter, wdag, l2p, p2l, metrics):
+                        remaining = len(list(wdag.op_nodes()))
+                        elapsed   = time.perf_counter() - _t_start
+                        failure_log.append(("ALL_CANDIDATES_REJECTED", iteration, remaining, elapsed))
+                        metrics["aborted"] = True
+                        break
 
             remaining = len(list(wdag.op_nodes()))
             if remaining < last_remaining:
