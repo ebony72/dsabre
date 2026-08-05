@@ -14,6 +14,7 @@ marked aborted.
 """
 
 import time
+from collections import deque
 from copy import deepcopy
 
 import networkx as nx
@@ -125,123 +126,95 @@ class General_dSABRE_Router:
                     break
         return ext
 
-    def _generate_candidates(self, front_inter, extended, l2p, p2l):
+    def _generate_candidates(self, front_inter, extended, l2p, p2l, committed_nid=None):
         """Score all feasible one-hop teleportation moves and return sorted list.
 
         Scoring formula for each candidate:
-            score = d_prep + cap - hop_gain - dF - weight_extended * dE
+            score = d_prep + cap - dF - weight_extended * dE
+                    - commit_bonus + priority_penalty
 
         where:
           d_prep    = intra-core SWAPs to reach the comm port + eviction cost
           cap       = penalty if destination core is nearly full
-          hop_gain  = reward for moving closer to target core
           dF        = distance reduction on front-layer gates (immediate reward)
           dE        = distance reduction on extended-layer gates (lookahead)
+          commit_bonus = cfg.commit_bonus if this candidate continues the gate
+                      (by DAG node id) that the PREVIOUS iteration teleported,
+                      else 0 -- see the config field's docstring.
+          priority_penalty = cfg.cheapest_first_weight * the gate's OWN current
+                      qubit-pair phys_dist -- 0 when the weight is 0 (default);
+                      otherwise gates already close to resolution outscore
+                      farther ones regardless of commit state.
 
         Lower score → better move.  The top candidate is executed each iteration.
-
-        Also generates proactive congestion-relief moves: idle qubits in
-        high-demand cores are offered as candidates to neighbouring cores with
-        free capacity, preventing routing bottlenecks before they form.
         """
         arch = self.arch
         cfg  = self.config
-        candidates = []
-        free_cache = {c: self._free_slots(c, arch, p2l) for c in range(arch.num_cores)}
 
-        for node in front_inter:
-            q1, q2 = node.qargs[0], node.qargs[1]
-            p1, p2 = l2p[q1], l2p[q2]
-            c1, c2 = arch.core_of(p1), arch.core_of(p2)
+        def score_nodes(node_list, free_cache):
+            out = []
+            for node in node_list:
+                q1, q2 = node.qargs[0], node.qargs[1]
+                p1, p2 = l2p[q1], l2p[q2]
+                c1, c2 = arch.core_of(p1), arch.core_of(p2)
+                commit_bonus = (cfg.commit_bonus
+                                if committed_nid is not None and node._node_id == committed_nid
+                                else 0.0)
+                priority_penalty = (cfg.cheapest_first_weight
+                                    * arch.phys_dist.get(p1, {}).get(p2, 999))
+                # Front-layer gates are qubit-disjoint (each wire contributes
+                # at most one), so `virt` below can only ever match `node`'s
+                # own qargs -- passing the rest of front_inter to _delta_front
+                # for dF would always find nothing else there, just at
+                # O(|front_inter|) cost instead of O(1).
+                dF_gates = [(node, 0)]
 
-            for (virt, p_src, src_c, tgt_c) in [(q1, p1, c1, c2), (q2, p2, c2, c1)]:
-                for next_c in arch.core_graph.neighbors(src_c):
-                    if free_cache[next_c] < 1:
-                        continue
-                    for (p_comm_src, p_comm_dst) in arch.inter_links_between(src_c, next_c):
-                        n_s = min(
-                            arch.intra[src_c].neighbors(p_comm_src),
-                            key=lambda n: self._idist(src_c, p_src, n),
-                        )
-                        d_prep   = (self._idist(src_c, p_src, n_s)
-                                    + self._evict_cost(p_comm_src, arch, p2l)
-                                    + self._evict_cost(p_comm_dst, arch, p2l))
-                        cap      = cfg.cap_penalty * max(0, cfg.capacity_threshold - free_cache[next_c])
-                        hop_gain = (cfg.hop_gain * (arch.core_dist[src_c][tgt_c]
-                                                    - arch.core_dist[next_c][tgt_c])
-                                    if cfg.enable_hop_gain else 0.0)
-                        dF = self._delta_front(virt, p_comm_dst, [(g, 0) for g in front_inter], l2p)
-                        dE = self._delta_front(virt, p_comm_dst, extended, l2p,
-                                               decay=cfg.lookahead_decay)
-                        score = d_prep + cap - hop_gain - dF - cfg.weight_extended * dE
-                        candidates.append(
-                            TeleportAction(node, virt, p_src, n_s,
-                                           p_comm_src, p_comm_dst, src_c, next_c, tgt_c, score)
-                        )
-
-        # ── Proactive congestion relief ────────────────────────────────────────
-        if not cfg.enable_congestion_relief:
-            candidates.sort(key=lambda a: a.score)
-            return candidates
-        demand = {c: 0 for c in range(arch.num_cores)}
-        horizon = min(len(extended), cfg.demand_lookahead)
-        ext_nodes = [g for g, _ in extended]  # plain gate list for demand/depth accounting
-        for node in front_inter + ext_nodes[:horizon]:
-            c1b = arch.core_of(l2p[node.qargs[0]])
-            c2b = arch.core_of(l2p[node.qargs[1]])
-            if c1b != c2b:
-                demand[arch.core_path[c1b][c2b][1]] += 1
-                demand[arch.core_path[c2b][c1b][1]] += 1
-
-        next_use_depth = {}
-        for pos, node in enumerate(front_inter + ext_nodes):
-            for q in node.qargs:
-                if q not in next_use_depth:
-                    next_use_depth[q] = pos
-        max_depth = len(front_inter) + len(extended) + 1
-
-        core_busyness = {
-            c: (len(arch.core_qubits(c)) - free_cache[c]) + demand[c]
-            for c in range(arch.num_cores)
-        }
-        front_qubits = {l2p[n.qargs[0]] for n in front_inter} | {l2p[n.qargs[1]] for n in front_inter}
-
-        for c_cong, d in demand.items():
-            free = free_cache[c_cong]
-            if d >= cfg.demand_threshold and free <= cfg.congestion_threshold:
-                for c_relief in arch.core_graph.neighbors(c_cong):
-                    if free_cache[c_relief] < cfg.relief_space_req:
-                        continue
-                    victims = sorted(
-                        [p for p in arch.core_qubits(c_cong)
-                         if p2l[p] is not None and p not in front_qubits],
-                        key=lambda p: next_use_depth.get(p2l[p], max_depth),
-                        reverse=True,
-                    )[:2]
-                    gradient = core_busyness[c_cong] - core_busyness[c_relief]
-                    for v_phys in victims:
-                        virt = p2l[v_phys]
-                        depth_score = next_use_depth.get(virt, max_depth)
-                        for (p_comm_src, p_comm_dst) in arch.inter_links_between(c_cong, c_relief):
+                for (virt, p_src, src_c, tgt_c) in [(q1, p1, c1, c2), (q2, p2, c2, c1)]:
+                    for next_c in arch.core_graph.neighbors(src_c):
+                        if free_cache.get(next_c, 0) < 1:
+                            continue
+                        for (p_comm_src, p_comm_dst) in arch.inter_links_between(src_c, next_c):
                             n_s = min(
-                                arch.intra[c_cong].neighbors(p_comm_src),
-                                key=lambda n: self._idist(c_cong, v_phys, n),
+                                arch.intra[src_c].neighbors(p_comm_src),
+                                key=lambda n: self._idist(src_c, p_src, n),
                             )
-                            d_prep = (self._idist(c_cong, v_phys, n_s)
-                                      + self._evict_cost(p_comm_src, arch, p2l)
-                                      + self._evict_cost(p_comm_dst, arch, p2l))
-                            cap = cfg.cap_penalty * max(0, cfg.capacity_threshold - free_cache[c_relief])
-                            dE  = self._delta_front(virt, p_comm_dst, extended, l2p,
-                                                    decay=cfg.lookahead_decay)
-                            score = (d_prep + cap - cfg.weight_extended * dE
-                                     - cfg.relief_bonus * (d - free + 1)
-                                     - cfg.relief_depth_weight * depth_score
-                                     - cfg.relief_gradient_weight * gradient)
-                            candidates.append(
-                                TeleportAction(None, virt, v_phys, n_s,
-                                               p_comm_src, p_comm_dst, c_cong, c_relief, c_relief, score)
+                            d_prep   = (self._idist(src_c, p_src, n_s)
+                                        + self._evict_cost(p_comm_src, arch, p2l)
+                                        + self._evict_cost(p_comm_dst, arch, p2l))
+                            cap      = cfg.cap_penalty * max(0, cfg.capacity_threshold - free_cache[next_c])
+                            dF = self._delta_front(virt, p_comm_dst, dF_gates, l2p)
+                            dE = self._delta_front(virt, p_comm_dst, extended, l2p,
+                                                   decay=cfg.lookahead_decay)
+                            score = (d_prep + cap - dF - cfg.weight_extended * dE
+                                    - commit_bonus + priority_penalty)
+                            out.append(
+                                TeleportAction(node, virt, p_src, n_s,
+                                              p_comm_src, p_comm_dst, src_c, next_c, tgt_c, score)
                             )
+            return out
 
+        if committed_nid is not None and cfg.commit_hard_lock:
+            locked = [n for n in front_inter if n._node_id == committed_nid]
+            if locked:
+                # Fast path: only the locked gate's own two qubits can act, so
+                # only their neighbouring cores' free-slot counts are ever
+                # looked up -- skip the full free_cache scan over every core
+                # in the chip (matters on architectures with many cores).
+                node = locked[0]
+                c1 = arch.core_of(l2p[node.qargs[0]])
+                c2 = arch.core_of(l2p[node.qargs[1]])
+                relevant = (set(arch.core_graph.neighbors(c1))
+                           | set(arch.core_graph.neighbors(c2)))
+                local_free_cache = {c: self._free_slots(c, arch, p2l) for c in relevant}
+                candidates = score_nodes(locked, local_free_cache)
+                if candidates:
+                    candidates.sort(key=lambda a: a.score)
+                    return candidates
+                # Locked gate has no legal move this iteration: release the
+                # lock for this iteration only and fall through to full scoring.
+
+        free_cache = {c: self._free_slots(c, arch, p2l) for c in range(arch.num_cores)}
+        candidates = score_nodes(front_inter, free_cache)
         candidates.sort(key=lambda a: a.score)
         return candidates
 
@@ -273,15 +246,33 @@ class General_dSABRE_Router:
             if self.config.trace_routing:
                 metrics["trace"].append(("SWAP", a, b, core_id))
 
-    def _evict(self, p_comm, core_id, l2p, p2l, metrics):
-        """Move the qubit occupying p_comm to the nearest free slot (if any)."""
+    def _evict(self, p_comm, core_id, l2p, p2l, metrics, partner_phys=None):
+        """Move the qubit occupying p_comm to a free slot (if any).
+
+        Default target: the nearest free slot to p_comm (minimises the SWAP
+        chain below). If `config.evict_distance_aware` and the evicted qubit
+        has a pending front-layer gate (`partner_phys` maps it to that gate's
+        partner's physical position), a free slot that would INCREASE the
+        evicted qubit's own phys_dist to its partner is deprioritised first;
+        nearest-to-p_comm still breaks ties among slots that don't worsen it.
+        See `config.HardwareConfig.evict_distance_aware`'s docstring.
+        """
         if p2l[p_comm] is None:
             return
-        free_dst = min(
-            (pq for pq in self.arch.core_qubits(core_id) if p2l[pq] is None),
-            key=lambda pq: self._idist(core_id, p_comm, pq),
-            default=None,
-        )
+        free_slots = [pq for pq in self.arch.core_qubits(core_id) if p2l[pq] is None]
+        partner = (partner_phys.get(p2l[p_comm])
+                  if self.config.evict_distance_aware and partner_phys else None)
+        if partner is not None:
+            old_dist = self.arch.phys_dist.get(p_comm, {}).get(partner, 999)
+            free_dst = min(
+                free_slots,
+                key=lambda pq: (self.arch.phys_dist.get(pq, {}).get(partner, 999) > old_dist,
+                                self._idist(core_id, p_comm, pq)),
+                default=None,
+            )
+        else:
+            free_dst = min(free_slots, key=lambda pq: self._idist(core_id, p_comm, pq),
+                           default=None)
         if free_dst is not None:
             path = self._ipath(core_id, p_comm, free_dst)
             for i in reversed(range(len(path) - 1)):
@@ -295,8 +286,13 @@ class General_dSABRE_Router:
                 if self.config.trace_routing:
                     metrics["trace"].append(("SWAP", a, b, core_id))
 
-    def _apply_teleport(self, a: TeleportAction, l2p, p2l, metrics):
-        """Execute teleportation: evict comm qubits, SWAP to staging slot, move."""
+    def _apply_teleport(self, a: TeleportAction, l2p, p2l, metrics, partner_phys=None):
+        """Execute teleportation: evict comm qubits, SWAP to staging slot, move.
+
+        `partner_phys`, if given, maps a logical qubit with a pending
+        front-layer gate to that gate's partner's physical position -- passed
+        through to `_evict`/`_force_make_room` for distance-aware eviction.
+        """
         if self._free_slots(a.src_core, self.arch, p2l) == 0:
             # Source core has zero free slots: _evict below has nowhere to
             # swap the port's occupant to and would silently no-op, leaving
@@ -304,16 +300,18 @@ class General_dSABRE_Router:
             # (legal) teleport hop first; `a.virt` itself must stay put, or
             # the staging-path lookup below would operate on a qubit that
             # already left this core.
-            self._force_make_room(a.src_core, l2p, p2l, metrics, exclude_virt=a.virt)
+            self._force_make_room(a.src_core, l2p, p2l, metrics, exclude_virt=a.virt,
+                                  partner_phys=partner_phys)
         if self._free_slots(a.next_core, self.arch, p2l) == 0:
             # The relief hop above can land its evacuee in `a.next_core` if
             # that's where the chosen outgoing link happens to lead --
             # consuming the one free slot the caller secured there for this
             # move's destination.  Re-check and top it back up before the
             # destination evict below relies on it.
-            self._force_make_room(a.next_core, l2p, p2l, metrics, exclude_virt=a.virt)
-        self._evict(a.p_comm_src, a.src_core,  l2p, p2l, metrics)
-        self._evict(a.p_comm_dst, a.next_core, l2p, p2l, metrics)
+            self._force_make_room(a.next_core, l2p, p2l, metrics, exclude_virt=a.virt,
+                                  partner_phys=partner_phys)
+        self._evict(a.p_comm_src, a.src_core,  l2p, p2l, metrics, partner_phys=partner_phys)
+        self._evict(a.p_comm_dst, a.next_core, l2p, p2l, metrics, partner_phys=partner_phys)
         # The staging path must not route through the just-evicted source comm
         # port: both comm ports have to be free at teleport time (EPR halves).
         self._local_swap_path(l2p[a.virt], a.n_s, a.src_core, l2p, p2l, metrics,
@@ -425,12 +423,13 @@ class General_dSABRE_Router:
 
     # ── Deadlock recovery ──────────────────────────────────────────────────────
 
-    def _force_make_room(self, core_id, l2p, p2l, metrics, exclude_virt=None):
+    def _force_make_room(self, core_id, l2p, p2l, metrics, exclude_virt=None, partner_phys=None):
         """Teleport a qubit out of a full core to free one slot.
 
         `exclude_virt`, when given, must not be the qubit relieved: used by
         `_apply_teleport` when it calls this mid-move, so the relief hop
-        can't sweep away the very qubit it is already routing.
+        can't sweep away the very qubit it is already routing. `partner_phys`
+        is forwarded to `_evict` for distance-aware eviction.
         """
         metrics["force_make_room"] += 1
         arch = self.arch
@@ -448,7 +447,7 @@ class General_dSABRE_Router:
             return False
         cp_out, cp_in = outgoing[0]
         neighbor_core = arch.core_of(cp_in)
-        self._evict(cp_in, neighbor_core, l2p, p2l, metrics)
+        self._evict(cp_in, neighbor_core, l2p, p2l, metrics, partner_phys=partner_phys)
         # The core is full (the free-slot early exit did not fire), so the
         # out-port occupant is itself the cheapest evacuee and no staging
         # slot can be cleared for it: teleport it straight off the port.
@@ -465,6 +464,93 @@ class General_dSABRE_Router:
             metrics["trace"].append(
                 ("TELE", virt, cp_out, cp_in, core_id, neighbor_core)
             )
+        return True
+
+    # ── Invariant-preserving relay (2026-08-03) ────────────────────────────────
+    #
+    # Precondition (*): every core has >=1 free physical qubit, and the total
+    # free count across the chip is >= num_cores + 1.  By pigeonhole this
+    # guarantees at least one core has >=2 free ("slack") at all times, since
+    # the total free count is exactly conserved by every teleport and SWAP
+    # (neither creates nor destroys a qubit or a slot) -- so if (*) held when
+    # backup_plan was first invoked, it still holds now, regardless of what
+    # ordinary routing or earlier backup_plan calls have done since.
+    #
+    # Given that, routing ANY remote gate to a shared core WITHOUT ever letting
+    # a core's free count touch 0 reduces to: before teleporting a qubit INTO
+    # core X, make sure X currently has >=2 free (so it still has >=1 after).
+    # If X doesn't, relay the chip's slack to X one hop at a time along a
+    # shortest core-graph path, by teleporting an arbitrary (non-gate) qubit
+    # OUT of each core along that path and INTO its slack-holding predecessor.
+    # Termination: the relay-search is a BFS over a finite connected graph and
+    # always finds a slack core under (*); each payload hop strictly reduces
+    # the gate's core-distance, so the whole procedure finishes in a bounded
+    # number of teleports.  This is what `_force_make_room` approximates for a
+    # single hop (and gives up beyond direct neighbours) and what the old
+    # greedy `_backup_plan` cross-core loop did not attempt at all -- it only
+    # ever checked "does next_core have >=1 free", which can still drop a core
+    # to exactly 0.
+
+    def _find_nearest_slack_core(self, start_core, p2l, min_free=2):
+        """BFS outward from `start_core` over the core graph for the nearest
+        core (possibly `start_core` itself) with >= `min_free` free physical
+        qubits.  Returns None only if no such core exists anywhere on the
+        chip (i.e. precondition (*) does not actually hold)."""
+        arch = self.arch
+        if self._free_slots(start_core, arch, p2l) >= min_free:
+            return start_core
+        visited = {start_core}
+        queue = deque([start_core])
+        while queue:
+            c = queue.popleft()
+            for nb in arch.core_graph.neighbors(c):
+                if nb in visited:
+                    continue
+                visited.add(nb)
+                if self._free_slots(nb, arch, p2l) >= min_free:
+                    return nb
+                queue.append(nb)
+        return None
+
+    def _relay_room_to(self, target_core, l2p, p2l, metrics, min_free=2, protect=()):
+        """Ensure `target_core` has >= `min_free` free slots by relaying the
+        chip's slack there one hop at a time, never dropping any core below
+        1 free.  `protect` qubits (the gate's own two qubits) are never moved
+        as filler.  Returns False only if no slack core exists at all (i.e.
+        precondition (*) is violated) -- the caller should treat that as
+        backup_plan failing this attempt, exactly as the old code did.
+        """
+        arch = self.arch
+        if self._free_slots(target_core, arch, p2l) >= min_free:
+            return True
+        source = self._find_nearest_slack_core(target_core, p2l, min_free)
+        if source is None:
+            return False
+        path = arch.core_path[source][target_core]
+        for i in range(len(path) - 1):
+            cur, nxt = path[i], path[i + 1]
+            # Slack currently sits at `cur`; pull an arbitrary non-protected
+            # qubit out of `nxt` into `cur`, handing the slack to `nxt`.
+            filler = next(
+                (p2l[p] for p in arch.core_qubits(nxt)
+                 if p2l[p] is not None and p2l[p] not in protect),
+                None,
+            )
+            if filler is None:
+                return False
+            links = arch.inter_links_between(nxt, cur)
+            if not links:
+                return False
+            p_comm_src, p_comm_dst = links[0]
+            p_src = l2p[filler]
+            n_s = min(arch.intra[nxt].neighbors(p_comm_src),
+                      key=lambda n: self._idist(nxt, p_src, n))
+            self._apply_teleport(
+                TeleportAction(None, filler, p_src, n_s, p_comm_src, p_comm_dst,
+                              nxt, cur, cur, score=0.0),
+                l2p, p2l, metrics,
+            )
+            metrics["relay_hops"] += 1
         return True
 
     def _backup_plan(self, wdag, l2p, p2l, metrics):
@@ -495,21 +581,32 @@ class General_dSABRE_Router:
                     metrics["trace"].append(("SWAP", a, b, arch.core_of(a)))
             if arch.Gr.has_edge(l2p[q1], l2p[q2]):
                 wdag.remove_op_node(stuck)
+                if self.config.trace_routing:
+                    metrics["trace"].append(
+                        ("GATE", q1, q2, arch.core_of(l2p[q1]))
+                    )
             return True
 
         moved_any = False
-        for hop_idx in range(len(arch.core_path[c1][c2]) - 1):
-            cur_core  = arch.core_of(l2p[q1])
-            next_core = arch.core_path[c1][c2][hop_idx + 1]
-            if cur_core == c2:
-                break
-            hopped = False
-            for p_comm_src, p_comm_dst in arch.inter_links_between(cur_core, next_core):
-                if (self._free_slots(next_core, arch, p2l) < 1
-                        and not self._force_make_room(next_core, l2p, p2l, metrics)):
-                    continue
+        if self.config.backup_relay_mode:
+            # Invariant-preserving cross-core hop: relay the chip's slack to
+            # next_core (guaranteeing it has >=2 free, hence >=1 after q1
+            # arrives) before every hop, instead of the >=1-free check below,
+            # which can still leave a core at exactly 0 free.
+            for hop_idx in range(len(arch.core_path[c1][c2]) - 1):
+                cur_core  = arch.core_of(l2p[q1])
+                next_core = arch.core_path[c1][c2][hop_idx + 1]
+                if cur_core == c2:
+                    break
+                if not self._relay_room_to(next_core, l2p, p2l, metrics,
+                                           min_free=2, protect=(q1, q2)):
+                    break
+                links = arch.inter_links_between(cur_core, next_core)
+                if not links:
+                    break
+                p_comm_src, p_comm_dst = links[0]
                 n_s = min(
-                    list(arch.intra[cur_core].neighbors(p_comm_src)),
+                    arch.intra[cur_core].neighbors(p_comm_src),
                     key=lambda n: self._idist(cur_core, l2p[q1], n),
                 )
                 self._apply_teleport(
@@ -517,15 +614,38 @@ class General_dSABRE_Router:
                                    cur_core, next_core, c2, score=0.0),
                     l2p, p2l, metrics,
                 )
-                moved_any = hopped = True
-                break
-            if not hopped:
-                break
+                moved_any = True
+        else:
+            for hop_idx in range(len(arch.core_path[c1][c2]) - 1):
+                cur_core  = arch.core_of(l2p[q1])
+                next_core = arch.core_path[c1][c2][hop_idx + 1]
+                if cur_core == c2:
+                    break
+                hopped = False
+                for p_comm_src, p_comm_dst in arch.inter_links_between(cur_core, next_core):
+                    if (self._free_slots(next_core, arch, p2l) < 1
+                            and not self._force_make_room(next_core, l2p, p2l, metrics)):
+                        continue
+                    n_s = min(
+                        list(arch.intra[cur_core].neighbors(p_comm_src)),
+                        key=lambda n: self._idist(cur_core, l2p[q1], n),
+                    )
+                    self._apply_teleport(
+                        TeleportAction(stuck, q1, l2p[q1], n_s, p_comm_src, p_comm_dst,
+                                       cur_core, next_core, c2, score=0.0),
+                        l2p, p2l, metrics,
+                    )
+                    moved_any = hopped = True
+                    break
+                if not hopped:
+                    break
 
         np1, np2 = l2p[q1], l2p[q2]
         nc1, nc2 = arch.core_of(np1), arch.core_of(np2)
         if nc1 == nc2 and arch.Gr.has_edge(np1, np2):
             wdag.remove_op_node(stuck)
+            if self.config.trace_routing:
+                metrics["trace"].append(("GATE", q1, q2, nc1))
             moved_any = True
         elif nc1 == nc2:
             try:
@@ -543,6 +663,10 @@ class General_dSABRE_Router:
                 moved_any = True
                 if arch.Gr.has_edge(l2p[q1], l2p[q2]):
                     wdag.remove_op_node(stuck)
+                    if self.config.trace_routing:
+                        metrics["trace"].append(
+                            ("GATE", q1, q2, arch.core_of(l2p[q1]))
+                        )
             except Exception:
                 pass
 
@@ -573,10 +697,11 @@ class General_dSABRE_Router:
             "cost": 0, "1q_gates": 0, "aborted": False,
             "compile_time": 0.0, "backup_activations": 0,
             # ── Mechanism instrumentation ─────────────────────────────────────
-            # relief_candidates : total proactive-relief candidates generated
-            # relief_picks      : iterations whose chosen teleport came from relief
-            # force_make_room   : calls to _force_make_room (deadlock recovery)
-            "relief_candidates": 0, "relief_picks": 0, "force_make_room": 0,
+            # force_make_room : calls to _force_make_room (deadlock recovery)
+            "force_make_room": 0,
+            # relay_hops : filler teleports issued by _relay_room_to (only
+            # nonzero when config.backup_relay_mode is True)
+            "relay_hops": 0,
             "trace": [] if self.config.trace_routing else None,
         }
         failure_log = []
@@ -586,6 +711,7 @@ class General_dSABRE_Router:
         last_remaining   = len(list(wdag.op_nodes()))
         no_progress_iters = 0
         backup_attempts  = 0
+        committed_nid    = None  # DAG node id of the gate the last teleport advanced
         extended_cache   = None
 
         # Output-stream accounting must be checkpointed alongside the layout:
@@ -632,6 +758,10 @@ class General_dSABRE_Router:
                 if intra_exec:
                     for n, p1, p2 in intra_exec:
                         wdag.remove_op_node(n)
+                        if self.config.trace_routing:
+                            metrics["trace"].append(
+                                ("GATE", n.qargs[0], n.qargs[1], arch.core_of(p1))
+                            )
                     progress = True
 
             if not wdag.op_nodes():
@@ -646,6 +776,14 @@ class General_dSABRE_Router:
             front_intra = [n for n in front
                            if arch.core_of(l2p[n.qargs[0]]) == arch.core_of(l2p[n.qargs[1]])]
             front_inter = [n for n in front if n not in front_intra]
+            # {virt: phys of its front-layer gate partner} -- front-layer gates
+            # are qubit-disjoint (each wire contributes at most one), so this is
+            # unambiguous.  Used for distance-aware eviction (config.evict_distance_aware).
+            partner_phys = {}
+            for n in front:
+                q1, q2 = n.qargs[0], n.qargs[1]
+                partner_phys[q1] = l2p[q2]
+                partner_phys[q2] = l2p[q1]
 
             if front_intra:
                 # Intra-core SABRE: route each active core independently and in parallel.
@@ -703,9 +841,8 @@ class General_dSABRE_Router:
                 # Inter-core teleportation: score candidates, execute best.
                 if extended_cache is None:
                     extended_cache = self._extended_2q(wdag, front, self.config.lookahead_size)
-                candidates = self._generate_candidates(front_inter, extended_cache, l2p, p2l)
-                # Instrumentation: count proactive-relief candidates (those have node=None).
-                metrics["relief_candidates"] += sum(1 for c in candidates if c.node is None)
+                candidates = self._generate_candidates(front_inter, extended_cache, l2p, p2l,
+                                                       committed_nid=committed_nid)
                 if not candidates:
                     if not self._fallback_local_swap(front_inter, wdag, l2p, p2l, metrics):
                         remaining = len(list(wdag.op_nodes()))
@@ -715,9 +852,8 @@ class General_dSABRE_Router:
                         break
                 else:
                     best = candidates[0]
-                    if best.node is None:
-                        metrics["relief_picks"] += 1
-                    self._apply_teleport(best, l2p, p2l, metrics)
+                    self._apply_teleport(best, l2p, p2l, metrics, partner_phys=partner_phys)
+                    committed_nid  = best.node._node_id
                     extended_cache = None
 
             remaining = len(list(wdag.op_nodes()))
@@ -753,6 +889,7 @@ class General_dSABRE_Router:
                     del metrics["trace"][ckpt_trace_len:]
                 metrics["backup_activations"] += 1
                 extended_cache = None
+                committed_nid  = None  # l2p/wdag were rolled back to the checkpoint
                 if not self._backup_plan(wdag, l2p, p2l, metrics):
                     failure_log.append(("DEADLOCK_BACKUP_FAILED", iteration, remaining, elapsed))
                     metrics["aborted"] = True

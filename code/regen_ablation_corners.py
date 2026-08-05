@@ -9,7 +9,7 @@ Suites:
   - 64q: H-grid 2x3 4x4
 
 Mechanism configs (one knob off per row):
-  full, no_lookahead (w_e=0), no_hop_gain (w_h=0),
+  full, no_lookahead (w_e=0),
   no_cap_penalty (c_p=0), no_relief
 
 Pass-count configs: 1, 2, 3, 4 forward passes (no fwd/bwd/fwd here —
@@ -67,10 +67,12 @@ MECH_CONFIGS = [
     ("full",           BASE_CFG),
     ("no_lookahead",   replace(BASE_CFG, weight_extended=0.0)),
     ("no_cap_penalty", replace(BASE_CFG, cap_penalty=0.0)),
-    ("no_relief",      replace(BASE_CFG, enable_congestion_relief=False)),
-    # The hop-gain term was retired in the TCAD revision; BASE_CFG now has
-    # hop_gain=0, so this row restores it to show what the removal cost.
-    ("with_hop_gain",  replace(BASE_CFG, hop_gain=5.0)),
+    # "no_relief" removed: congestion relief was deleted from the router (see
+    # CHANGES_FROM_SUBMITTED.md).  "full" below now means relief-off always,
+    # so every EPR count this script measures going forward differs slightly
+    # from the pre-removal baseline it used to reproduce.
+    # "no_hop_gain" removed: hop-gain was deleted from the router (see
+    # CHANGES_FROM_SUBMITTED.md) -- the term no longer exists to ablate.
 ]
 
 PASS_COUNTS = [1, 2, 3, 4]

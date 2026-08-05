@@ -4,9 +4,9 @@
 %   Core spacing 2.1; qubit spacing 0.4; core box (-0.2,-1.4)--(1.4,0.2).
 % Scenario: gate g=(q1,q2), q1 in C1 at (r0,c2), q2 in C5 at (r1,c1).
 % Three candidates (q1 as source):
-%   A  q1->C2 via C1(r1c3)--C2(r1c0):  1 SWAP staging, score s=-16  [winner]
-%   B  q1->C0 via C1(r1c0)--C0(r1c3):  2 SWAPs staging, score s=+18
-%   C  q1->C4 via C1(r3c2)--C4(r0c1):  2 SWAPs staging + occ. eviction, score s=+1
+%   A  q1->C2 via C1(r1c3)--C2(r1c0):  1 SWAP staging, score s=-11  [winner]
+%   B  q1->C0 via C1(r1c0)--C0(r1c3):  2 SWAPs staging, score s=+13
+%   C  q1->C4 via C1(r3c2)--C4(r0c1):  2 SWAPs staging + occ. eviction, score s=+6
 \begin{tikzpicture}[
   every node/.style={font=\scriptsize},
   %%── qubit nodes ──────────────────────────────────────────────────────────────
@@ -160,28 +160,28 @@
 \draw[cl] (1.2,-2.9) -- (2.1,-2.9);    % C3(r2c3)--C4(r2c0)
 \draw[cl] (3.3,-2.9) -- (4.2,-2.9);    % C4(r2c3)--C5(r2c0)
 
-%%─── Candidate A: q1 -> C2  (score -16, winner) ──────────────────────────────
+%%─── Candidate A: q1 -> C2  (score -11, winner) ──────────────────────────────
 %% Step 1: 1 SWAP  p1(2.9,0) -> nsA(3.3,0)
 \draw[swpA] (p1.east) -- node[above,ann,teal!80] {\textbf{1}} (nsA.west);
 %% Step 2: teleport  psA(3.3,-0.4) -> pdA(4.2,-0.4), arc above link
 \draw[tpA] (psA.east) to[out=30,in=150]
-  node[midway,above=0mm,ann,teal!80] {${-}16$\;{\footnotesize\checkmark}}
+  node[midway,above=0mm,ann,teal!80] {${-}11$\;{\footnotesize\checkmark}}
   (pdA.west);
 
-%%─── Candidate B: q1 -> C0  (score +18) ─────────────────────────────────────
+%%─── Candidate B: q1 -> C0  (score +13) ─────────────────────────────────────
 %% Step 1: 2 SWAPs  p1(2.9,0) -> nsB(2.1,0)
 \draw[swpB] (p1.west) -- node[above,ann,orange!80] {\textbf{2}} (nsB.east);
 %% Step 2: teleport  psB(2.1,-0.4) -> pdB(1.2,-0.4), arc below link
 \draw[tpB] (psB.west) to[out=210,in=330]
-  node[midway,below=0.5mm,ann,orange!80] { $+18$}
+  node[midway,below=0.5mm,ann,orange!80] { $+13$}
   (pdB.east);
 
-%%─── Candidate C: q1 -> C4  (score +1) ─────────────────────────────────────
+%%─── Candidate C: q1 -> C4  (score +6) ─────────────────────────────────────
 %% Step 1: 2 SWAPs  p1(2.9,0) -> nsC(2.9,-0.8)
 \draw[swpC] (p1.south) -- node[right,ann,violet!75] {\textbf{2}} (nsC.north);
 %% Step 2: teleport  psC(2.9,-1.2) -> pdC(2.5,-2.1), arc to right of link
 \draw[tpC] (psC.south) to[out=290,in=70]
-  node[midway,right=.5mm,ann,violet!75] {$+1$}
+  node[midway,right=.5mm,ann,violet!75] {$+6$}
   (pdC.north);
 
 %%─── Qubit labels ─────────────────────────────────────────────────────────────
@@ -199,7 +199,7 @@
 \node[below=1mm, ann, red!65] at (pdC.west) {\textit{occ.}};
 
 %%─── "Congested" annotation for C4 ──────────────────────────────────────────
-\node[ann, orange!70] at (2.6,-3.8) {congested ($f_\mathrm{dst}{=}2$)};
+\node[ann, orange!70] at (2.6,-3.8) {congested ($f_\mathrm{nxt}{=}2$)};
 
 %%─── Legend ──────────────────────────────────────────────────────────────────
 \node[qsrc, label={[ann, xshift=1mm, blue!75]right:$q_1$ (source)}]
