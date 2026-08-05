@@ -1,0 +1,156 @@
+{
+  "meta": {
+    "date": "2026-08-05",
+    "arch": "H-grid 2x3 of 4x4 (96 physical)",
+    "family": "regular-graph CZ ansatz, gen_regular_cz.py",
+    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
+  },
+  "telesabre": [
+    {
+      "circuit": "regcz_d2_s0_64",
+      "degree": 2,
+      "seed": 0,
+      "cx": 1984,
+      "ts": {
+        "eprs": 893,
+        "teledata": 796,
+        "telegate": 97,
+        "ls": 3546,
+        "seed": 0,
+        "time_seed_s": 32.68,
+        "time_s": 66.62
+      }
+    },
+    {
+      "circuit": "regcz_d2_s1_64",
+      "degree": 2,
+      "seed": 1,
+      "cx": 1984,
+      "ts": {
+        "eprs": 1004,
+        "teledata": 978,
+        "telegate": 26,
+        "ls": 2810,
+        "seed": 0,
+        "time_seed_s": 8.66,
+        "time_s": 25.89
+      }
+    },
+    {
+      "circuit": "regcz_d2_s2_64",
+      "degree": 2,
+      "seed": 2,
+      "cx": 1984,
+      "ts": {
+        "eprs": 615,
+        "teledata": 568,
+        "telegate": 47,
+        "ls": 2348,
+        "seed": 0,
+        "time_seed_s": 6.08,
+        "time_s": 18.05
+      }
+    },
+    {
+      "circuit": "regcz_d3_s0_64",
+      "degree": 3,
+      "seed": 0,
+      "cx": 2016,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d3_s1_64",
+      "degree": 3,
+      "seed": 1,
+      "cx": 2016,
+      "ts": {
+        "eprs": 1779,
+        "teledata": 1651,
+        "telegate": 128,
+        "ls": 7978,
+        "seed": 0,
+        "time_seed_s": 64.53,
+        "time_s": 197.64
+      }
+    },
+    {
+      "circuit": "regcz_d3_s2_64",
+      "degree": 3,
+      "seed": 2,
+      "cx": 2016,
+      "ts": {
+        "eprs": 1696,
+        "teledata": 1621,
+        "telegate": 75,
+        "ls": 7172,
+        "seed": 0,
+        "time_seed_s": 42.39,
+        "time_s": 124.84
+      }
+    },
+    {
+      "circuit": "regcz_d4_s0_64",
+      "degree": 4,
+      "seed": 0,
+      "cx": 2048,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d4_s1_64",
+      "degree": 4,
+      "seed": 1,
+      "cx": 2048,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d4_s2_64",
+      "degree": 4,
+      "seed": 2,
+      "cx": 2048,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d6_s0_64",
+      "degree": 6,
+      "seed": 0,
+      "cx": 1920,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d6_s1_64",
+      "degree": 6,
+      "seed": 1,
+      "cx": 1920,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d6_s2_64",
+      "degree": 6,
+      "seed": 2,
+      "cx": 1920,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d8_s0_64",
+      "degree": 8,
+      "seed": 0,
+      "cx": 2048,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d8_s1_64",
+      "degree": 8,
+      "seed": 1,
+      "cx": 2048,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d8_s2_64",
+      "degree": 8,
+      "seed": 2,
+      "cx": 2048,
+      "ts": null
+    }
+  ]
+}

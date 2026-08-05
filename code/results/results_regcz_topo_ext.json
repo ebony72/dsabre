@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "date": "2026-08-05",
+    "config": "topo_ext",
+    "arch": "H-grid 2x3 of 4x4 (96 physical)",
+    "family": "regular-graph CZ ansatz, gen_regular_cz.py",
+    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
+  },
+  "results": [
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d2_s0_64",
+      "degree": 2,
+      "seed": 0,
+      "cx": 1984,
+      "eprs": 354,
+      "ls": 1676,
+      "time_s": 24.998,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d2_s1_64",
+      "degree": 2,
+      "seed": 1,
+      "cx": 1984,
+      "eprs": 247,
+      "ls": 1461,
+      "time_s": 21.462,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d2_s2_64",
+      "degree": 2,
+      "seed": 2,
+      "cx": 1984,
+      "eprs": 233,
+      "ls": 1564,
+      "time_s": 14.311,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d3_s0_64",
+      "degree": 3,
+      "seed": 0,
+      "cx": 2016,
+      "eprs": 1569,
+      "ls": 7196,
+      "time_s": 65.964,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d3_s1_64",
+      "degree": 3,
+      "seed": 1,
+      "cx": 2016,
+      "eprs": 1513,
+      "ls": 7085,
+      "time_s": 63.422,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d3_s2_64",
+      "degree": 3,
+      "seed": 2,
+      "cx": 2016,
+      "eprs": 1536,
+      "ls": 7075,
+      "time_s": 62.043,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d4_s0_64",
+      "degree": 4,
+      "seed": 0,
+      "cx": 2048,
+      "eprs": 1840,
+      "ls": 8865,
+      "time_s": 60.375,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d4_s1_64",
+      "degree": 4,
+      "seed": 1,
+      "cx": 2048,
+      "eprs": 2076,
+      "ls": 9815,
+      "time_s": 64.011,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d4_s2_64",
+      "degree": 4,
+      "seed": 2,
+      "cx": 2048,
+      "eprs": 2077,
+      "ls": 9583,
+      "time_s": 64.605,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d6_s0_64",
+      "degree": 6,
+      "seed": 0,
+      "cx": 1920,
+      "eprs": 1998,
+      "ls": 9948,
+      "time_s": 40.458,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d6_s1_64",
+      "degree": 6,
+      "seed": 1,
+      "cx": 1920,
+      "eprs": 2058,
+      "ls": 9833,
+      "time_s": 40.461,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d6_s2_64",
+      "degree": 6,
+      "seed": 2,
+      "cx": 1920,
+      "eprs": 1978,
+      "ls": 9580,
+      "time_s": 39.342,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d8_s0_64",
+      "degree": 8,
+      "seed": 0,
+      "cx": 2048,
+      "eprs": 2034,
+      "ls": 9876,
+      "time_s": 41.194,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d8_s1_64",
+      "degree": 8,
+      "seed": 1,
+      "cx": 2048,
+      "eprs": 2081,
+      "ls": 10117,
+      "time_s": 38.552,
+      "aborted": false
+    },
+    {
+      "config": "topo_ext",
+      "circuit": "regcz_d8_s2_64",
+      "degree": 8,
+      "seed": 2,
+      "cx": 2048,
+      "eprs": 2022,
+      "ls": 9566,
+      "time_s": 38.74,
+      "aborted": false
+    }
+  ]
+}

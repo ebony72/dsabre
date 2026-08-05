@@ -1,17 +1,16 @@
 {
   "meta": {
-    "date": "2026-07-17",
+    "date": "2026-08-05",
     "suite": "64q",
     "arch": "H-grid 2x3 4x4 (96 qubits)",
-    "layout": "per-core fill-adaptive corner reservation (k<=4, fill<=0.80), best of 3 SabreLayout seeds",
+    "layout": "SabreLayout corners-removed, best of 3 seeds",
     "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
     "ts_seeds": 3,
     "sl_seeds": 3,
     "routers": {
       "dS": "General_dSABRE_Router  (router.py)",
       "dSE": "dSABRE_BurstExt        (dsabre_ext.py)"
-    },
-    "note": "dS/dSE regenerated on fixed layout; ts column preserved from prior run (TeleSABRE binary unavailable, layout-independent) | 2026-07-20: suite extended with qpeexact/qaoa/multiplier (bench_extend_64q.py; TS re-run live, binary restored)"
+    }
   },
   "results": [
     {
@@ -20,31 +19,34 @@
       "qubits": 64,
       "cx": 1962,
       "ts": {
-        "eprs": 323,
-        "teledata": 307,
-        "telegate": 16,
-        "ls": 1508,
+        "eprs": 353,
+        "teledata": 259,
+        "telegate": 94,
+        "ls": 1494,
         "seed": 0,
-        "time_s": 1.05
+        "time_seed_s": 2.77,
+        "time_s": 8.39
       },
       "routers": {
         "dS": {
-          "eprs": 225,
-          "ls": 1672,
-          "time_s": 25.243,
+          "eprs": 186,
+          "ls": 1468,
+          "time_s": 58.383,
+          "time_seed_s": 21.516,
           "aborted": false,
-          "relief_candidates": 170,
-          "relief_picks": 42,
-          "backup_activations": 0,
-          "force_make_room": 0
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 1,
+          "force_make_room": 1
         },
         "dSE": {
-          "eprs": 242,
-          "ls": 1493,
-          "time_s": 27.833,
+          "eprs": 141,
+          "ls": 1456,
+          "time_s": 56.542,
+          "time_seed_s": 19.764,
           "aborted": false,
-          "relief_candidates": 58,
-          "relief_picks": 12,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         }
@@ -56,31 +58,34 @@
       "qubits": 64,
       "cx": 63,
       "ts": {
-        "eprs": 11,
-        "teledata": 11,
+        "eprs": 16,
+        "teledata": 16,
         "telegate": 0,
-        "ls": 111,
+        "ls": 132,
         "seed": 0,
-        "time_s": 0.02
+        "time_seed_s": 0.04,
+        "time_s": 0.12
       },
       "routers": {
         "dS": {
-          "eprs": 9,
-          "ls": 57,
-          "time_s": 0.065,
+          "eprs": 6,
+          "ls": 39,
+          "time_s": 0.104,
+          "time_seed_s": 0.036,
           "aborted": false,
-          "relief_candidates": 4,
-          "relief_picks": 1,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 9,
-          "ls": 57,
-          "time_s": 0.069,
+          "eprs": 6,
+          "ls": 39,
+          "time_s": 0.098,
+          "time_seed_s": 0.032,
           "aborted": false,
-          "relief_candidates": 4,
-          "relief_picks": 1,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         }
@@ -92,18 +97,20 @@
       "qubits": 64,
       "cx": 64,
       "ts": {
-        "eprs": 76,
-        "teledata": 72,
-        "telegate": 4,
-        "ls": 379,
+        "eprs": 62,
+        "teledata": 60,
+        "telegate": 2,
+        "ls": 281,
         "seed": 0,
-        "time_s": 3.92
+        "time_seed_s": 3.65,
+        "time_s": 11.21
       },
       "routers": {
         "dS": {
           "eprs": 17,
           "ls": 96,
-          "time_s": 0.177,
+          "time_s": 0.346,
+          "time_seed_s": 0.109,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -113,7 +120,86 @@
         "dSE": {
           "eprs": 16,
           "ls": 89,
-          "time_s": 0.19,
+          "time_s": 0.358,
+          "time_seed_s": 0.112,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "multiplier",
+      "qubits": 64,
+      "cx": 13040,
+      "ts": {
+        "eprs": 1601,
+        "teledata": 1558,
+        "telegate": 43,
+        "ls": 9654,
+        "seed": 0,
+        "time_seed_s": 220.31,
+        "time_s": 611.59
+      },
+      "routers": {
+        "dS": {
+          "eprs": 1663,
+          "ls": 10212,
+          "time_s": 1279.467,
+          "time_seed_s": 430.824,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 2,
+          "force_make_room": 1
+        },
+        "dSE": {
+          "eprs": 1523,
+          "ls": 9694,
+          "time_s": 1443.336,
+          "time_seed_s": 479.529,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "qaoa",
+      "qubits": 64,
+      "cx": 3920,
+      "ts": {
+        "eprs": 956,
+        "teledata": 824,
+        "telegate": 132,
+        "ls": 4189,
+        "seed": 0,
+        "time_seed_s": 38.5,
+        "time_s": 114.83
+      },
+      "routers": {
+        "dS": {
+          "eprs": 775,
+          "ls": 4355,
+          "time_s": 77.156,
+          "time_seed_s": 25.065,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 1,
+          "force_make_room": 1
+        },
+        "dSE": {
+          "eprs": 517,
+          "ls": 3634,
+          "time_s": 83.931,
+          "time_seed_s": 29.707,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -128,31 +214,34 @@
       "qubits": 64,
       "cx": 1966,
       "ts": {
-        "eprs": 410,
-        "teledata": 326,
-        "telegate": 84,
-        "ls": 1872,
+        "eprs": 312,
+        "teledata": 308,
+        "telegate": 4,
+        "ls": 1711,
         "seed": 0,
-        "time_s": 1.81
+        "time_seed_s": 6.65,
+        "time_s": 19.94
       },
       "routers": {
         "dS": {
-          "eprs": 231,
-          "ls": 1651,
-          "time_s": 22.061,
+          "eprs": 224,
+          "ls": 1673,
+          "time_s": 22.135,
+          "time_seed_s": 6.681,
           "aborted": false,
-          "relief_candidates": 44,
-          "relief_picks": 11,
-          "backup_activations": 0,
-          "force_make_room": 0
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 3,
+          "force_make_room": 6
         },
         "dSE": {
-          "eprs": 204,
-          "ls": 1563,
-          "time_s": 21.158,
+          "eprs": 192,
+          "ls": 1567,
+          "time_s": 29.984,
+          "time_seed_s": 8.839,
           "aborted": false,
-          "relief_candidates": 42,
-          "relief_picks": 9,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         }
@@ -164,33 +253,75 @@
       "qubits": 64,
       "cx": 8126,
       "ts": {
-        "eprs": 1365,
-        "teledata": 923,
-        "telegate": 442,
-        "ls": 6292,
+        "eprs": 889,
+        "teledata": 883,
+        "telegate": 6,
+        "ls": 5471,
         "seed": 0,
-        "time_s": 25.21
+        "time_seed_s": 8.58,
+        "time_s": 24.88
       },
       "routers": {
         "dS": {
-          "eprs": 695,
-          "ls": 5713,
-          "time_s": 256.11,
+          "eprs": 519,
+          "ls": 5706,
+          "time_s": 279.516,
+          "time_seed_s": 80.735,
           "aborted": false,
-          "relief_candidates": 72,
-          "relief_picks": 19,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 508,
-          "ls": 5229,
-          "time_s": 255.223,
+          "eprs": 497,
+          "ls": 5163,
+          "time_s": 261.179,
+          "time_seed_s": 85.74,
           "aborted": false,
-          "relief_candidates": 16,
-          "relief_picks": 3,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
+        }
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "qpeexact",
+      "qubits": 64,
+      "cx": 2139,
+      "ts": {
+        "eprs": 289,
+        "teledata": 281,
+        "telegate": 8,
+        "ls": 1706,
+        "seed": 0,
+        "time_seed_s": 1.14,
+        "time_s": 3.44
+      },
+      "routers": {
+        "dS": {
+          "eprs": 236,
+          "ls": 1671,
+          "time_s": 22.446,
+          "time_seed_s": 7.155,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 4,
+          "force_make_room": 7
+        },
+        "dSE": {
+          "eprs": 204,
+          "ls": 1566,
+          "time_s": 28.401,
+          "time_seed_s": 7.754,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 1,
+          "force_make_room": 2
         }
       }
     },
@@ -202,101 +333,26 @@
       "ts": null,
       "routers": {
         "dS": {
-          "eprs": 774,
-          "ls": 3832,
-          "time_s": 38.363,
+          "eprs": 800,
+          "ls": 3987,
+          "time_s": 39.381,
+          "time_seed_s": 13.666,
           "aborted": false,
-          "relief_candidates": 62,
-          "relief_picks": 16,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 721,
-          "ls": 3608,
-          "time_s": 46.153,
+          "eprs": 712,
+          "ls": 3635,
+          "time_s": 47.167,
+          "time_seed_s": 15.566,
           "aborted": false,
-          "relief_candidates": 48,
-          "relief_picks": 14,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
-        }
-      }
-    },
-    {
-      "circuit": "qpeexact",
-      "suite": "64q",
-      "cx": 2139,
-      "qubits": 64,
-      "ts": {
-        "eprs": 310,
-        "teledata": 308,
-        "telegate": 2,
-        "ls": 1624,
-        "seed": 0,
-        "time_s": 4.87
-      },
-      "routers": {
-        "dS": {
-          "eprs": 244,
-          "ls": 1681,
-          "time_s": 7.011,
-          "aborted": false
-        },
-        "dSE": {
-          "eprs": 271,
-          "ls": 1792,
-          "time_s": 8.576,
-          "aborted": false
-        }
-      }
-    },
-    {
-      "circuit": "qaoa",
-      "suite": "64q",
-      "cx": 3920,
-      "qubits": 64,
-      "ts": null,
-      "routers": {
-        "dS": {
-          "eprs": 812,
-          "ls": 4593,
-          "time_s": 25.0,
-          "aborted": false
-        },
-        "dSE": {
-          "eprs": 529,
-          "ls": 3688,
-          "time_s": 26.629,
-          "aborted": false
-        }
-      }
-    },
-    {
-      "circuit": "multiplier",
-      "suite": "64q",
-      "cx": 13040,
-      "qubits": 64,
-      "ts": {
-        "eprs": 2202,
-        "teledata": 2155,
-        "telegate": 47,
-        "ls": 11232,
-        "seed": 0,
-        "time_s": 85.69
-      },
-      "routers": {
-        "dS": {
-          "eprs": 1332,
-          "ls": 9074,
-          "time_s": 384.039,
-          "aborted": false
-        },
-        "dSE": {
-          "eprs": 1514,
-          "ls": 10109,
-          "time_s": 462.437,
-          "aborted": false
         }
       }
     }

@@ -1,75 +1,78 @@
 {
- "meta": {
-  "date": "2026-07-17",
-  "suite": "200q",
-  "layout": "per-core fill-adaptive corner reservation (k<=4, fill<=0.80), best of 3 SabreLayout seeds",
-  "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
-  "ts_seeds": 3,
-  "sl_seeds": 3,
-  "routers": {
-   "dS": "General_dSABRE_Router  (router.py)",
-   "dSE": "dSABRE_BurstExt        (dsabre_ext.py)"
-  },
-  "note": "dS/dSE regenerated on fixed layout; ts column preserved from prior run (TeleSABRE binary unavailable, layout-independent)"
- },
- "results": [
-  {
-   "suite": "200q",
-   "circuit": "qft",
-   "qubits": 200,
-   "cx": 7220,
-   "ts": null,
-   "routers": {
-    "dS": {
-     "eprs": 901,
-     "ls": 7209,
-     "time_s": 288.149,
-     "aborted": false,
-     "relief_candidates": 268,
-     "relief_picks": 64,
-     "backup_activations": 0,
-     "force_make_room": 0
-    },
-    "dSE": {
-     "eprs": 834,
-     "ls": 7043,
-     "time_s": 456.805,
-     "aborted": false,
-     "relief_candidates": 408,
-     "relief_picks": 97,
-     "backup_activations": 0,
-     "force_make_room": 0
+  "meta": {
+    "date": "2026-08-05",
+    "suite": "200q",
+    "layout": "SabreLayout corners-removed, best of 3 seeds",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+    "ts_seeds": 3,
+    "sl_seeds": 3,
+    "routers": {
+      "dS": "General_dSABRE_Router  (router.py)",
+      "dSE": "dSABRE_BurstExt        (dsabre_ext.py)"
     }
-   }
   },
-  {
-   "suite": "200q",
-   "circuit": "qpeexact",
-   "qubits": 200,
-   "cx": 7579,
-   "ts": null,
-   "routers": {
-    "dS": {
-     "eprs": 1219,
-     "ls": 8702,
-     "time_s": 499.337,
-     "aborted": false,
-     "relief_candidates": 4218,
-     "relief_picks": 276,
-     "backup_activations": 6,
-     "force_make_room": 8
+  "results": [
+    {
+      "suite": "200q",
+      "circuit": "qft",
+      "qubits": 200,
+      "cx": 7220,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 845,
+          "ls": 7382,
+          "layout": "sl_seed0",
+          "time_s": 303.49,
+          "aborted": false,
+          "backup_activations": 17,
+          "force_make_room": 15,
+          "relief_candidates": 0,
+          "relief_picks": 0
+        },
+        "dSE": {
+          "eprs": 975,
+          "ls": 7237,
+          "layout": "sl_seed0",
+          "time_s": 193.29,
+          "aborted": false,
+          "backup_activations": 14,
+          "force_make_room": 20,
+          "relief_candidates": 0,
+          "relief_picks": 0
+        }
+      }
     },
-    "dSE": {
-     "eprs": 1222,
-     "ls": 8766,
-     "time_s": 445.444,
-     "aborted": false,
-     "relief_candidates": 318,
-     "relief_picks": 78,
-     "backup_activations": 0,
-     "force_make_room": 0
+    {
+      "suite": "200q",
+      "circuit": "qpeexact",
+      "qubits": 200,
+      "cx": 7579,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 1020,
+          "ls": 8309,
+          "layout": "sl_seed1",
+          "time_s": 228.99,
+          "aborted": false,
+          "backup_activations": 41,
+          "force_make_room": 26,
+          "relief_candidates": 0,
+          "relief_picks": 0
+        },
+        "dSE": {
+          "eprs": 994,
+          "ls": 7915,
+          "layout": "sl_seed1",
+          "time_s": 234.22,
+          "aborted": false,
+          "backup_activations": 23,
+          "force_make_room": 28,
+          "relief_candidates": 0,
+          "relief_picks": 0
+        }
+      }
     }
-   }
-  }
- ]
+  ]
 }

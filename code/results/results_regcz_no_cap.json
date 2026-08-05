@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "date": "2026-08-05",
+    "config": "no_cap",
+    "arch": "H-grid 2x3 of 4x4 (96 physical)",
+    "family": "regular-graph CZ ansatz, gen_regular_cz.py",
+    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
+  },
+  "results": [
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d2_s0_64",
+      "degree": 2,
+      "seed": 0,
+      "cx": 1984,
+      "eprs": 612,
+      "ls": 2946,
+      "time_s": 134.703,
+      "aborted": false
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d2_s1_64",
+      "degree": 2,
+      "seed": 1,
+      "cx": 1984,
+      "eprs": 866,
+      "ls": 3918,
+      "time_s": 278.176,
+      "aborted": false
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d2_s2_64",
+      "degree": 2,
+      "seed": 2,
+      "cx": 1984,
+      "eprs": 384,
+      "ls": 1818,
+      "time_s": 71.104,
+      "aborted": false
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d3_s0_64",
+      "degree": 3,
+      "seed": 0,
+      "cx": 2016,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d3_s1_64",
+      "degree": 3,
+      "seed": 1,
+      "cx": 2016,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d3_s2_64",
+      "degree": 3,
+      "seed": 2,
+      "cx": 2016,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d4_s0_64",
+      "degree": 4,
+      "seed": 0,
+      "cx": 2048,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d4_s1_64",
+      "degree": 4,
+      "seed": 1,
+      "cx": 2048,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d4_s2_64",
+      "degree": 4,
+      "seed": 2,
+      "cx": 2048,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d6_s0_64",
+      "degree": 6,
+      "seed": 0,
+      "cx": 1920,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d6_s1_64",
+      "degree": 6,
+      "seed": 1,
+      "cx": 1920,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d6_s2_64",
+      "degree": 6,
+      "seed": 2,
+      "cx": 1920,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d8_s0_64",
+      "degree": 8,
+      "seed": 0,
+      "cx": 2048,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d8_s1_64",
+      "degree": 8,
+      "seed": 1,
+      "cx": 2048,
+      "aborted": true
+    },
+    {
+      "config": "no_cap",
+      "circuit": "regcz_d8_s2_64",
+      "degree": 8,
+      "seed": 2,
+      "cx": 2048,
+      "aborted": true
+    }
+  ]
+}

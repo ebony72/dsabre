@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-08-05",
+    "date": "2026-08-04",
     "suite": "heavyhex_ring",
     "arch": "ring of 4 IBM 27q heavy-hex cores (108 physical, 4 links)",
     "core_graph": [
@@ -36,14 +36,20 @@
         "telegate": 16,
         "ls": 2651,
         "seed": 0,
-        "time_seed_s": 4.79,
-        "time_s": 17.72
+        "time_seed_s": 1.18,
+        "time_s": 3.4
       },
       "routers": {
+        "dS": {
+          "eprs": 94,
+          "ls": 2325,
+          "time_s": 12.487,
+          "aborted": false
+        },
         "dSE": {
-          "eprs": 89,
-          "ls": 2316,
-          "time_s": 21.116,
+          "eprs": 83,
+          "ls": 2292,
+          "time_s": 13.365,
           "aborted": false
         }
       }
@@ -60,13 +66,19 @@
         "ls": 218,
         "seed": 0,
         "time_seed_s": 0.03,
-        "time_s": 0.11
+        "time_s": 0.1
       },
       "routers": {
+        "dS": {
+          "eprs": 2,
+          "ls": 43,
+          "time_s": 0.025,
+          "aborted": false
+        },
         "dSE": {
           "eprs": 2,
           "ls": 43,
-          "time_s": 0.021,
+          "time_s": 0.02,
           "aborted": false
         }
       }
@@ -82,14 +94,20 @@
         "telegate": 0,
         "ls": 497,
         "seed": 0,
-        "time_seed_s": 0.49,
-        "time_s": 1.49
+        "time_seed_s": 0.54,
+        "time_s": 1.57
       },
       "routers": {
+        "dS": {
+          "eprs": 12,
+          "ls": 151,
+          "time_s": 0.064,
+          "aborted": false
+        },
         "dSE": {
           "eprs": 12,
-          "ls": 149,
-          "time_s": 0.094,
+          "ls": 151,
+          "time_s": 0.125,
           "aborted": false
         }
       }
@@ -105,14 +123,20 @@
         "telegate": 0,
         "ls": 2869,
         "seed": 0,
-        "time_seed_s": 1.66,
-        "time_s": 4.84
+        "time_seed_s": 2.01,
+        "time_s": 6.4
       },
       "routers": {
+        "dS": {
+          "eprs": 119,
+          "ls": 2718,
+          "time_s": 21.481,
+          "aborted": false
+        },
         "dSE": {
-          "eprs": 109,
-          "ls": 2735,
-          "time_s": 15.694,
+          "eprs": 123,
+          "ls": 2753,
+          "time_s": 32.216,
           "aborted": false
         }
       }
@@ -128,14 +152,20 @@
         "telegate": 938,
         "ls": 11514,
         "seed": 0,
-        "time_seed_s": 21.81,
-        "time_s": 63.19
+        "time_seed_s": 30.77,
+        "time_s": 93.64
       },
       "routers": {
+        "dS": {
+          "eprs": 236,
+          "ls": 9338,
+          "time_s": 290.708,
+          "aborted": false
+        },
         "dSE": {
-          "eprs": 238,
-          "ls": 10085,
-          "time_s": 227.932,
+          "eprs": 241,
+          "ls": 9265,
+          "time_s": 259.394,
           "aborted": false
         }
       }
@@ -151,14 +181,20 @@
         "telegate": 52,
         "ls": 7511,
         "seed": 0,
-        "time_seed_s": 10.36,
-        "time_s": 30.63
+        "time_seed_s": 12.25,
+        "time_s": 36.55
       },
       "routers": {
+        "dS": {
+          "eprs": 478,
+          "ls": 5955,
+          "time_s": 36.866,
+          "aborted": false
+        },
         "dSE": {
-          "eprs": 448,
-          "ls": 5824,
-          "time_s": 31.569,
+          "eprs": 465,
+          "ls": 6070,
+          "time_s": 37.349,
           "aborted": false
         }
       }

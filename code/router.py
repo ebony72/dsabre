@@ -218,6 +218,37 @@ class General_dSABRE_Router:
         candidates.sort(key=lambda a: a.score)
         return candidates
 
+    # ── Transactions ───────────────────────────────────────────────────────────
+
+    def _snapshot(self, l2p, p2l, metrics):
+        """Capture the routing state; return a `rollback()` closure.
+
+        `rollback()` restores both layout maps and every scalar counter, drops
+        any trace entries appended since, and returns False -- so a failed
+        precondition is just `return rollback()`.  The trace is truncated
+        rather than copied, keeping a snapshot O(qubits) however long the trace
+        has grown.  Snapshots nest: an inner rollback restores the inner entry
+        state, leaving an enclosing one free to restore its own later.
+        """
+        saved_l2p = l2p.copy()
+        saved_p2l = p2l.copy()
+        # Scalars only: "trace" (list) is handled by truncation below, and no
+        # dict-valued metric is mutated inside a transaction.
+        saved_counters  = {k: v for k, v in metrics.items()
+                           if not isinstance(v, (list, dict))}
+        saved_trace_len = (len(metrics["trace"])
+                           if metrics.get("trace") is not None else 0)
+
+        def rollback() -> bool:
+            l2p.clear();  l2p.update(saved_l2p)
+            p2l.clear();  p2l.update(saved_p2l)
+            metrics.update(saved_counters)
+            if metrics.get("trace") is not None:
+                del metrics["trace"][saved_trace_len:]
+            return False
+
+        return rollback
+
     # ── Physical operations ────────────────────────────────────────────────────
 
     def _evict(self, p_comm, core_id, l2p, p2l, metrics, partner_phys=None):
@@ -275,24 +306,7 @@ class General_dSABRE_Router:
         """
         arch = self.arch
         cfg  = self.config
-
-        # Transaction snapshot: layouts, scalar counters, trace length.  The
-        # trace is truncated (not copied) on rollback, so the snapshot stays
-        # O(qubits) no matter how long the routing trace has grown.
-        saved_l2p = l2p.copy()
-        saved_p2l = p2l.copy()
-        saved_counters  = {k: v for k, v in metrics.items()
-                           if not isinstance(v, (list, dict))}
-        saved_trace_len = (len(metrics["trace"])
-                           if metrics.get("trace") is not None else 0)
-
-        def rollback() -> bool:
-            l2p.clear();  l2p.update(saved_l2p)
-            p2l.clear();  p2l.update(saved_p2l)
-            metrics.update(saved_counters)
-            if metrics.get("trace") is not None:
-                del metrics["trace"][saved_trace_len:]
-            return False
+        rollback = self._snapshot(l2p, p2l, metrics)
 
         # ── Action validation ─────────────────────────────────────────────
         # `inter_links_between` returns [] for non-adjacent cores, so the
@@ -602,16 +616,21 @@ class General_dSABRE_Router:
         """Ensure `target_core` has >= `min_free` free slots by relaying the
         chip's slack there one hop at a time, never dropping any core below
         1 free.  `protect` qubits (the gate's own two qubits) are never moved
-        as filler.  Returns False only if no slack core exists at all (i.e.
-        precondition (*) is violated) -- the caller should treat that as
-        backup_plan failing this attempt, exactly as the old code did.
+        as filler.
+
+        The relay is a single transaction: a chain that gets partway and then
+        stalls (no slack core, no eligible filler, or a hop its own
+        preconditions reject) rolls the whole chain back and returns False,
+        rather than leaving the chip rearranged by teleports that bought
+        nothing.  A caller treats False as backup_plan failing this attempt.
         """
         arch = self.arch
         if self._free_slots(target_core, arch, p2l) >= min_free:
             return True
+        rollback = self._snapshot(l2p, p2l, metrics)
         source = self._find_nearest_slack_core(target_core, p2l, min_free)
         if source is None:
-            return False
+            return rollback()
         path = arch.core_path[source][target_core]
         for i in range(len(path) - 1):
             cur, nxt = path[i], path[i + 1]
@@ -623,10 +642,10 @@ class General_dSABRE_Router:
                 None,
             )
             if filler is None:
-                return False
+                return rollback()
             links = arch.inter_links_between(nxt, cur)
             if not links:
-                return False
+                return rollback()
             p_comm_src, p_comm_dst = links[0]
             p_src = l2p[filler]
             n_s = min(arch.intra[nxt].neighbors(p_comm_src),
@@ -636,8 +655,129 @@ class General_dSABRE_Router:
                                   nxt, cur, cur, score=0.0),
                     l2p, p2l, metrics,
             ):
-                return False
+                return rollback()
             metrics["relay_hops"] += 1
+        # The relay is only worth its teleports if it actually delivered the
+        # slack it was called for.
+        if self._free_slots(target_core, arch, p2l) < min_free:
+            return rollback()
+        return True
+
+    # ── Whole-gate transactional recovery (2026-08-05) ─────────────────────────
+    #
+    # _backup_plan's cross-core branches (both the greedy and the relay-mode
+    # variants) move only q1, hop by hop, and simply `break` out of the loop
+    # the moment a hop fails -- so a stall midway leaves q1 parked wherever it
+    # got to, still not adjacent to q2, having spent whatever teleports it
+    # already used. Two things follow: (1) the router never tries moving q2
+    # instead, even when THAT direction is the one with room, and (2) a
+    # failure is not atomic -- the partial move stays applied.
+    #
+    # _route_gate_transaction below fixes both. It wraps one full attempt
+    # (relay room to every next core via the existing invariant-preserving
+    # `_relay_room_to`, teleport the mover hop by hop, then intra-core SWAP it
+    # onto the gate and execute) in a single snapshot: either the whole thing
+    # lands and the gate executes, or every mutation is rolled back and the
+    # state is bit-identical to entry. `_backup_plan` tries mover=q1 and, if
+    # that fails, mover=q2 -- so a one-sided bottleneck (room exists heading
+    # one way, not the other) no longer aborts recovery outright.
+    #
+    # Measured 2026-08-05 (see the capacity-safe fallback investigation):
+    # bit-for-bit unchanged on circuits where backup never fires, and net
+    # -8.2% total EPR on the 64q suite's 4 circuits where it does (ae -30%,
+    # multiplier -14%, qft -8%, qaoa -5%, qpeexact +2% the one regression).
+    # More importantly, on random_80 (10-core H-grid, 23,381 CX) -- the one
+    # archived instance where the OLD backup_plan hits DEADLOCK_BACKUP_FAILED
+    # outright (the greedy hop has no legal move, independent of iteration
+    # budget) -- this transaction never fails to make progress on any of the
+    # 3 SabreLayout candidates; given enough iterations (a separate, ordinary
+    # budget knob already scaled per suite via HardwareConfig) all 3 complete.
+    # The old branches are kept below as the fallback for the rare case
+    # neither operand's transaction can be validated (e.g. the active core
+    # graph is disconnected, or no port-avoiding staging path exists).
+
+    def _route_gate_transaction(self, node, mover, anchor, wdag, l2p, p2l,
+                                metrics) -> bool:
+        """Atomically bring `mover` to `anchor`'s core and execute `node`.
+
+        Either the gate executes (True) or the layout, counters, and trace
+        are exactly as at entry (False). `wdag` is only mutated on success
+        (the gate's removal is the transaction's last step), so a failed
+        attempt never needs to touch it.
+        """
+        arch = self.arch
+        rollback = self._snapshot(l2p, p2l, metrics)
+        target_core = arch.core_of(l2p[anchor])
+
+        # `anchor` never changes core here: relay hops protect it via
+        # `protect=`. `mover` is protected from being CHOSEN as filler the
+        # same way, but `_relay_room_to`'s hops run through `_apply_teleport`,
+        # whose own internal `_force_make_room` (called if a relay hop's
+        # source/destination core is itself full) has no knowledge of
+        # `mover` -- only of the filler qubit that specific call is actively
+        # relocating (`exclude_virt`). It can therefore incidentally displace
+        # `mover` to a different core as a side effect. Recompute cur_core/
+        # next_core from mover's actual position AFTER the relay rather than
+        # trusting the pre-relay values (`KeyError` in `_idist` otherwise,
+        # from treating a now-foreign physical qubit as being in `cur_core`)
+        # -- bounded by the core-graph diameter (the `num_cores + 1` guard is
+        # defensive, not load-bearing).
+        for _ in range(arch.num_cores + 1):
+            cur_core = arch.core_of(l2p[mover])
+            if cur_core == target_core:
+                break
+            next_core = arch.core_path[cur_core][target_core][1]
+            if not self._relay_room_to(next_core, l2p, p2l, metrics,
+                                       min_free=2, protect=(mover, anchor)):
+                return rollback()
+            cur_core = arch.core_of(l2p[mover])
+            if cur_core == target_core:
+                break
+            next_core = arch.core_path[cur_core][target_core][1]
+            hopped = False
+            for p_comm_src, p_comm_dst in arch.inter_links_between(cur_core,
+                                                                   next_core):
+                p_src = l2p[mover]
+                n_s = min(arch.intra[cur_core].neighbors(p_comm_src),
+                          key=lambda n: self._idist(cur_core, p_src, n))
+                if self._apply_teleport(
+                        TeleportAction(node, mover, p_src, n_s,
+                                       p_comm_src, p_comm_dst,
+                                       cur_core, next_core, target_core,
+                                       score=0.0),
+                        l2p, p2l, metrics,
+                ):
+                    hopped = True
+                    break
+            if not hopped:
+                return rollback()
+        if arch.core_of(l2p[mover]) != target_core:
+            return rollback()
+
+        p1, p2 = l2p[node.qargs[0]], l2p[node.qargs[1]]
+        ci = arch.core_of(p1)
+        try:
+            path = self._ipath(ci, p1, p2)
+        except Exception:
+            return rollback()
+        for i in range(len(path) - 2):
+            a, b = path[i], path[i + 1]
+            qa, qb = p2l[a], p2l[b]
+            if qa is not None: l2p[qa] = b
+            if qb is not None: l2p[qb] = a
+            p2l[a], p2l[b] = qb, qa
+            metrics["ls"]   += 1
+            metrics["cost"] += self.config.cost_local_swap
+            if self.config.trace_routing:
+                metrics["trace"].append(("SWAP", a, b, ci))
+        if not arch.Gr.has_edge(l2p[node.qargs[0]], l2p[node.qargs[1]]):
+            return rollback()
+
+        wdag.remove_op_node(node)
+        if self.config.trace_routing:
+            metrics["trace"].append(
+                ("GATE", node.qargs[0], node.qargs[1], ci)
+            )
         return True
 
     def _backup_plan(self, wdag, l2p, p2l, metrics):
@@ -672,6 +812,14 @@ class General_dSABRE_Router:
                     metrics["trace"].append(
                         ("GATE", q1, q2, arch.core_of(l2p[q1]))
                     )
+            return True
+
+        # Whole-gate transaction first, either direction: succeeds whenever
+        # EITHER operand can reach the other's core, atomically, and retires
+        # the gate outright rather than merely hopping it partway.
+        if self._route_gate_transaction(stuck, q1, q2, wdag, l2p, p2l, metrics):
+            return True
+        if self._route_gate_transaction(stuck, q2, q1, wdag, l2p, p2l, metrics):
             return True
 
         moved_any = False
