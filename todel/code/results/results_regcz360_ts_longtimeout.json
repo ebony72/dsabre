@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "date": "2026-07-29",
+    "circuit": "regcz_circ_d4_n360",
+    "device": "H_grid_4_5_5_5",
+    "seeds": 3,
+    "timeout_s": 3600,
+    "total_wall_s": 9341
+  },
+  "telesabre": null
+}

@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "date": "2026-08-04",
+    "config": "no_hopgain",
+    "arch": "H-grid 2x3 of 4x4 (96 physical)",
+    "family": "regular-graph CZ ansatz, gen_regular_cz.py",
+    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
+  },
+  "results": [
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d2_s0_64",
+      "degree": 2,
+      "seed": 0,
+      "cx": 1984,
+      "eprs": 357,
+      "ls": 1853,
+      "time_s": 41.703,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d2_s1_64",
+      "degree": 2,
+      "seed": 1,
+      "cx": 1984,
+      "eprs": 298,
+      "ls": 1463,
+      "time_s": 43.256,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d2_s2_64",
+      "degree": 2,
+      "seed": 2,
+      "cx": 1984,
+      "eprs": 232,
+      "ls": 1129,
+      "time_s": 20.675,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d3_s0_64",
+      "degree": 3,
+      "seed": 0,
+      "cx": 2016,
+      "eprs": 1358,
+      "ls": 6339,
+      "time_s": 109.909,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d3_s1_64",
+      "degree": 3,
+      "seed": 1,
+      "cx": 2016,
+      "eprs": 1355,
+      "ls": 6664,
+      "time_s": 101.088,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d3_s2_64",
+      "degree": 3,
+      "seed": 2,
+      "cx": 2016,
+      "eprs": 1225,
+      "ls": 6126,
+      "time_s": 93.622,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d4_s0_64",
+      "degree": 4,
+      "seed": 0,
+      "cx": 2048,
+      "eprs": 1663,
+      "ls": 8001,
+      "time_s": 91.817,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d4_s1_64",
+      "degree": 4,
+      "seed": 1,
+      "cx": 2048,
+      "eprs": 1869,
+      "ls": 9134,
+      "time_s": 100.524,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d4_s2_64",
+      "degree": 4,
+      "seed": 2,
+      "cx": 2048,
+      "eprs": 1943,
+      "ls": 9593,
+      "time_s": 109.953,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d6_s0_64",
+      "degree": 6,
+      "seed": 0,
+      "cx": 1920,
+      "eprs": 1919,
+      "ls": 9542,
+      "time_s": 67.263,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d6_s1_64",
+      "degree": 6,
+      "seed": 1,
+      "cx": 1920,
+      "eprs": 1889,
+      "ls": 9233,
+      "time_s": 62.898,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d6_s2_64",
+      "degree": 6,
+      "seed": 2,
+      "cx": 1920,
+      "eprs": 1847,
+      "ls": 9216,
+      "time_s": 63.498,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d8_s0_64",
+      "degree": 8,
+      "seed": 0,
+      "cx": 2048,
+      "eprs": 1904,
+      "ls": 9574,
+      "time_s": 61.593,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d8_s1_64",
+      "degree": 8,
+      "seed": 1,
+      "cx": 2048,
+      "eprs": 1869,
+      "ls": 9228,
+      "time_s": 48.54,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "regcz_d8_s2_64",
+      "degree": 8,
+      "seed": 2,
+      "cx": 2048,
+      "eprs": 1870,
+      "ls": 9545,
+      "time_s": 38.836,
+      "aborted": false
+    }
+  ]
+}

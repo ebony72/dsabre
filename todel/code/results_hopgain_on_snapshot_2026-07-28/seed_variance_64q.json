@@ -1,0 +1,168 @@
+{
+  "summary": [
+    {
+      "router": "TS",
+      "circuit": "ae",
+      "per_seed": [
+        353,
+        353,
+        353
+      ],
+      "valid": [
+        353,
+        353,
+        353
+      ]
+    },
+    {
+      "router": "dSE",
+      "circuit": "ae",
+      "per_seed": [
+        216,
+        313,
+        228
+      ],
+      "valid": [
+        216,
+        313,
+        228
+      ]
+    },
+    {
+      "router": "TS",
+      "circuit": "ghz",
+      "per_seed": [
+        16,
+        16,
+        16
+      ],
+      "valid": [
+        16,
+        16,
+        16
+      ]
+    },
+    {
+      "router": "dSE",
+      "circuit": "ghz",
+      "per_seed": [
+        16,
+        20,
+        19
+      ],
+      "valid": [
+        16,
+        20,
+        19
+      ]
+    },
+    {
+      "router": "TS",
+      "circuit": "graphstate",
+      "per_seed": [
+        62,
+        62,
+        62
+      ],
+      "valid": [
+        62,
+        62,
+        62
+      ]
+    },
+    {
+      "router": "dSE",
+      "circuit": "graphstate",
+      "per_seed": [
+        19,
+        21,
+        22
+      ],
+      "valid": [
+        19,
+        21,
+        22
+      ]
+    },
+    {
+      "router": "TS",
+      "circuit": "qft",
+      "per_seed": [
+        312,
+        312,
+        312
+      ],
+      "valid": [
+        312,
+        312,
+        312
+      ]
+    },
+    {
+      "router": "dSE",
+      "circuit": "qft",
+      "per_seed": [
+        345,
+        246,
+        303
+      ],
+      "valid": [
+        345,
+        246,
+        303
+      ]
+    },
+    {
+      "router": "TS",
+      "circuit": "qnn",
+      "per_seed": [
+        889,
+        889,
+        889
+      ],
+      "valid": [
+        889,
+        889,
+        889
+      ]
+    },
+    {
+      "router": "dSE",
+      "circuit": "qnn",
+      "per_seed": [
+        605,
+        526,
+        521
+      ],
+      "valid": [
+        605,
+        526,
+        521
+      ]
+    },
+    {
+      "router": "TS",
+      "circuit": "random",
+      "per_seed": [
+        null,
+        null,
+        null
+      ],
+      "valid": []
+    },
+    {
+      "router": "dSE",
+      "circuit": "random",
+      "per_seed": [
+        747,
+        714,
+        740
+      ],
+      "valid": [
+        747,
+        714,
+        740
+      ]
+    }
+  ]
+}

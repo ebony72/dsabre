@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "date": "2026-07-20",
+    "description": "64q suite extension: qpeexact/qaoa/multiplier",
+    "protocols": "identical to Table VI rows; see module docstring"
+  },
+  "results": [
+    {
+      "circuit": "qpeexact",
+      "suite": "64q",
+      "cx": 2139,
+      "ts": {
+        "eprs": 310,
+        "teledata": 308,
+        "telegate": 2,
+        "ls": 1624,
+        "seed": 0,
+        "time_s": 4.87
+      },
+      "routers": {
+        "dS": {
+          "eprs": 244,
+          "ls": 1681,
+          "time_s": 7.011,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 271,
+          "ls": 1792,
+          "time_s": 8.576,
+          "aborted": false
+        }
+      },
+      "esd": 96,
+      "php": 97,
+      "py_ebits": 96,
+      "py_method": "CoverEmbeddingSteinerDetached"
+    },
+    {
+      "circuit": "qaoa",
+      "suite": "64q",
+      "cx": 3920,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 812,
+          "ls": 4593,
+          "time_s": 25.0,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 529,
+          "ls": 3688,
+          "time_s": 26.629,
+          "aborted": false
+        }
+      },
+      "esd": 472,
+      "php": 511,
+      "py_ebits": 472,
+      "py_method": "CoverEmbeddingSteinerDetached"
+    },
+    {
+      "circuit": "multiplier",
+      "suite": "64q",
+      "cx": 13040,
+      "ts": {
+        "eprs": 2202,
+        "teledata": 2155,
+        "telegate": 47,
+        "ls": 11232,
+        "seed": 0,
+        "time_s": 85.69
+      },
+      "routers": {
+        "dS": {
+          "eprs": 1332,
+          "ls": 9074,
+          "time_s": 384.039,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 1514,
+          "ls": 10109,
+          "time_s": 462.437,
+          "aborted": false
+        }
+      },
+      "esd": null,
+      "php": 2957,
+      "py_ebits": 2957,
+      "py_method": "PartitioningHeterogeneous"
+    }
+  ]
+}

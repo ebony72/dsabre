@@ -1,0 +1,137 @@
+{
+  "meta": {
+    "date": "2026-07-28",
+    "arch": "H-grid 2x3 of 4x4 (96 physical)",
+    "family": "regular-graph CZ ansatz, gen_regular_cz.py",
+    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
+  },
+  "telesabre": [
+    {
+      "circuit": "regcz_d2_s0_64",
+      "degree": 2,
+      "seed": 0,
+      "cx": 1984,
+      "ts": {
+        "eprs": 874,
+        "teledata": 841,
+        "telegate": 33,
+        "ls": 3016,
+        "seed": 0,
+        "time_s": 34.12
+      }
+    },
+    {
+      "circuit": "regcz_d2_s1_64",
+      "degree": 2,
+      "seed": 1,
+      "cx": 1984,
+      "ts": {
+        "eprs": 932,
+        "teledata": 872,
+        "telegate": 60,
+        "ls": 3433,
+        "seed": 0,
+        "time_s": 14.5
+      }
+    },
+    {
+      "circuit": "regcz_d2_s2_64",
+      "degree": 2,
+      "seed": 2,
+      "cx": 1984,
+      "ts": {
+        "eprs": 778,
+        "teledata": 721,
+        "telegate": 57,
+        "ls": 2825,
+        "seed": 0,
+        "time_s": 8.26
+      }
+    },
+    {
+      "circuit": "regcz_d3_s0_64",
+      "degree": 3,
+      "seed": 0,
+      "cx": 2016,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d3_s1_64",
+      "degree": 3,
+      "seed": 1,
+      "cx": 2016,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d3_s2_64",
+      "degree": 3,
+      "seed": 2,
+      "cx": 2016,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d4_s0_64",
+      "degree": 4,
+      "seed": 0,
+      "cx": 2048,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d4_s1_64",
+      "degree": 4,
+      "seed": 1,
+      "cx": 2048,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d4_s2_64",
+      "degree": 4,
+      "seed": 2,
+      "cx": 2048,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d6_s0_64",
+      "degree": 6,
+      "seed": 0,
+      "cx": 1920,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d6_s1_64",
+      "degree": 6,
+      "seed": 1,
+      "cx": 1920,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d6_s2_64",
+      "degree": 6,
+      "seed": 2,
+      "cx": 1920,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d8_s0_64",
+      "degree": 8,
+      "seed": 0,
+      "cx": 2048,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d8_s1_64",
+      "degree": 8,
+      "seed": 1,
+      "cx": 2048,
+      "ts": null
+    },
+    {
+      "circuit": "regcz_d8_s2_64",
+      "degree": 8,
+      "seed": 2,
+      "cx": 2048,
+      "ts": null
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "date": "2026-05-21",
+    "circuit": "qpeexact",
+    "qubits": 360,
+    "cx": 13979,
+    "arch": "H-grid 2x3 9x9 (486 phys)",
+    "protocol": "best of 3 SabreLayout seeds, fwd-bwd-fwd",
+    "total_wall_s": 6213.6
+  },
+  "hop_gain_on": {
+    "best": {
+      "eprs": 3296,
+      "ls": 38230,
+      "layout": "sl_seed0",
+      "time_s": 996.13
+    },
+    "seeds": [
+      {
+        "seed": 0,
+        "eprs": 3296,
+        "ls": 38230,
+        "time_s": 996.13
+      },
+      {
+        "seed": 1,
+        "eprs": 3729,
+        "ls": 37995,
+        "time_s": 1080.94
+      },
+      {
+        "seed": 2,
+        "eprs": 6576,
+        "ls": 45136,
+        "time_s": 1047.64
+      }
+    ]
+  },
+  "hop_gain_off": {
+    "best": {
+      "eprs": 787,
+      "ls": 31200,
+      "layout": "sl_seed1",
+      "time_s": 896.57
+    },
+    "seeds": [
+      {
+        "seed": 0,
+        "eprs": 7886,
+        "ls": 37775,
+        "time_s": 1107.0
+      },
+      {
+        "seed": 1,
+        "eprs": 787,
+        "ls": 31200,
+        "time_s": 896.57
+      },
+      {
+        "seed": 2,
+        "eprs": 6596,
+        "ls": 45741,
+        "time_s": 1083.37
+      }
+    ]
+  }
+}

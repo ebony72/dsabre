@@ -1,0 +1,75 @@
+{
+ "meta": {
+  "date": "2026-07-17",
+  "suite": "200q",
+  "layout": "per-core fill-adaptive corner reservation (k<=4, fill<=0.80), best of 3 SabreLayout seeds",
+  "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+  "ts_seeds": 3,
+  "sl_seeds": 3,
+  "routers": {
+   "dS": "General_dSABRE_Router  (router.py)",
+   "dSE": "dSABRE_BurstExt        (dsabre_ext.py)"
+  },
+  "note": "dS/dSE regenerated on fixed layout; ts column preserved from prior run (TeleSABRE binary unavailable, layout-independent)"
+ },
+ "results": [
+  {
+   "suite": "200q",
+   "circuit": "qft",
+   "qubits": 200,
+   "cx": 7220,
+   "ts": null,
+   "routers": {
+    "dS": {
+     "eprs": 901,
+     "ls": 7209,
+     "time_s": 288.149,
+     "aborted": false,
+     "relief_candidates": 268,
+     "relief_picks": 64,
+     "backup_activations": 0,
+     "force_make_room": 0
+    },
+    "dSE": {
+     "eprs": 834,
+     "ls": 7043,
+     "time_s": 456.805,
+     "aborted": false,
+     "relief_candidates": 408,
+     "relief_picks": 97,
+     "backup_activations": 0,
+     "force_make_room": 0
+    }
+   }
+  },
+  {
+   "suite": "200q",
+   "circuit": "qpeexact",
+   "qubits": 200,
+   "cx": 7579,
+   "ts": null,
+   "routers": {
+    "dS": {
+     "eprs": 1219,
+     "ls": 8702,
+     "time_s": 499.337,
+     "aborted": false,
+     "relief_candidates": 4218,
+     "relief_picks": 276,
+     "backup_activations": 6,
+     "force_make_room": 8
+    },
+    "dSE": {
+     "eprs": 1222,
+     "ls": 8766,
+     "time_s": 445.444,
+     "aborted": false,
+     "relief_candidates": 318,
+     "relief_picks": 78,
+     "backup_activations": 0,
+     "force_make_room": 0
+    }
+   }
+  }
+ ]
+}

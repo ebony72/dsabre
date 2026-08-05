@@ -1,0 +1,172 @@
+{
+  "meta": {
+    "date": "2026-07-28",
+    "suite": "heavyhex_star",
+    "arch": "star of 4 IBM 27q heavy-hex cores (108 physical, 3 links)",
+    "core_graph": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
+  },
+  "results": [
+    {
+      "suite": "heavyhex_star",
+      "circuit": "ae",
+      "qubits": 64,
+      "cx": 1962,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 136,
+          "ls": 2419,
+          "time_s": 11.04,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 141,
+          "ls": 2218,
+          "time_s": 13.321,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_star",
+      "circuit": "ghz",
+      "qubits": 64,
+      "cx": 63,
+      "ts": {
+        "eprs": 6,
+        "teledata": 6,
+        "telegate": 0,
+        "ls": 265,
+        "seed": 0,
+        "time_s": 0.03
+      },
+      "routers": {
+        "dS": {
+          "eprs": 3,
+          "ls": 72,
+          "time_s": 0.026,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 3,
+          "ls": 72,
+          "time_s": 0.027,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_star",
+      "circuit": "graphstate",
+      "qubits": 64,
+      "cx": 64,
+      "ts": {
+        "eprs": 37,
+        "teledata": 36,
+        "telegate": 1,
+        "ls": 544,
+        "seed": 0,
+        "time_s": 0.35
+      },
+      "routers": {
+        "dS": {
+          "eprs": 10,
+          "ls": 120,
+          "time_s": 0.044,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 10,
+          "ls": 120,
+          "time_s": 0.045,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_star",
+      "circuit": "qft",
+      "qubits": 64,
+      "cx": 1966,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 143,
+          "ls": 2856,
+          "time_s": 11.163,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 123,
+          "ls": 2594,
+          "time_s": 10.117,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_star",
+      "circuit": "qnn",
+      "qubits": 64,
+      "cx": 8126,
+      "ts": {
+        "eprs": 683,
+        "teledata": 355,
+        "telegate": 328,
+        "ls": 8736,
+        "seed": 0,
+        "time_s": 12.58
+      },
+      "routers": {
+        "dS": {
+          "eprs": 301,
+          "ls": 8813,
+          "time_s": 122.778,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 248,
+          "ls": 8720,
+          "time_s": 129.586,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_star",
+      "circuit": "random",
+      "qubits": 64,
+      "cx": 1627,
+      "ts": null,
+      "routers": {
+        "dS": {
+          "eprs": 487,
+          "ls": 5470,
+          "time_s": 18.004,
+          "aborted": false
+        },
+        "dSE": {
+          "eprs": 466,
+          "ls": 5586,
+          "time_s": 18.613,
+          "aborted": false
+        }
+      }
+    }
+  ]
+}

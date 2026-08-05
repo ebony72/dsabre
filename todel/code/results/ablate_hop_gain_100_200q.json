@@ -1,0 +1,271 @@
+{
+  "100q_qft": {
+    "meta": {
+      "date": "2026-08-05",
+      "suite": "100q",
+      "circuit": "qft",
+      "qubits": 100,
+      "cx": 3420,
+      "arch": "H-grid 2x3 5x5 (150 physical)",
+      "protocol": "best of 3 SabreLayout seeds, fwd-bwd-fwd",
+      "total_wall_s": 325.4
+    },
+    "hop_gain_on": {
+      "best": {
+        "eprs": 245,
+        "ls": 2772,
+        "layout": "sl_seed0",
+        "time_s": 38.36
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "eprs": 245,
+          "ls": 2772,
+          "time_s": 38.36
+        },
+        {
+          "seed": 1,
+          "eprs": 314,
+          "ls": 3115,
+          "time_s": 93.83
+        },
+        {
+          "seed": 2,
+          "eprs": 276,
+          "ls": 3086,
+          "time_s": 44.6
+        }
+      ]
+    },
+    "hop_gain_off": {
+      "best": {
+        "eprs": 245,
+        "ls": 2772,
+        "layout": "sl_seed0",
+        "time_s": 36.99
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "eprs": 245,
+          "ls": 2772,
+          "time_s": 36.99
+        },
+        {
+          "seed": 1,
+          "eprs": 314,
+          "ls": 3115,
+          "time_s": 69.91
+        },
+        {
+          "seed": 2,
+          "eprs": 276,
+          "ls": 3086,
+          "time_s": 41.26
+        }
+      ]
+    }
+  },
+  "100q_qpeexact": {
+    "meta": {
+      "date": "2026-08-05",
+      "suite": "100q",
+      "circuit": "qpeexact",
+      "qubits": 100,
+      "cx": 3579,
+      "arch": "H-grid 2x3 5x5 (150 physical)",
+      "protocol": "best of 3 SabreLayout seeds, fwd-bwd-fwd",
+      "total_wall_s": 359.8
+    },
+    "hop_gain_on": {
+      "best": {
+        "eprs": 334,
+        "ls": 3311,
+        "layout": "sl_seed2",
+        "time_s": 51.53
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "eprs": 359,
+          "ls": 3322,
+          "time_s": 90.36
+        },
+        {
+          "seed": 1,
+          "eprs": 356,
+          "ls": 3153,
+          "time_s": 43.3
+        },
+        {
+          "seed": 2,
+          "eprs": 334,
+          "ls": 3311,
+          "time_s": 51.53
+        }
+      ]
+    },
+    "hop_gain_off": {
+      "best": {
+        "eprs": 334,
+        "ls": 3311,
+        "layout": "sl_seed2",
+        "time_s": 49.56
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "eprs": 359,
+          "ls": 3322,
+          "time_s": 82.69
+        },
+        {
+          "seed": 1,
+          "eprs": 356,
+          "ls": 3153,
+          "time_s": 41.87
+        },
+        {
+          "seed": 2,
+          "eprs": 334,
+          "ls": 3311,
+          "time_s": 49.56
+        }
+      ]
+    }
+  },
+  "200q_qft": {
+    "meta": {
+      "date": "2026-08-05",
+      "suite": "200q",
+      "circuit": "qft",
+      "qubits": 200,
+      "cx": 7220,
+      "arch": "H-grid 4x3 5x5 (300 physical)",
+      "protocol": "best of 3 SabreLayout seeds, fwd-bwd-fwd",
+      "total_wall_s": 1506.7
+    },
+    "hop_gain_on": {
+      "best": {
+        "eprs": 790,
+        "ls": 7230,
+        "layout": "sl_seed0",
+        "time_s": 321.45
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "eprs": 790,
+          "ls": 7230,
+          "time_s": 321.45
+        },
+        {
+          "seed": 1,
+          "eprs": 870,
+          "ls": 7394,
+          "time_s": 322.88
+        },
+        {
+          "seed": 2,
+          "aborted": true,
+          "time_s": 106.97
+        }
+      ]
+    },
+    "hop_gain_off": {
+      "best": {
+        "eprs": 753,
+        "ls": 6957,
+        "layout": "sl_seed0",
+        "time_s": 208.0
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "eprs": 753,
+          "ls": 6957,
+          "time_s": 208.0
+        },
+        {
+          "seed": 1,
+          "eprs": 949,
+          "ls": 7697,
+          "time_s": 436.2
+        },
+        {
+          "seed": 2,
+          "aborted": true,
+          "time_s": 110.05
+        }
+      ]
+    }
+  },
+  "200q_qpeexact": {
+    "meta": {
+      "date": "2026-08-05",
+      "suite": "200q",
+      "circuit": "qpeexact",
+      "qubits": 200,
+      "cx": 7579,
+      "arch": "H-grid 4x3 5x5 (300 physical)",
+      "protocol": "best of 3 SabreLayout seeds, fwd-bwd-fwd",
+      "total_wall_s": 2760.6
+    },
+    "hop_gain_on": {
+      "best": {
+        "eprs": 1133,
+        "ls": 8290,
+        "layout": "sl_seed1",
+        "time_s": 384.92
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "aborted": true,
+          "time_s": 231.36
+        },
+        {
+          "seed": 1,
+          "eprs": 1133,
+          "ls": 8290,
+          "time_s": 384.92
+        },
+        {
+          "seed": 2,
+          "eprs": 1295,
+          "ls": 9193,
+          "time_s": 696.8
+        }
+      ]
+    },
+    "hop_gain_off": {
+      "best": {
+        "eprs": 1102,
+        "ls": 7926,
+        "layout": "sl_seed0",
+        "time_s": 494.06
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "eprs": 1102,
+          "ls": 7926,
+          "time_s": 494.06
+        },
+        {
+          "seed": 1,
+          "eprs": 1133,
+          "ls": 8290,
+          "time_s": 507.83
+        },
+        {
+          "seed": 2,
+          "eprs": 1183,
+          "ls": 8463,
+          "time_s": 444.07
+        }
+      ]
+    }
+  }
+}

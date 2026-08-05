@@ -1,0 +1,358 @@
+{
+ "meta": {
+  "date": "2026-07-18",
+  "description": "dSABRE (dS+dSE) routed from pytket-dqc HypergraphPartitioning partition (best of 5 seeds); current router (node_decay removed)",
+  "layout": "pytket-dqc HypergraphPartitioning, best of 5 seeds",
+  "py_seeds": 5
+ },
+ "results": {
+  "25q": [
+   {
+    "circuit": "ae",
+    "cx": 558,
+    "py_ebits": 85,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 39,
+      "ls": 329,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 23,
+      "ls": 311,
+      "aborted": false
+     }
+    },
+    "suite": "25q"
+   },
+   {
+    "circuit": "ghz",
+    "cx": 24,
+    "py_ebits": 3,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 3,
+      "ls": 19,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 3,
+      "ls": 19,
+      "aborted": false
+     }
+    },
+    "suite": "25q"
+   },
+   {
+    "circuit": "graphstate",
+    "cx": 25,
+    "py_ebits": 4,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 4,
+      "ls": 20,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 4,
+      "ls": 20,
+      "aborted": false
+     }
+    },
+    "suite": "25q"
+   },
+   {
+    "circuit": "qft",
+    "cx": 580,
+    "py_ebits": 120,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 53,
+      "ls": 389,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 33,
+      "ls": 311,
+      "aborted": false
+     }
+    },
+    "suite": "25q"
+   },
+   {
+    "circuit": "qnn",
+    "cx": 1223,
+    "py_ebits": 152,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 63,
+      "ls": 685,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 48,
+      "ls": 672,
+      "aborted": false
+     }
+    },
+    "suite": "25q"
+   },
+   {
+    "circuit": "random",
+    "cx": 1124,
+    "py_ebits": 665,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 197,
+      "ls": 1242,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 185,
+      "ls": 1196,
+      "aborted": false
+     }
+    },
+    "suite": "25q"
+   }
+  ],
+  "36q": [
+   {
+    "circuit": "bv",
+    "cx": 17,
+    "py_ebits": 3,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 1,
+      "ls": 12,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 1,
+      "ls": 12,
+      "aborted": false
+     }
+    },
+    "suite": "36q"
+   },
+   {
+    "circuit": "dj",
+    "cx": 35,
+    "py_ebits": 3,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 12,
+      "ls": 71,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 12,
+      "ls": 71,
+      "aborted": false
+     }
+    },
+    "suite": "36q"
+   },
+   {
+    "circuit": "qaoa",
+    "cx": 1200,
+    "py_ebits": 194,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 180,
+      "ls": 1123,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 156,
+      "ls": 1060,
+      "aborted": false
+     }
+    },
+    "suite": "36q"
+   },
+   {
+    "circuit": "qpeexact",
+    "cx": 1019,
+    "py_ebits": 175,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 87,
+      "ls": 697,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 74,
+      "ls": 626,
+      "aborted": false
+     }
+    },
+    "suite": "36q"
+   },
+   {
+    "circuit": "vqe_su2",
+    "cx": 105,
+    "py_ebits": 9,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 9,
+      "ls": 82,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 9,
+      "ls": 82,
+      "aborted": false
+     }
+    },
+    "suite": "36q"
+   },
+   {
+    "circuit": "wstate",
+    "cx": 70,
+    "py_ebits": 6,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 8,
+      "ls": 49,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 8,
+      "ls": 49,
+      "aborted": false
+     }
+    },
+    "suite": "36q"
+   }
+  ],
+  "64q": [
+   {
+    "circuit": "ae",
+    "cx": 1962,
+    "py_ebits": 519,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 288,
+      "ls": 1875,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 232,
+      "ls": 1481,
+      "aborted": false
+     }
+    },
+    "suite": "64q"
+   },
+   {
+    "circuit": "ghz",
+    "cx": 63,
+    "py_ebits": 7,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 7,
+      "ls": 55,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 7,
+      "ls": 55,
+      "aborted": false
+     }
+    },
+    "suite": "64q"
+   },
+   {
+    "circuit": "graphstate",
+    "cx": 64,
+    "py_ebits": 9,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 6,
+      "ls": 50,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 6,
+      "ls": 50,
+      "aborted": false
+     }
+    },
+    "suite": "64q"
+   },
+   {
+    "circuit": "qft",
+    "cx": 1966,
+    "py_ebits": 591,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 240,
+      "ls": 1675,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 218,
+      "ls": 1578,
+      "aborted": false
+     }
+    },
+    "suite": "64q"
+   },
+   {
+    "circuit": "qnn",
+    "cx": 8126,
+    "py_ebits": 736,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 680,
+      "ls": 5836,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 509,
+      "ls": 5209,
+      "aborted": false
+     }
+    },
+    "suite": "64q"
+   },
+   {
+    "circuit": "random",
+    "cx": 1627,
+    "py_ebits": 1181,
+    "py_method": "HypergraphPartitioning",
+    "routers": {
+     "dS": {
+      "eprs": 782,
+      "ls": 3942,
+      "aborted": false
+     },
+     "dSE": {
+      "eprs": 717,
+      "ls": 3579,
+      "aborted": false
+     }
+    },
+    "suite": "64q"
+   }
+  ]
+ }
+}

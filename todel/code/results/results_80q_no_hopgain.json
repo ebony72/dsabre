@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "config": "no_hopgain",
+    "date": "2026-08-05",
+    "arch": "H-grid 2x5 of 4x4 (160 physical, 10 cores, 13 links, core diameter 5)",
+    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
+  },
+  "results": [
+    {
+      "config": "no_hopgain",
+      "circuit": "ae",
+      "cx": 2780,
+      "eprs": 246,
+      "ls": 2007,
+      "teles": 246,
+      "hops_per_tele": 1.0,
+      "time_s": 22.714,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "ghz",
+      "cx": 79,
+      "eprs": 10,
+      "ls": 61,
+      "teles": 10,
+      "hops_per_tele": 1.0,
+      "time_s": 0.033,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "graphstate",
+      "cx": 80,
+      "eprs": 25,
+      "ls": 114,
+      "teles": 25,
+      "hops_per_tele": 1.0,
+      "time_s": 0.083,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "qft",
+      "cx": 2660,
+      "eprs": 269,
+      "ls": 2041,
+      "teles": 269,
+      "hops_per_tele": 1.0,
+      "time_s": 14.975,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "qnn",
+      "cx": 12718,
+      "eprs": 820,
+      "ls": 8465,
+      "teles": 820,
+      "hops_per_tele": 1.0,
+      "time_s": 220.999,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "random",
+      "cx": 23381,
+      "aborted": true
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "qpeexact",
+      "cx": 2779,
+      "eprs": 434,
+      "ls": 2648,
+      "teles": 434,
+      "hops_per_tele": 1.0,
+      "time_s": 60.128,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "qaoa",
+      "cx": 6096,
+      "eprs": 910,
+      "ls": 5983,
+      "teles": 910,
+      "hops_per_tele": 1.0,
+      "time_s": 81.463,
+      "aborted": false
+    },
+    {
+      "config": "no_hopgain",
+      "circuit": "multiplier",
+      "cx": 20378,
+      "eprs": 2556,
+      "ls": 16173,
+      "teles": 2556,
+      "hops_per_tele": 1.0,
+      "time_s": 1185.406,
+      "aborted": false
+    }
+  ]
+}

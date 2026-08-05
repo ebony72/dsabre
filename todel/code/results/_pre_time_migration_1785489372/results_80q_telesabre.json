@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "date": "2026-07-28",
+    "arch": "H-grid 2x5 of 4x4 (160 physical, 10 cores, 13 links, core diameter 5)",
+    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
+  },
+  "telesabre": [
+    {
+      "circuit": "ae",
+      "cx": 2780,
+      "ts": {
+        "eprs": 788,
+        "teledata": 776,
+        "telegate": 12,
+        "ls": 2814,
+        "seed": 0,
+        "time_s": 4.13
+      }
+    },
+    {
+      "circuit": "ghz",
+      "cx": 79,
+      "ts": {
+        "eprs": 21,
+        "teledata": 21,
+        "telegate": 0,
+        "ls": 143,
+        "seed": 0,
+        "time_s": 0.03
+      }
+    },
+    {
+      "circuit": "graphstate",
+      "cx": 80,
+      "ts": {
+        "eprs": 158,
+        "teledata": 157,
+        "telegate": 1,
+        "ls": 499,
+        "seed": 0,
+        "time_s": 2.92
+      }
+    },
+    {
+      "circuit": "qft",
+      "cx": 2660,
+      "ts": {
+        "eprs": 391,
+        "teledata": 389,
+        "telegate": 2,
+        "ls": 2165,
+        "seed": 0,
+        "time_s": 4.58
+      }
+    },
+    {
+      "circuit": "qnn",
+      "cx": 12718,
+      "ts": {
+        "eprs": 1286,
+        "teledata": 1194,
+        "telegate": 92,
+        "ls": 8338,
+        "seed": 0,
+        "time_s": 26.37
+      }
+    },
+    {
+      "circuit": "random",
+      "cx": 23381,
+      "ts": null
+    },
+    {
+      "circuit": "qpeexact",
+      "cx": 2779,
+      "ts": {
+        "eprs": 487,
+        "teledata": 469,
+        "telegate": 18,
+        "ls": 2244,
+        "seed": 0,
+        "time_s": 2.75
+      }
+    },
+    {
+      "circuit": "qaoa",
+      "cx": 6096,
+      "ts": {
+        "eprs": 1494,
+        "teledata": 1425,
+        "telegate": 69,
+        "ls": 6188,
+        "seed": 0,
+        "time_s": 15.43
+      }
+    },
+    {
+      "circuit": "multiplier",
+      "cx": 20378,
+      "ts": null
+    }
+  ]
+}
