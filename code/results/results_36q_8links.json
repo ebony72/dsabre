@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-05-14",
+    "date": "2026-08-04",
     "suite": "36q",
     "arch": "B-grid 2x2 4x4 (64 qubits) \u2014 8 inter-core links",
     "extra_links": [
@@ -37,18 +37,18 @@
       "qubits": 36,
       "cx": 17,
       "ts": {
-        "eprs": 4,
-        "teledata": 4,
+        "eprs": 5,
+        "teledata": 5,
         "telegate": 0,
-        "ls": 24,
+        "ls": 29,
         "seed": 0,
         "time_s": 0.01
       },
       "routers": {
         "dS": {
           "eprs": 1,
-          "ls": 12,
-          "time_s": 0.004,
+          "ls": 11,
+          "time_s": 0.005,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -57,8 +57,8 @@
         },
         "dSE": {
           "eprs": 1,
-          "ls": 12,
-          "time_s": 0.004,
+          "ls": 11,
+          "time_s": 0.006,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -73,18 +73,18 @@
       "qubits": 36,
       "cx": 35,
       "ts": {
-        "eprs": 5,
-        "teledata": 5,
+        "eprs": 6,
+        "teledata": 6,
         "telegate": 0,
-        "ls": 53,
+        "ls": 56,
         "seed": 0,
         "time_s": 0.02
       },
       "routers": {
         "dS": {
           "eprs": 3,
-          "ls": 27,
-          "time_s": 0.011,
+          "ls": 24,
+          "time_s": 0.012,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -93,8 +93,8 @@
         },
         "dSE": {
           "eprs": 3,
-          "ls": 27,
-          "time_s": 0.011,
+          "ls": 24,
+          "time_s": 0.013,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -109,31 +109,31 @@
       "qubits": 36,
       "cx": 1200,
       "ts": {
-        "eprs": 254,
-        "teledata": 248,
-        "telegate": 6,
-        "ls": 988,
+        "eprs": 225,
+        "teledata": 223,
+        "telegate": 2,
+        "ls": 916,
         "seed": 0,
-        "time_s": 0.75
+        "time_s": 0.66
       },
       "routers": {
         "dS": {
-          "eprs": 171,
-          "ls": 1259,
-          "time_s": 3.349,
+          "eprs": 168,
+          "ls": 1033,
+          "time_s": 2.201,
           "aborted": false,
-          "relief_candidates": 16,
-          "relief_picks": 2,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 139,
-          "ls": 1288,
-          "time_s": 3.839,
+          "eprs": 142,
+          "ls": 954,
+          "time_s": 2.386,
           "aborted": false,
-          "relief_candidates": 8,
-          "relief_picks": 1,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         }
@@ -145,31 +145,31 @@
       "qubits": 36,
       "cx": 1019,
       "ts": {
-        "eprs": 207,
-        "teledata": 207,
-        "telegate": 0,
-        "ls": 683,
+        "eprs": 164,
+        "teledata": 162,
+        "telegate": 2,
+        "ls": 686,
         "seed": 0,
-        "time_s": 0.55
+        "time_s": 0.53
       },
       "routers": {
         "dS": {
-          "eprs": 69,
-          "ls": 834,
-          "time_s": 1.779,
+          "eprs": 60,
+          "ls": 626,
+          "time_s": 1.304,
           "aborted": false,
-          "relief_candidates": 12,
-          "relief_picks": 2,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 68,
-          "ls": 871,
-          "time_s": 1.957,
+          "eprs": 62,
+          "ls": 558,
+          "time_s": 1.346,
           "aborted": false,
-          "relief_candidates": 8,
-          "relief_picks": 1,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         }
@@ -181,18 +181,18 @@
       "qubits": 36,
       "cx": 105,
       "ts": {
-        "eprs": 15,
-        "teledata": 15,
+        "eprs": 19,
+        "teledata": 19,
         "telegate": 0,
-        "ls": 82,
+        "ls": 87,
         "seed": 0,
         "time_s": 0.02
       },
       "routers": {
         "dS": {
-          "eprs": 15,
+          "eprs": 9,
           "ls": 47,
-          "time_s": 0.088,
+          "time_s": 0.046,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -200,9 +200,9 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 12,
-          "ls": 54,
-          "time_s": 0.333,
+          "eprs": 9,
+          "ls": 20,
+          "time_s": 0.034,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -217,18 +217,18 @@
       "qubits": 36,
       "cx": 70,
       "ts": {
-        "eprs": 12,
-        "teledata": 12,
+        "eprs": 13,
+        "teledata": 13,
         "telegate": 0,
-        "ls": 75,
+        "ls": 74,
         "seed": 0,
         "time_s": 0.02
       },
       "routers": {
         "dS": {
-          "eprs": 7,
-          "ls": 45,
-          "time_s": 0.067,
+          "eprs": 6,
+          "ls": 30,
+          "time_s": 0.017,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -236,9 +236,9 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 9,
-          "ls": 25,
-          "time_s": 0.083,
+          "eprs": 6,
+          "ls": 31,
+          "time_s": 0.019,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,

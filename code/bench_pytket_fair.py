@@ -59,10 +59,14 @@ SUITES = {
     "100q": dict(arch=build_h_grid_architecture(2, 3, 5),
                  circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_100"),
                  suffix="_nativegates_ibm_qiskit_opt3_100.qasm"),
-    "200q": dict(arch=build_h_grid_architecture(4, 3, 5),
+    # 2026-07-29: the two large rows moved to the decomposed scalability
+    # series of bench_scaling.py --design b (core size fixed at 5x5, core
+    # count 6 -> 12 -> 20), so the networks pytket-dqc is given must move
+    # with them.  Previously 4x3 of 5x5 and 2x3 of 9x9.
+    "200q": dict(arch=build_h_grid_architecture(3, 4, 5),
                  circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_200"),
                  suffix="_nativegates_ibm_qiskit_opt3_200.qasm"),
-    "360q": dict(arch=build_h_grid_architecture(2, 3, 9),
+    "360q": dict(arch=build_h_grid_architecture(4, 5, 5),
                  circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_360"),
                  suffix="_nativegates_ibm_qiskit_opt3_360.qasm"),
 }
@@ -189,7 +193,11 @@ def required_ebit_mem(dist, cap_hint, max_try=64, budget_s=420.0):
     last_failed = 0
     for k in range(1, max_try + 1):
         if time.perf_counter() - t0 > budget_s:
-            return -last_failed
+            # -last_failed is the lower-bound sentinel, but -0 == 0 collides
+            # with a legitimate answer of "needs no link qubits" -- which would
+            # read as the distribution being executable on the device, the
+            # opposite of what a timeout at k=1 shows.  Report no verdict.
+            return -last_failed if last_failed else None
         net = NISQNetwork(coupling, sq, server_ebit_mem={s: k for s in sq})
         try:
             # Per-call cap: a materialisation that succeeds has to build the
@@ -203,7 +211,7 @@ def required_ebit_mem(dist, cap_hint, max_try=64, budget_s=420.0):
                 max(30.0, budget_s - (time.perf_counter() - t0)))
             return k
         except _Timeout:
-            return -last_failed
+            return -last_failed if last_failed else None
         except Exception as e:
             if type(e).__name__ != "ConstraintException":
                 return None

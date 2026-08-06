@@ -230,9 +230,11 @@ inter-core scorer and adds one term per departure: a staging cost
 $d_\mathrm{prep}$ for availability and a \emph{core-capacity penalty}
 $c_\mathrm{cap}$ for capacity
 (Section~\ref{sec:tele}).}  The capacity term carries the score:
-removing it inflates geometric-mean EPR by $+60.8\%$ at 25 qubits and
-\rev{$+55.3\%$ at 64, against $+11.3$--$37.7\%$ for the lookahead and
-under $9\%$ for any other single change on those two suites
+removing it inflates geometric-mean EPR by $+80.3\%$ at 25 qubits and,
+\rev{at 64, aborts the three densest circuits outright and more than
+doubles EPR on the six that still complete ($+101.2\%$), against
+$+11.3$--$31.1\%$ for the lookahead and under $16\%$ for any other
+single change on those two suites
 (Section~\ref{sec:ablation}).}
 
 \item \textbf{BFS-layer inter-core extended set.}
@@ -243,8 +245,8 @@ gate by $(1+g/10)$, growing with emission index instead of decaying with
 depth; only layer expansion fills the size-$L$ window in depth order
 (Section~\ref{sec:bfsext}).}
 Substituting a topological-order extended set costs
-\rev{$7.2$--$10.9\%$} geometric-mean EPR across the three suites, the
-gain growing with circuit size (Section~\ref{sec:ablation}).
+\rev{$15.4\%$ geometric-mean EPR at 64 qubits and is within noise at 25
+($-1.4\%$)}, the gain growing with circuit size (Section~\ref{sec:ablation}).
 
 \item \rev{\textbf{A checkpoint--rollback escape with a provable
 completion bound.}
@@ -271,7 +273,7 @@ intra-core SWAP accounting.  The margin survives leaving the grid at
 both levels of the architecture---$59\%$ on a ring of IBM heavy-hex
 cores, $34\%$ on a star---and most of it survives an
 identical initial allocation on both routers ($-38.1\%$ at 25 qubits,
-$-28.5\%$ at 64, against $-50.8\%$ and $-43.9\%$ from \dSABRE{}'s own
+$-27.7\%$ at 64, against $-50.8\%$ and $-48.7\%$ from \dSABRE{}'s own
 layout; Sections~\ref{sec:setup} and~\ref{sec:scalability}).}
 
 \item \rev{\textbf{A cross-model comparison that states what an EPR pair
@@ -283,10 +285,10 @@ routed circuit under each model, so equal counts are not equal work.
 We correct what can
 be corrected and measure what cannot: rebuilding its network to this
 device's own link and slot counts moves the three suite margins to
-$-44.4\%$, $0.0\%$ and $+7.0\%$; generating the circuits shows $13$ of
+$-44.4\%$, $0.0\%$ and $-1.2\%$; generating the circuits shows $13$ of
 the $21$ corrected distributions exceed the communication capacity the
-device provides; and under a finite entanglement lifetime the 64-qubit
-reversal becomes a $42.1\%$ \dSABRE{} win once a pair may serve only
+device provides; and under a finite entanglement lifetime the narrow
+64-qubit margin widens to a $46.5\%$ \dSABRE{} win once a pair may serve only
 three gates (Section~\ref{sec:pytket}).  Teledata counts need no such
 correction.}
 
@@ -1107,7 +1109,7 @@ circuits it completes, the three seeds return identical counts---so the
 whole benefit of that convention accrues to \dSABRE{}.  The honest way to
 bound it is to strip it: on those same eight circuits, replacing best with
 median over the three \texttt{SabreLayout} seeds moves the gmean gap from
-$-39.4\%$ to $-32.8\%$. }
+$-48.7\%$ to $-42.0\%$. }
 
 \subsection{Main Results}
 \label{sec:main_results}
@@ -1280,7 +1282,7 @@ three rows one series rather than three unrelated points.}
 both sizes where \TeleSABRE{} converges ($-3.6\%$ at 100q, $-37.7\%$ at
 200q), and at \textbf{360q on twenty cores \TeleSABRE{} does not
 converge on any of three seeds}---it returns without success in
-$342$--$359$\,s---while \dSABRE{} completes at
+$537$--$645$\,s---while \dSABRE{} completes at
 $2208$ EPR (one of three \texttt{SabreLayout} seeds aborts; the reported
 count is the best of the other two).  The margin widens with
 diameter: at 100q's diameter-3 core graph there
@@ -1289,13 +1291,10 @@ margin is small ($-3.6\%$); at 200q's diameter-5
 graph, where longer inter-core paths give those mechanisms real
 decisions to make, the margin grows substantially ($-37.7\%$).}
 
-\rev{A
-companion experiment varying core granularity at fixed circuit finds six
-$7{\times}7$ cores beating twelve $5{\times}5$ cores by $3.1\times$ for
-\dSABRE{}, with the margin against \TeleSABRE{} moving from $-51.5\%$ to
-$-28.9\%$ between the two: fewer, wider cores leave more free capacity
-per core even though the core graph is shorter, and that headroom effect
-outweighs the diameter effect the scalability series above isolates.}
+\rev{A companion experiment varying core granularity at fixed circuit
+finds the headroom a wider core buys and the diameter a shorter core
+graph costs close to a wash for \dSABRE{} at this operating point
+(online appendices).}
 
 \paragraph{\rev{Is the margin an artefact of the setup?}}
 \label{sec:cost}
@@ -1304,9 +1303,9 @@ result: a more favourable initial layout on \dSABRE{}'s side, and a cost
 model that prices EPR pairs generously.  Controlling for the first---re-running
 \dSABRE{} from \TeleSABRE{}'s own \texttt{optimize\_initial} layout, so
 only the routing loop differs---the gap persists at $-38.1\%$
-on 25q and $-28.5\%$ on 64q, against $-50.8\%$ and $-43.9\%$
+on 25q and $-27.7\%$ on 64q, against $-50.8\%$ and $-48.7\%$
 from \dSABRE{}'s own layout, putting most of the margin in the routing
-loop---three-quarters at 25q, two-thirds at 64q.
+loop---three-quarters at 25q, a little over half at 64q.
 Sweeping $c_{\mathrm{tele}}$ from 10 to 100 at
 fixed $c_{\mathrm{swap}}{=}3$
 (online appendices) controls for the second and only widens the gap:
@@ -1327,8 +1326,8 @@ Between the two routers the gap is the constant in Eq.~\ref{eq:complexity}
 about one order of magnitude across a $200\times$ range of circuit
 size---the signature of per-operation overhead---\TeleSABRE{} compiled
 C\texttt{++} with cached lookups, \dSABRE{} paying its $O(Mn)$
-per-iteration cost in interpreted Python, $14\times$ slower on the
-13\,040-CX Multiplier and $12\times$ \emph{faster} on Graphstate, where
+per-iteration cost in interpreted Python, $13\times$ slower on the
+13\,040-CX Multiplier and $10\times$ \emph{faster} on Graphstate, where
 \TeleSABRE{}'s sampling needs many iterations to converge.  A compiled
 implementation would close most of the gap; EPR pairs, not compile
 seconds, are the scarce resource on this hardware.}
@@ -1362,13 +1361,14 @@ dense workloads.
   protocol and hardware budget are the main results'.  \rev{Each suite is
   ablated over its \emph{whole} circuit set---six at 25q, nine at 64q---so the
   \textbf{Full} baselines are Table~\ref{tab:main}'s own geometric means
-  ($15.3$ and $188.6$) rather than a subset's.  The remaining mechanism,
+  ($15.3$ and $174.2$) rather than a subset's.  The remaining mechanism,
   checkpoint--rollback, does not price EPR pairs and is discussed in
   Section~\ref{sec:relief} instead.
-  $^{\dagger}$Six of nine circuits (AE, QFT, QAOA, QNN, Random, Multiplier)
-  abort outright without the capacity penalty; the gmEPR of the three that
-  complete (GHZ, Graphstate, QPEexact) is not comparable to the nine-circuit
-  baseline and is omitted.}}
+  $^{\dagger}$Three of nine circuits (QAOA, QNN, Multiplier)
+  abort outright without the capacity penalty; the gmEPR of the six that
+  complete (GHZ, Graphstate, QPEexact, AE, QFT, Random) is $171.1$, more
+  than double the full baseline's $85.0$ over the same six circuits
+  ($+101.2\%$), and is not comparable to the nine-circuit baseline.}}
 \label{tab:mech}
 \setlength{\tabcolsep}{3pt}
 \small
@@ -1382,11 +1382,11 @@ dense workloads.
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}
 Configuration & gmEPR & $\Delta$ (\%) & gmEPR & $\Delta$ (\%) \\
 \midrule
-\textbf{Full} (baseline)              & 15.3 & ---       & 188.6 & --- \\
+\textbf{Full} (baseline)              & 15.3 & ---       & 174.2 & --- \\
 \midrule
-No capacity penalty ($c_{\mathrm{pen}}=0$) & 27.6 & $+80.3$   & fail$^{\dagger}$ & --- \\
-No extended-set lookahead ($w_e=0$)   & 17.1 & $+11.3$   & 224.6 & $+19.1$ \\
-Topological extended set (not BFS)    & 15.1 & $-1.4$    & 200.5 & $+6.3$ \\
+No capacity penalty ($c_{\mathrm{pen}}=0$) & 27.6 & $+80.3$   & 171.1$^{\dagger}$ & $+101.2^{\dagger}$ \\
+No extended-set lookahead ($w_e=0$)   & 17.1 & $+11.3$   & 228.4 & $+31.1$ \\
+Topological extended set (not BFS)    & 15.1 & $-1.4$    & 201.0 & $+15.4$ \\
 \bottomrule
 \end{tabular}%
 }
@@ -1394,21 +1394,22 @@ Topological extended set (not BFS)    & 15.1 & $-1.4$    & 200.5 & $+6.3$ \\
 
 The capacity penalty is the single most critical component on both
 suites.  \rev{At 25q, disabling the penalty costs EPR
-count---${+80.3\%}$ gmean.
-At 64q it is no longer a matter of degree: \textbf{six of the nine circuits
-abort outright} without the penalty, and only the three smallest
-circuits (GHZ, Graphstate, QPEexact) still complete.}  This is the empirical
-core of the paper's design claim, and the correction makes it stronger, not
-weaker: the one term that encodes the architecture's finiteness is not
-merely the one that matters most, it is the one whose absence the router
-cannot survive at scale.
+count---${+80.3\%}$ gmean.  At 64q \textbf{the three densest circuits
+(QAOA, QNN, Multiplier) abort outright} regardless of iteration budget,
+and the six that still complete pay for it in cost rather than
+failure: gmean EPR more than doubles (${+101.2\%}$), from parity on GHZ
+to ${+348.2\%}$ on AE.}  This is the empirical
+core of the paper's design claim: the one term that encodes the
+architecture's finiteness is not merely the one that matters most, it is
+the one whose absence the router survives only by paying double, and on
+its densest instances does not survive at all.
 The extended-set lookahead is second, contributing $+11.3\%$ on 25q and
-\rev{$+19.1\%$ on 64q};
+\rev{$+31.1\%$ on 64q};
 removing it collapses the scorer to a near-myopic
 policy, and its value grows with circuit size as dependency chains
-lengthen \rev{---QAOA $542\!\to\!848$, Multiplier $1924\!\to\!2123$}.
+lengthen \rev{---QAOA $517\!\to\!848$, Multiplier $1523\!\to\!2123$}.
 \rev{Substituting a topological-order extended-set construction costs
-$6.3\%$ on 64q; at 25q the two constructions are within noise of each
+$15.4\%$ on 64q; at 25q the two constructions are within noise of each
 other ($-1.4\%$), where the DAG is too shallow for the difference to
 register.  The gain still grows with the depth of the remaining DAG, as
 Section~\ref{sec:bfsext} predicts.}
@@ -1477,11 +1478,11 @@ Suite & published & physical & EPR & $\Delta$ (\%) & unreal. \\
 \midrule
 25 logical qubits  &  35.3 &  27.5 &  15.3 & $-44.4$ & 4/6 \\
 36 logical qubits  &  12.3 &  10.6 &  10.6 & $\phantom{+}\phantom{+}0.0$ & 2/6 \\
-64 logical qubits  & 168.0 & 176.3 & 188.6 & $\phantom{+}+7.0$ & 7/9 \\
+64 logical qubits  & 168.0 & 176.3 & 174.2 & $\phantom{+}-1.2$ & 7/9 \\
 %\midrule
-%QFT 100q           &  114 &  137 &  223 & $+62.8$ & yes \\
-%QFT 200q           &  487 &  680 &  696 & $\phantom{+}+2.4$ & \emph{n/d} \\
-%QFT 360q           &  736 &  998 & 2994 & $+200.0$ & \emph{n/d} \\
+%QFT 100q           &  114 &  137 &  239 & $+74.5$ & yes \\
+%QFT 200q           &  487 &  680 &  767 & $+12.8$ & \emph{n/d} \\
+%QFT 360q           &  736 &  998 & 2208 & $+121.2$ & \emph{n/d} \\
 \bottomrule
 \end{tabular}%
 }
@@ -1492,12 +1493,14 @@ Read with that caveat in force---most \texttt{pytket-dqc} counts below are the
 cost of a distribution its own tool cannot build on this device
 (Table~\ref{tab:fair}, last column)---the direction is set by circuit structure
 rather than size.  \dSABRE{} wins five of six circuits at 25 qubits; at 64 the
-comparison reverses on the structured circuits, where Steiner-tree embedding
-reuses a few pairs across many controlled operations (QPEexact $+62.7\%$, AE
-$+42.3\%$), while \dSABRE{} leads on the densest ones (Multiplier $-33.4\%$,
-QNN $-17.2\%$).  Allocation quality accounts for part of it: given
+comparison reverses only on QPEexact, where Steiner-tree embedding
+reuses a few pairs across many controlled operations ($+72.9\%$)---AE, a
+clear \texttt{pytket-dqc} win in an earlier router generation, is now within
+a percent of parity ($-0.7\%$)---while \dSABRE{} leads on the densest
+circuits (Multiplier $-47.3\%$, QNN $-17.9\%$).  Allocation quality accounts
+for part of it: given
 \texttt{pytket-dqc}'s own KaHyPar partition, so that only the routing differs,
-\dSABRE{} leads on all three suites ($-56.8\%$, $-11.9\%$, $-42.3\%$). }
+\dSABRE{} leads on all three suites ($-56.8\%$, $-11.9\%$, $-41.5\%$). }
 
 \rev{\emph{Entanglement lifetime.}\label{sec:lifetime}
 A further assumption is separable from the last: communication capacity is how
@@ -1510,10 +1513,11 @@ of its hyperedge.  Bandini \emph{et al.}~\cite{bandini2026optimized} argue this
 is unrealistic and cap gates-per-EPR at $D_{\max}$, proposing $D_{\max}{=}3$.
 Re-scored under that bound by a counter that generalises \texttt{pytket-dqc}'s
 own cost model and reproduces it at $D_{\max}{=}\infty$---\dSABRE{} needs no
-adjustment, a teledata pair being consumed instantly---the $+7.0\%$ reversal
-at 64 qubits survives only above a threshold: the geometric-mean gap crosses
+adjustment, a teledata pair being consumed instantly---the \texttt{pytket-dqc}
+lead on this per-cell distributor selection ($+15.0\%$ at $D_{\max}{=}\infty$)
+survives only above a threshold: the geometric-mean gap crosses
 parity between $D_{\max}{=}\infty$ and $10$ and becomes a \dSABRE{} win of
-$\mathbf{42.1\%}$ at $D_{\max}{=}3$.  Gate teleportation's e-bit advantage is
+$\mathbf{46.5\%}$ at $D_{\max}{=}3$.  Gate teleportation's e-bit advantage is
 therefore conditional on sustaining entanglement across ${\gtrsim}10$
 gates per pair; teledata routing delivers its counts under any lifetime.
 Per-circuit sweeps are in the online appendices.}
@@ -1679,7 +1683,8 @@ that the architectural capacity signal reaches the scorer in
 already is, the way $c_{\mathrm{cap}}$ responds to free-slot count in
 Eq.~\ref{eq:dsabre}, rather than acting only as a feasibility filter or
 a fixed-threshold step, the binary condition Table~\ref{tab:mech} shows
-costing $55$--$61\%$ of geometric-mean EPR when it is removed
+costing $80.3\%$ of geometric-mean EPR at 25 qubits when it is removed, and
+outright non-convergence on the three densest 64-qubit circuits
 (Section~\ref{sec:principle}).}
 
 \paragraph*{Artefact availability.}

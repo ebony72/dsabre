@@ -19,7 +19,7 @@
 %   C4: (r0,c1)=(0.4,0)    to C1;  (r2,c0)=(0,-0.8)   to C3;  (r2,c3)=(1.2,-0.8) to C5
 %   C5: (r0,c2)=(0.8,0)    to C2;  (r2,c0)=(0,-0.8)   to C4
 \begin{tikzpicture}[
-  every node/.style={font=\scriptsize},
+  every node/.style={font=\large},
   dot/.style  ={circle, fill=gray!55,  draw=gray!70,  minimum size=1.8mm, inner sep=0pt},
   cport/.style={circle, fill=teal!60,  draw=teal!90,  minimum size=2.8mm, inner sep=0pt, line width=0.5pt},
   cbox/.style ={draw=black!70, rounded corners=2pt, fill=blue!4, line width=0.6pt},
@@ -48,7 +48,7 @@
     \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
   \node[cport] at (1.2,-0.4) {};   % r1c3 -> C1
   \node[cport] at (0.4,-1.2) {};   % r3c1 -> C2
-  \node[font=\tiny,gray!70] at (0.6,-0.6) {$C_0$};
+  \node[font=\normalsize,gray!70] at (0.6,-0.6) {$C_0$};
 \end{scope}
 
 %% ── C1 (shift 2.1,0) ────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@
     \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
   \node[cport] at (0,   -0.4) {};   % r1c0 -> C0
   \node[cport] at (0.8, -1.2) {};   % r3c2 -> C3
-  \node[font=\tiny,gray!70] at (0.6,-0.6) {$C_1$};
+  \node[font=\normalsize,gray!70] at (0.6,-0.6) {$C_1$};
 \end{scope}
 
 %% ── C2 (shift 0,-2.1) ───────────────────────────────────────────────────────
@@ -76,7 +76,7 @@
     \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
   \node[cport] at (0.4,  0)    {};   % r0c1 -> C0
   \node[cport] at (1.2, -0.8) {};   % r2c3 -> C3
-  \node[font=\tiny,gray!70] at (0.6,-0.6) {$C_2$};
+  \node[font=\normalsize,gray!70] at (0.6,-0.6) {$C_2$};
 \end{scope}
 
 %% ── C3 (shift 2.1,-2.1) ─────────────────────────────────────────────────────
@@ -90,7 +90,7 @@
     \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
   \node[cport] at (0.8,  0)    {};   % r0c2 -> C1
   \node[cport] at (0,   -0.8) {};   % r2c0 -> C2
-  \node[font=\tiny,gray!70] at (0.6,-0.6) {$C_3$};
+  \node[font=\normalsize,gray!70] at (0.6,-0.6) {$C_3$};
 \end{scope}
 
 %% ── B-grid inter-core links ──────────────────────────────────────────────────
@@ -100,16 +100,16 @@
 \draw[cl] (1.2,-2.9)  -- (2.1,-2.9);    % C2(r2c3) -- C3(r2c0)
 
 %% ── B-grid label ─────────────────────────────────────────────────────────────
-\node[font=\footnotesize, align=center] at (1.65,-4)
-  {(a)~$2{\times}2$ B-grid\\[0.5pt]{\tiny 4 cores,\ 64 qubits,\ 4 EPR links}};
+\node[font=\normalsize, align=center] at (1.65,-4.2)
+  {(a)~$2{\times}2$ B-grid\\[0.1pt]{\normalsize 4 cores,\ 64 qubits,\ 4 EPR links}};
 
 
 %% ═══════════════════════════════════════════════════════════════════════════
-%% H-GRID  (2×3 array of 4×4 cores)    x-offset = 4.3
+%% H-GRID  (2x3 array of 4x4 cores)    x-offset = \hx
 %% Cores: C0 top-left, C1 top-mid, C2 top-right,
 %%        C3 bot-left, C4 bot-mid,  C5 bot-right
 %% ═══════════════════════════════════════════════════════════════════════════
-\def\hx{7.0}
+\def\hx{5.35}
 
 %% ── C0 (shift \hx,0) ────────────────────────────────────────────────────────
 \begin{scope}[shift={(\hx,0)}]
@@ -122,7 +122,7 @@
     \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
   \node[cport] at (1.2,-0.4) {};   % r1c3 -> C1
   \node[cport] at (0.4,-1.2) {};   % r3c1 -> C3
-  \node[font=\tiny,gray!70] at (0.6,-0.6) {$C_0$};
+  \node[font=\normalsize,gray!70] at (0.6,-0.6) {$C_0$};
 \end{scope}
 
 %% ── C1 (shift \hx+2.1, 0) ───────────────────────────────────────────────────
@@ -137,7 +137,7 @@
   \node[cport] at (0,   -0.4) {};   % r1c0 -> C0
   \node[cport] at (1.2, -0.4) {};   % r1c3 -> C2
   \node[cport] at (0.8, -1.2) {};   % r3c2 -> C4
-  \node[font=\tiny,gray!70] at (0.6,-0.6) {$C_1$};
+  \node[font=\normalsize,gray!70] at (0.6,-0.6) {$C_1$};
 \end{scope}
 
 %% ── C2 (shift \hx+4.2, 0) ───────────────────────────────────────────────────
@@ -151,7 +151,7 @@
     \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
   \node[cport] at (0,   -0.4) {};   % r1c0 -> C1
   \node[cport] at (0.8, -1.2) {};   % r3c2 -> C5
-  \node[font=\tiny,gray!70] at (0.6,-0.6) {$C_2$};
+  \node[font=\normalsize,gray!70] at (0.6,-0.6) {$C_2$};
 \end{scope}
 
 %% ── C3 (shift \hx, -2.1) ────────────────────────────────────────────────────
@@ -165,7 +165,7 @@
     \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
   \node[cport] at (0.4,  0)    {};   % r0c1 -> C0
   \node[cport] at (1.2, -0.8) {};   % r2c3 -> C4
-  \node[font=\tiny,gray!70] at (0.6,-0.6) {$C_3$};
+  \node[font=\normalsize,gray!70] at (0.6,-0.6) {$C_3$};
 \end{scope}
 
 %% ── C4 (shift \hx+2.1, -2.1) ────────────────────────────────────────────────
@@ -180,7 +180,7 @@
   \node[cport] at (0.4,  0)    {};   % r0c1 -> C1 (note: col=1, staggered)
   \node[cport] at (0,   -0.8) {};   % r2c0 -> C3
   \node[cport] at (1.2, -0.8) {};   % r2c3 -> C5
-  \node[font=\tiny,gray!70] at (0.6,-0.6) {$C_4$};
+  \node[font=\normalsize,gray!70] at (0.6,-0.6) {$C_4$};
 \end{scope}
 
 %% ── C5 (shift \hx+4.2, -2.1) ────────────────────────────────────────────────
@@ -194,7 +194,7 @@
     \node[dot] at ({\c*0.4},{-\r*0.4}) {};}}
   \node[cport] at (0.8,  0)    {};   % r0c2 -> C2
   \node[cport] at (0,   -0.8) {};   % r2c0 -> C4
-  \node[font=\tiny,gray!70] at (0.6,-0.6) {$C_5$};
+  \node[font=\normalsize,gray!70] at (0.6,-0.6) {$C_5$};
 \end{scope}
 
 %% ── H-grid inter-core links ──────────────────────────────────────────────────
@@ -214,13 +214,15 @@
 \draw[cl] (\hx+3.3,-2.9) -- (\hx+4.2,-2.9);   % C4(r2c3) -- C5(r2c0)
 
 %% ── H-grid label ─────────────────────────────────────────────────────────────
-\node[font=\footnotesize, align=center] at (\hx+2.8,-4)
-  {(b)~$2{\times}3$ H-grid\\[0.5pt]{\tiny 6 cores,\ 96 qubits,\ 7 EPR links}};
+\node[font=\normalsize, align=center] at (\hx+2.8,-4.2)
+  {(b)~$2{\times}3$ H-grid\\[0.1pt]{\normalsize 6 cores,\ 96 qubits,\ 7 EPR links}};
 
 %% ── Legend ───────────────────────────────────────────────────────────────────
-\node[dot,   label={[font=\tiny,xshift=1mm]right:qubit}]   at (1.9, 0.55) {};
-\node[cport, label={[font=\tiny,xshift=1mm]right:comm port}] at (3.3, 0.55) {};
-\draw[cl] (4.55,0.42) -- (5.2,0.42)
-  node[right, font=\tiny] {EPR link};
+% legend, spread across the full figure width so the enlarged labels
+% (needed for single-column use) do not collide with one another
+\node[dot,   label={[font=\normalsize,xshift=1mm]right:qubit}]     at (1.2, 0.75) {};
+\node[cport, label={[font=\normalsize,xshift=1mm]right:comm port}] at (4.4, 0.75) {};
+\draw[cl] (8.2,0.75) -- (9.1,0.75)
+  node[right, font=\normalsize] {EPR link};
 
 \end{tikzpicture}

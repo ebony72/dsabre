@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-05-14",
+    "date": "2026-08-04",
     "suite": "25q",
     "arch": "B-grid 2x2 4x4 (64 qubits) \u2014 8 inter-core links",
     "extra_links": [
@@ -40,25 +40,25 @@
         "eprs": 27,
         "teledata": 27,
         "telegate": 0,
-        "ls": 280,
+        "ls": 261,
         "seed": 0,
-        "time_s": 0.43
+        "time_s": 0.07
       },
       "routers": {
         "dS": {
-          "eprs": 25,
-          "ls": 407,
-          "time_s": 0.793,
+          "eprs": 22,
+          "ls": 271,
+          "time_s": 0.617,
           "aborted": false,
-          "relief_candidates": 8,
-          "relief_picks": 1,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         },
         "dSE": {
           "eprs": 23,
-          "ls": 388,
-          "time_s": 0.854,
+          "ls": 267,
+          "time_s": 0.684,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -73,10 +73,10 @@
       "qubits": 25,
       "cx": 24,
       "ts": {
-        "eprs": 2,
-        "teledata": 2,
+        "eprs": 5,
+        "teledata": 5,
         "telegate": 0,
-        "ls": 29,
+        "ls": 37,
         "seed": 0,
         "time_s": 0.01
       },
@@ -109,17 +109,17 @@
       "qubits": 25,
       "cx": 25,
       "ts": {
-        "eprs": 11,
-        "teledata": 11,
+        "eprs": 12,
+        "teledata": 12,
         "telegate": 0,
-        "ls": 45,
+        "ls": 49,
         "seed": 0,
-        "time_s": 0.02
+        "time_s": 0.03
       },
       "routers": {
         "dS": {
           "eprs": 4,
-          "ls": 16,
+          "ls": 26,
           "time_s": 0.007,
           "aborted": false,
           "relief_candidates": 0,
@@ -129,8 +129,8 @@
         },
         "dSE": {
           "eprs": 4,
-          "ls": 16,
-          "time_s": 0.008,
+          "ls": 26,
+          "time_s": 0.007,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -145,18 +145,18 @@
       "qubits": 25,
       "cx": 580,
       "ts": {
-        "eprs": 37,
-        "teledata": 37,
+        "eprs": 56,
+        "teledata": 56,
         "telegate": 0,
-        "ls": 347,
+        "ls": 380,
         "seed": 0,
-        "time_s": 0.1
+        "time_s": 0.16
       },
       "routers": {
         "dS": {
           "eprs": 33,
-          "ls": 489,
-          "time_s": 0.734,
+          "ls": 351,
+          "time_s": 0.462,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -165,8 +165,8 @@
         },
         "dSE": {
           "eprs": 33,
-          "ls": 512,
-          "time_s": 0.772,
+          "ls": 287,
+          "time_s": 0.467,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -181,28 +181,28 @@
       "qubits": 25,
       "cx": 1223,
       "ts": {
-        "eprs": 51,
-        "teledata": 51,
+        "eprs": 87,
+        "teledata": 87,
         "telegate": 0,
-        "ls": 608,
+        "ls": 586,
         "seed": 0,
-        "time_s": 0.21
+        "time_s": 0.23
       },
       "routers": {
         "dS": {
-          "eprs": 52,
-          "ls": 1069,
-          "time_s": 2.621,
+          "eprs": 47,
+          "ls": 712,
+          "time_s": 1.699,
           "aborted": false,
-          "relief_candidates": 16,
-          "relief_picks": 2,
+          "relief_candidates": 0,
+          "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 48,
-          "ls": 1149,
-          "time_s": 3.14,
+          "eprs": 47,
+          "ls": 652,
+          "time_s": 1.755,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -217,18 +217,18 @@
       "qubits": 25,
       "cx": 1124,
       "ts": {
-        "eprs": 283,
-        "teledata": 273,
-        "telegate": 10,
-        "ls": 1189,
+        "eprs": 268,
+        "teledata": 254,
+        "telegate": 14,
+        "ls": 1167,
         "seed": 0,
-        "time_s": 0.94
+        "time_s": 0.91
       },
       "routers": {
         "dS": {
-          "eprs": 179,
-          "ls": 1342,
-          "time_s": 4.507,
+          "eprs": 175,
+          "ls": 1161,
+          "time_s": 3.774,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -236,9 +236,9 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 185,
-          "ls": 1343,
-          "time_s": 4.999,
+          "eprs": 171,
+          "ls": 1161,
+          "time_s": 4.251,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,

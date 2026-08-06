@@ -1,9 +1,208 @@
 {
   "meta": {
-    "date": "2026-07-17",
-    "method": "CoverEmbeddingSteinerDetached"
+    "date": "2026-08-06",
+    "description": "dSABRE (dS + dSE) routed from pytket-dqc KaHyPar layout",
+    "layout": "pytket-dqc HypergraphPartitioning, best of 5 seeds",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+    "py_seeds": 5,
+    "routers": {
+      "dS": "General_dSABRE_Router  (router.py)",
+      "dSE": "dSABRE_BurstExt        (dsabre_ext.py)"
+    },
+    "note": "merged 2026-08-06: 64q refreshed under current router; 25q/36q carried forward from the Aug-6 committed generation (unaffected by the router fix, confirmed via tab:main cross-check)"
   },
   "results": {
+    "64q": [
+      {
+        "cx": 1962,
+        "py_ebits": 519,
+        "py_time": 12.349,
+        "routers": {
+          "dS": {
+            "eprs": 185,
+            "ls": 1455,
+            "time_s": 14.009,
+            "aborted": false
+          },
+          "dSE": {
+            "eprs": 210,
+            "ls": 1518,
+            "time_s": 19.07,
+            "aborted": false
+          }
+        },
+        "circuit": "ae",
+        "suite": "64q"
+      },
+      {
+        "cx": 63,
+        "py_ebits": 7,
+        "py_time": 0.204,
+        "routers": {
+          "dS": {
+            "eprs": 7,
+            "ls": 55,
+            "time_s": 0.023,
+            "aborted": false
+          },
+          "dSE": {
+            "eprs": 7,
+            "ls": 55,
+            "time_s": 0.028,
+            "aborted": false
+          }
+        },
+        "circuit": "ghz",
+        "suite": "64q"
+      },
+      {
+        "cx": 64,
+        "py_ebits": 9,
+        "py_time": 0.215,
+        "routers": {
+          "dS": {
+            "eprs": 6,
+            "ls": 50,
+            "time_s": 0.039,
+            "aborted": false
+          },
+          "dSE": {
+            "eprs": 6,
+            "ls": 50,
+            "time_s": 0.046,
+            "aborted": false
+          }
+        },
+        "circuit": "graphstate",
+        "suite": "64q"
+      },
+      {
+        "cx": 13040,
+        "py_ebits": 4272,
+        "py_time": 492.998,
+        "routers": {
+          "dS": {
+            "eprs": 1529,
+            "ls": 9791,
+            "time_s": 660.445,
+            "aborted": false
+          },
+          "dSE": {
+            "eprs": 1510,
+            "ls": 9645,
+            "time_s": 704.2,
+            "aborted": false
+          }
+        },
+        "circuit": "multiplier",
+        "suite": "64q"
+      },
+      {
+        "cx": 3920,
+        "py_ebits": 571,
+        "py_time": 52.503,
+        "routers": {
+          "dS": {
+            "eprs": 674,
+            "ls": 4252,
+            "time_s": 36.373,
+            "aborted": false
+          },
+          "dSE": {
+            "eprs": 532,
+            "ls": 3768,
+            "time_s": 41.597,
+            "aborted": false
+          }
+        },
+        "circuit": "qaoa",
+        "suite": "64q"
+      },
+      {
+        "cx": 1966,
+        "py_ebits": 591,
+        "py_time": 13.341,
+        "routers": {
+          "dS": {
+            "eprs": 222,
+            "ls": 1652,
+            "time_s": 9.475,
+            "aborted": false
+          },
+          "dSE": {
+            "eprs": 217,
+            "ls": 1607,
+            "time_s": 10.769,
+            "aborted": false
+          }
+        },
+        "circuit": "qft",
+        "suite": "64q"
+      },
+      {
+        "cx": 8126,
+        "py_ebits": 736,
+        "py_time": 193.865,
+        "routers": {
+          "dS": {
+            "eprs": 661,
+            "ls": 5867,
+            "time_s": 128.954,
+            "aborted": false
+          },
+          "dSE": {
+            "eprs": 497,
+            "ls": 5305,
+            "time_s": 120.76,
+            "aborted": false
+          }
+        },
+        "circuit": "qnn",
+        "suite": "64q"
+      },
+      {
+        "cx": 2139,
+        "py_ebits": 348,
+        "py_time": 10.531,
+        "routers": {
+          "dS": {
+            "eprs": 245,
+            "ls": 1809,
+            "time_s": 9.845,
+            "aborted": false
+          },
+          "dSE": {
+            "eprs": 219,
+            "ls": 1718,
+            "time_s": 11.125,
+            "aborted": false
+          }
+        },
+        "circuit": "qpeexact",
+        "suite": "64q"
+      },
+      {
+        "cx": 1627,
+        "py_ebits": 1181,
+        "py_time": 8.798,
+        "routers": {
+          "dS": {
+            "eprs": 754,
+            "ls": 3900,
+            "time_s": 17.896,
+            "aborted": false
+          },
+          "dSE": {
+            "eprs": 705,
+            "ls": 3659,
+            "time_s": 20.273,
+            "aborted": false
+          }
+        },
+        "circuit": "random",
+        "suite": "64q"
+      }
+    ],
     "25q": [
       {
         "circuit": "ae",
@@ -66,53 +265,6 @@
         "circuit": "wstate",
         "py_ebits": 6,
         "py_method": "CoverEmbeddingSteinerDetached"
-      }
-    ],
-    "64q": [
-      {
-        "circuit": "ae",
-        "py_ebits": 141,
-        "py_method": "CoverEmbeddingSteinerDetached"
-      },
-      {
-        "circuit": "ghz",
-        "py_ebits": 5,
-        "py_method": "CoverEmbeddingSteinerDetached"
-      },
-      {
-        "circuit": "graphstate",
-        "py_ebits": 9,
-        "py_method": "CoverEmbeddingSteinerDetached"
-      },
-      {
-        "circuit": "qft",
-        "py_ebits": 181,
-        "py_method": "CoverEmbeddingSteinerDetached"
-      },
-      {
-        "circuit": "qnn",
-        "py_ebits": 735,
-        "py_method": "PartitioningHeterogeneous"
-      },
-      {
-        "circuit": "random",
-        "py_ebits": 968,
-        "py_method": "PartitioningHeterogeneous"
-      },
-      {
-        "circuit": "qpeexact",
-        "py_ebits": 96,
-        "py_method": "CoverEmbeddingSteinerDetached"
-      },
-      {
-        "circuit": "qaoa",
-        "py_ebits": 472,
-        "py_method": "CoverEmbeddingSteinerDetached"
-      },
-      {
-        "circuit": "multiplier",
-        "py_ebits": 2957,
-        "py_method": "PartitioningHeterogeneous"
       }
     ]
   }

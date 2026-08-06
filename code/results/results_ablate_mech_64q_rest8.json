@@ -1,0 +1,225 @@
+{
+ "meta": {
+  "date": "2026-07-31",
+  "suite": "64q",
+  "arch": "H-grid 2x3 of 4x4 (96 physical)",
+  "router": "dSE (dsabre_ext.dSABRE_BurstExt)",
+  "hw": "deadlock_limit=100, max_backup_attempts=100, max_iterations=20000 (benchmark.py _HW_LARGE)",
+  "protocol": "best of 3 SabreLayout seeds, fwd->bwd->fwd",
+  "purpose": "Table V ablation on the full 9-circuit 64q suite, one HardwareConfig throughout"
+ },
+ "results": [
+  {
+   "circuit": "ghz",
+   "cx": 63,
+   "config": "full",
+   "eprs": 6,
+   "ls": 39,
+   "aborted": false,
+   "time_s": 0.1
+  },
+  {
+   "circuit": "ghz",
+   "cx": 63,
+   "config": "no_lookahead",
+   "eprs": 4,
+   "ls": 78,
+   "aborted": false,
+   "time_s": 0.1
+  },
+  {
+   "circuit": "ghz",
+   "cx": 63,
+   "config": "no_cap_penalty",
+   "eprs": 6,
+   "ls": 50,
+   "aborted": false,
+   "time_s": 0.1
+  },
+  {
+   "circuit": "graphstate",
+   "cx": 64,
+   "config": "full",
+   "eprs": 16,
+   "ls": 89,
+   "aborted": false,
+   "time_s": 0.3
+  },
+  {
+   "circuit": "graphstate",
+   "cx": 64,
+   "config": "no_lookahead",
+   "eprs": 24,
+   "ls": 144,
+   "aborted": false,
+   "time_s": 0.3
+  },
+  {
+   "circuit": "graphstate",
+   "cx": 64,
+   "config": "no_cap_penalty",
+   "eprs": 21,
+   "ls": 108,
+   "aborted": false,
+   "time_s": 0.8
+  },
+  {
+   "circuit": "qpeexact",
+   "cx": 2139,
+   "config": "full",
+   "eprs": 204,
+   "ls": 1566,
+   "aborted": false,
+   "time_s": 33.2
+  },
+  {
+   "circuit": "qpeexact",
+   "cx": 2139,
+   "config": "no_lookahead",
+   "eprs": 287,
+   "ls": 2461,
+   "aborted": false,
+   "time_s": 55.5
+  },
+  {
+   "circuit": "qpeexact",
+   "cx": 2139,
+   "config": "no_cap_penalty",
+   "eprs": 548,
+   "ls": 2827,
+   "aborted": false,
+   "time_s": 236.2
+  },
+  {
+   "circuit": "ae",
+   "cx": 1962,
+   "config": "full",
+   "eprs": 141,
+   "ls": 1456,
+   "aborted": false,
+   "time_s": 39.4
+  },
+  {
+   "circuit": "ae",
+   "cx": 1962,
+   "config": "no_lookahead",
+   "eprs": 220,
+   "ls": 2421,
+   "aborted": false,
+   "time_s": 63.3
+  },
+  {
+   "circuit": "ae",
+   "cx": 1962,
+   "config": "no_cap_penalty",
+   "eprs": 632,
+   "ls": 3005,
+   "aborted": false,
+   "time_s": 160.9
+  },
+  {
+   "circuit": "qft",
+   "cx": 1966,
+   "config": "full",
+   "eprs": 192,
+   "ls": 1567,
+   "aborted": false,
+   "time_s": 47.8
+  },
+  {
+   "circuit": "qft",
+   "cx": 1966,
+   "config": "no_lookahead",
+   "eprs": 318,
+   "ls": 2315,
+   "aborted": false,
+   "time_s": 49.2
+  },
+  {
+   "circuit": "qft",
+   "cx": 1966,
+   "config": "no_cap_penalty",
+   "eprs": 535,
+   "ls": 2481,
+   "aborted": false,
+   "time_s": 263.3
+  },
+  {
+   "circuit": "qaoa",
+   "cx": 3920,
+   "config": "full",
+   "eprs": 517,
+   "ls": 3634,
+   "aborted": false,
+   "time_s": 131.9
+  },
+  {
+   "circuit": "qaoa",
+   "cx": 3920,
+   "config": "no_lookahead",
+   "eprs": 848,
+   "ls": 5535,
+   "aborted": false,
+   "time_s": 183.0
+  },
+  {
+   "circuit": "qaoa",
+   "cx": 3920,
+   "config": "no_cap_penalty",
+   "aborted": true,
+   "time_s": 315.7
+  },
+  {
+   "circuit": "random",
+   "cx": 1627,
+   "config": "full",
+   "eprs": 712,
+   "ls": 3635,
+   "aborted": false,
+   "time_s": 68.2
+  },
+  {
+   "circuit": "random",
+   "cx": 1627,
+   "config": "no_lookahead",
+   "eprs": 947,
+   "ls": 4457,
+   "aborted": false,
+   "time_s": 93.5
+  },
+  {
+   "circuit": "random",
+   "cx": 1627,
+   "config": "no_cap_penalty",
+   "eprs": 1073,
+   "ls": 5013,
+   "aborted": false,
+   "time_s": 203.2
+  },
+  {
+   "circuit": "qnn",
+   "cx": 8126,
+   "config": "full",
+   "eprs": 497,
+   "ls": 5163,
+   "aborted": false,
+   "time_s": 365.4
+  },
+  {
+   "circuit": "qnn",
+   "cx": 8126,
+   "config": "no_lookahead",
+   "eprs": 514,
+   "ls": 8473,
+   "aborted": false,
+   "time_s": 570.7
+  },
+  {
+   "circuit": "qnn",
+   "cx": 8126,
+   "config": "no_cap_penalty",
+   "aborted": true,
+   "time_s": 340.3
+  }
+ ]
+}

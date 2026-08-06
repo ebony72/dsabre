@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "date": "2026-08-06",
+    "arch": "H-grid 2x3 of 4x4 (96 physical)",
+    "protocol": "dSABRE: 3 SabreLayout seeds, fwd->bwd->fwd each; TeleSABRE: seeds 0-2"
+  },
+  "results": [
+    {
+      "circuit": "ghz",
+      "cx": 63,
+      "ts_per_seed": [
+        16,
+        16,
+        16
+      ],
+      "dsabre_per_seed": [
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "circuit": "graphstate",
+      "cx": 64,
+      "ts_per_seed": [
+        62,
+        62,
+        62
+      ],
+      "dsabre_per_seed": [
+        18,
+        26,
+        16
+      ]
+    },
+    {
+      "circuit": "ae",
+      "cx": 1962,
+      "ts_per_seed": [
+        353,
+        353,
+        353
+      ],
+      "dsabre_per_seed": [
+        141,
+        202,
+        196
+      ]
+    },
+    {
+      "circuit": "qft",
+      "cx": 1966,
+      "ts_per_seed": [
+        312,
+        312,
+        312
+      ],
+      "dsabre_per_seed": [
+        201,
+        192,
+        229
+      ]
+    },
+    {
+      "circuit": "qpeexact",
+      "cx": 2139,
+      "ts_per_seed": [
+        289,
+        289,
+        289
+      ],
+      "dsabre_per_seed": [
+        204,
+        224,
+        287
+      ]
+    },
+    {
+      "circuit": "random",
+      "cx": 1627,
+      "ts_per_seed": [
+        null,
+        null,
+        null
+      ],
+      "dsabre_per_seed": [
+        733,
+        739,
+        712
+      ]
+    },
+    {
+      "circuit": "qaoa",
+      "cx": 3920,
+      "ts_per_seed": [
+        956,
+        956,
+        956
+      ],
+      "dsabre_per_seed": [
+        542,
+        608,
+        517
+      ]
+    },
+    {
+      "circuit": "qnn",
+      "cx": 8126,
+      "ts_per_seed": [
+        889,
+        889,
+        889
+      ],
+      "dsabre_per_seed": [
+        497,
+        587,
+        615
+      ]
+    },
+    {
+      "circuit": "multiplier",
+      "cx": 13040,
+      "ts_per_seed": [
+        1601,
+        1601,
+        1601
+      ],
+      "dsabre_per_seed": [
+        1523,
+        1805,
+        2039
+      ]
+    }
+  ]
+}

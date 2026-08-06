@@ -90,6 +90,16 @@ SUITES = {
     ),
 }
 
+# ~/Documents/telesabre/circuits/qasm_64 is shared across projects (see
+# CLAUDE.md) and picked up two extra files (vqe_su2, wstate -- 36q-suite
+# names re-scaled to 64 qubits by some other project) that are not part of
+# dSABRE's published 9-circuit 64q suite; vqe_su2_64 also crashes pytket-dqc's
+# DQCPass.  Whitelist rather than glob-all.
+CANONICAL_CIRCUITS = {
+    "64": {"ae", "ghz", "graphstate", "qft", "qnn", "random",
+           "qpeexact", "qaoa", "multiplier"},
+}
+
 
 # ── Topology-aware intra-core layout from a core→qubits partition ────────────
 
@@ -230,6 +240,10 @@ def run_suite(key: str) -> list[dict]:
         "dSE": dSABRE_BurstExt(arch, _HW),
     }
     files = sorted(glob.glob(os.path.join(cfg["circuit_dir"], "*.qasm")))
+    canon = CANONICAL_CIRCUITS.get(key)
+    if canon:
+        files = [f for f in files
+                 if os.path.basename(f).replace(cfg["suffix"], "") in canon]
     if not files:
         print(f"  [no .qasm files in {cfg['circuit_dir']}]", flush=True)
         return []
@@ -260,28 +274,32 @@ def main():
         print(f"Unknown suite(s): {unknown}. Choose from: 25, 36, 64"); sys.exit(1)
 
     t0 = time.time()
+    out_path = os.path.join(_RESULTS_DIR, "results_pytket_layout.json")
     all_records = {}
+
+    def save():
+        payload = dict(
+            meta=dict(
+                date=time.strftime("%Y-%m-%d"),
+                description="dSABRE (dS + dSE) routed from pytket-dqc KaHyPar layout",
+                layout="pytket-dqc HypergraphPartitioning, best of 5 seeds",
+                pass_strategy="fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+                py_seeds=NUM_SEEDS,
+                routers={
+                    "dS":  "General_dSABRE_Router  (router.py)",
+                    "dSE": "dSABRE_BurstExt        (dsabre_ext.py)",
+                },
+            ),
+            results=all_records,
+        )
+        with open(out_path, "w") as f:
+            json.dump(payload, f, indent=2)
+        print(f"\nSaved (partial) → {out_path}", flush=True)
+
     for k in keys:
         all_records[k + "q"] = run_suite(k)
+        save()   # persist after each suite so a later crash keeps earlier work
 
-    out_path = os.path.join(_RESULTS_DIR, "results_pytket_layout.json")
-    payload = dict(
-        meta=dict(
-            date=time.strftime("%Y-%m-%d"),
-            description="dSABRE (dS + dSE) routed from pytket-dqc KaHyPar layout",
-            layout="pytket-dqc HypergraphPartitioning, best of 5 seeds",
-            pass_strategy="fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
-            py_seeds=NUM_SEEDS,
-            routers={
-                "dS":  "General_dSABRE_Router  (router.py)",
-                "dSE": "dSABRE_BurstExt        (dsabre_ext.py)",
-            },
-        ),
-        results=all_records,
-    )
-    with open(out_path, "w") as f:
-        json.dump(payload, f, indent=2)
-    print(f"\nSaved → {out_path}", flush=True)
     print(f"Total wall time: {time.time() - t0:.0f}s", flush=True)
 
 

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-05-19",
+    "date": "2026-08-04",
     "protocol": "SabreLayout corners-removed, best of 3 seeds, 3 forward passes"
   },
   "mechanism_ablation": {
@@ -8,171 +8,21 @@
       {
         "label": "full",
         "suite": "25q",
-        "gmean_eprs": 15.196139985777018,
-        "gmean_ls": 196.23204282782024,
+        "gmean_eprs": 15.32811800506643,
+        "gmean_ls": 136.99686045431798,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 558,
             "eprs": 23,
-            "ls": 374,
+            "ls": 284,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 24,
             "eprs": 1,
-            "ls": 14,
-            "aborted": false
-          },
-          {
-            "circuit": "graphstate",
-            "cx": 25,
-            "eprs": 2,
-            "ls": 16,
-            "aborted": false
-          },
-          {
-            "circuit": "qft",
-            "cx": 580,
-            "eprs": 33,
-            "ls": 461,
-            "aborted": false
-          },
-          {
-            "circuit": "qnn",
-            "cx": 1223,
-            "eprs": 48,
-            "ls": 1076,
-            "aborted": false
-          },
-          {
-            "circuit": "random",
-            "cx": 1124,
-            "eprs": 169,
-            "ls": 1374,
-            "aborted": false
-          }
-        ]
-      },
-      {
-        "label": "no_lookahead",
-        "suite": "25q",
-        "gmean_eprs": 19.476708333049174,
-        "gmean_ls": 321.6677517418182,
-        "circuits": [
-          {
-            "circuit": "ae",
-            "cx": 558,
-            "eprs": 27,
-            "ls": 629,
-            "aborted": false
-          },
-          {
-            "circuit": "ghz",
-            "cx": 24,
-            "eprs": 1,
-            "ls": 43,
-            "aborted": false
-          },
-          {
-            "circuit": "graphstate",
-            "cx": 25,
-            "eprs": 4,
-            "ls": 30,
-            "aborted": false
-          },
-          {
-            "circuit": "qft",
-            "cx": 580,
-            "eprs": 40,
-            "ls": 555,
-            "aborted": false
-          },
-          {
-            "circuit": "qnn",
-            "cx": 1223,
-            "eprs": 52,
-            "ls": 1436,
-            "aborted": false
-          },
-          {
-            "circuit": "random",
-            "cx": 1124,
-            "eprs": 243,
-            "ls": 1713,
-            "aborted": false
-          }
-        ]
-      },
-      {
-        "label": "no_hop_gain",
-        "suite": "25q",
-        "gmean_eprs": 15.196139985777018,
-        "gmean_ls": 196.23204282782024,
-        "circuits": [
-          {
-            "circuit": "ae",
-            "cx": 558,
-            "eprs": 23,
-            "ls": 374,
-            "aborted": false
-          },
-          {
-            "circuit": "ghz",
-            "cx": 24,
-            "eprs": 1,
-            "ls": 14,
-            "aborted": false
-          },
-          {
-            "circuit": "graphstate",
-            "cx": 25,
-            "eprs": 2,
-            "ls": 16,
-            "aborted": false
-          },
-          {
-            "circuit": "qft",
-            "cx": 580,
-            "eprs": 33,
-            "ls": 461,
-            "aborted": false
-          },
-          {
-            "circuit": "qnn",
-            "cx": 1223,
-            "eprs": 48,
-            "ls": 1076,
-            "aborted": false
-          },
-          {
-            "circuit": "random",
-            "cx": 1124,
-            "eprs": 169,
-            "ls": 1374,
-            "aborted": false
-          }
-        ]
-      },
-      {
-        "label": "no_cap_penalty",
-        "suite": "25q",
-        "gmean_eprs": 24.302579858634328,
-        "gmean_ls": 212.7547700229304,
-        "circuits": [
-          {
-            "circuit": "ae",
-            "cx": 558,
-            "eprs": 56,
-            "ls": 487,
-            "aborted": false
-          },
-          {
-            "circuit": "ghz",
-            "cx": 24,
-            "eprs": 1,
-            "ls": 14,
+            "ls": 6,
             "aborted": false
           },
           {
@@ -185,72 +35,172 @@
           {
             "circuit": "qft",
             "cx": 580,
-            "eprs": 67,
-            "ls": 525,
-            "aborted": false
-          },
-          {
-            "circuit": "qnn",
-            "cx": 1223,
-            "eprs": 95,
-            "ls": 1006,
-            "aborted": false
-          },
-          {
-            "circuit": "random",
-            "cx": 1124,
-            "eprs": 289,
-            "ls": 1717,
-            "aborted": false
-          }
-        ]
-      },
-      {
-        "label": "no_relief",
-        "suite": "25q",
-        "gmean_eprs": 15.482073878288194,
-        "gmean_ls": 200.9938383077837,
-        "circuits": [
-          {
-            "circuit": "ae",
-            "cx": 558,
-            "eprs": 23,
-            "ls": 375,
-            "aborted": false
-          },
-          {
-            "circuit": "ghz",
-            "cx": 24,
-            "eprs": 1,
-            "ls": 14,
-            "aborted": false
-          },
-          {
-            "circuit": "graphstate",
-            "cx": 25,
-            "eprs": 2,
-            "ls": 17,
-            "aborted": false
-          },
-          {
-            "circuit": "qft",
-            "cx": 580,
             "eprs": 33,
-            "ls": 489,
+            "ls": 334,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 1223,
             "eprs": 48,
-            "ls": 1076,
+            "ls": 624,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1124,
-            "eprs": 189,
-            "ls": 1404,
+            "eprs": 178,
+            "ls": 1241,
+            "aborted": false
+          }
+        ]
+      },
+      {
+        "label": "no_lookahead",
+        "suite": "25q",
+        "gmean_eprs": 17.06173313775607,
+        "gmean_ls": 217.4515426083097,
+        "circuits": [
+          {
+            "circuit": "ae",
+            "cx": 558,
+            "eprs": 27,
+            "ls": 412,
+            "aborted": false
+          },
+          {
+            "circuit": "ghz",
+            "cx": 24,
+            "eprs": 1,
+            "ls": 21,
+            "aborted": false
+          },
+          {
+            "circuit": "graphstate",
+            "cx": 25,
+            "eprs": 2,
+            "ls": 16,
+            "aborted": false
+          },
+          {
+            "circuit": "qft",
+            "cx": 580,
+            "eprs": 35,
+            "ls": 477,
+            "aborted": false
+          },
+          {
+            "circuit": "qnn",
+            "cx": 1223,
+            "eprs": 52,
+            "ls": 1014,
+            "aborted": false
+          },
+          {
+            "circuit": "random",
+            "cx": 1124,
+            "eprs": 251,
+            "ls": 1579,
+            "aborted": false
+          }
+        ]
+      },
+      {
+        "label": "no_cap_penalty",
+        "suite": "25q",
+        "gmean_eprs": 27.64051339390554,
+        "gmean_ls": 182.60803642215936,
+        "circuits": [
+          {
+            "circuit": "ae",
+            "cx": 558,
+            "eprs": 63,
+            "ls": 425,
+            "aborted": false
+          },
+          {
+            "circuit": "ghz",
+            "cx": 24,
+            "eprs": 1,
+            "ls": 6,
+            "aborted": false
+          },
+          {
+            "circuit": "graphstate",
+            "cx": 25,
+            "eprs": 2,
+            "ls": 18,
+            "aborted": false
+          },
+          {
+            "circuit": "qft",
+            "cx": 580,
+            "eprs": 67,
+            "ls": 455,
+            "aborted": false
+          },
+          {
+            "circuit": "qnn",
+            "cx": 1223,
+            "eprs": 186,
+            "ls": 1141,
+            "aborted": false
+          },
+          {
+            "circuit": "random",
+            "cx": 1124,
+            "eprs": 284,
+            "ls": 1556,
+            "aborted": false
+          }
+        ]
+      },
+      {
+        "label": "no_hop_gain",
+        "suite": "25q",
+        "gmean_eprs": 15.32811800506643,
+        "gmean_ls": 136.99686045431798,
+        "circuits": [
+          {
+            "circuit": "ae",
+            "cx": 558,
+            "eprs": 23,
+            "ls": 284,
+            "aborted": false
+          },
+          {
+            "circuit": "ghz",
+            "cx": 24,
+            "eprs": 1,
+            "ls": 6,
+            "aborted": false
+          },
+          {
+            "circuit": "graphstate",
+            "cx": 25,
+            "eprs": 2,
+            "ls": 15,
+            "aborted": false
+          },
+          {
+            "circuit": "qft",
+            "cx": 580,
+            "eprs": 33,
+            "ls": 334,
+            "aborted": false
+          },
+          {
+            "circuit": "qnn",
+            "cx": 1223,
+            "eprs": 48,
+            "ls": 624,
+            "aborted": false
+          },
+          {
+            "circuit": "random",
+            "cx": 1124,
+            "eprs": 178,
+            "ls": 1241,
             "aborted": false
           }
         ]
@@ -260,49 +210,49 @@
       {
         "label": "full",
         "suite": "64q",
-        "gmean_eprs": 134.83409654009503,
-        "gmean_ls": 1065.676036123242,
+        "gmean_eprs": 107.08602613657322,
+        "gmean_ls": 739.003746921752,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 1962,
-            "eprs": 216,
-            "ls": 2332,
+            "eprs": 202,
+            "ls": 1506,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 63,
-            "eprs": 16,
-            "ls": 89,
+            "eprs": 6,
+            "ls": 39,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 64,
-            "eprs": 19,
-            "ls": 104,
+            "eprs": 16,
+            "ls": 89,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 1966,
-            "eprs": 246,
-            "ls": 2054,
+            "eprs": 218,
+            "ls": 1622,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 8126,
-            "eprs": 521,
-            "ls": 8662,
+            "eprs": 501,
+            "ls": 5285,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1627,
-            "eprs": 714,
-            "ls": 3814,
+            "eprs": 712,
+            "ls": 3635,
             "aborted": false
           }
         ]
@@ -310,99 +260,49 @@
       {
         "label": "no_lookahead",
         "suite": "64q",
-        "gmean_eprs": 148.52127994264308,
-        "gmean_ls": 1270.4669378586025,
+        "gmean_eprs": 122.29017974671079,
+        "gmean_ls": 1165.799264177014,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 1962,
-            "eprs": 330,
-            "ls": 2688,
+            "eprs": 248,
+            "ls": 2240,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 63,
-            "eprs": 10,
-            "ls": 108,
+            "eprs": 4,
+            "ls": 78,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 64,
-            "eprs": 18,
-            "ls": 110,
+            "eprs": 24,
+            "ls": 144,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 1966,
-            "eprs": 351,
-            "ls": 2781,
+            "eprs": 285,
+            "ls": 2599,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 8126,
-            "eprs": 528,
-            "ls": 10305,
+            "eprs": 514,
+            "ls": 8473,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1627,
-            "eprs": 975,
-            "ls": 4595,
-            "aborted": false
-          }
-        ]
-      },
-      {
-        "label": "no_hop_gain",
-        "suite": "64q",
-        "gmean_eprs": 137.35511604189924,
-        "gmean_ls": 1067.729267141251,
-        "circuits": [
-          {
-            "circuit": "ae",
-            "cx": 1962,
-            "eprs": 216,
-            "ls": 2332,
-            "aborted": false
-          },
-          {
-            "circuit": "ghz",
-            "cx": 63,
-            "eprs": 17,
-            "ls": 87,
-            "aborted": false
-          },
-          {
-            "circuit": "graphstate",
-            "cx": 64,
-            "eprs": 19,
-            "ls": 104,
-            "aborted": false
-          },
-          {
-            "circuit": "qft",
-            "cx": 1966,
-            "eprs": 246,
-            "ls": 2054,
-            "aborted": false
-          },
-          {
-            "circuit": "qnn",
-            "cx": 8126,
-            "eprs": 521,
-            "ls": 8662,
-            "aborted": false
-          },
-          {
-            "circuit": "random",
-            "cx": 1627,
-            "eprs": 751,
-            "ls": 3947,
+            "eprs": 959,
+            "ls": 4531,
             "aborted": false
           }
         ]
@@ -410,99 +310,91 @@
       {
         "label": "no_cap_penalty",
         "suite": "64q",
-        "gmean_eprs": 213.94178830951827,
-        "gmean_ls": 1186.5234686623496,
+        "gmean_eprs": 11.489125293076057,
+        "gmean_ls": 71.4142842854285,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 1962,
-            "eprs": 411,
-            "ls": 2578,
-            "aborted": false
+            "aborted": true
           },
           {
             "circuit": "ghz",
             "cx": 63,
-            "eprs": 18,
-            "ls": 97,
+            "eprs": 6,
+            "ls": 50,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 64,
-            "eprs": 19,
-            "ls": 87,
+            "eprs": 22,
+            "ls": 102,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 1966,
-            "eprs": 434,
-            "ls": 2699,
-            "aborted": false
+            "aborted": true
           },
           {
             "circuit": "qnn",
             "cx": 8126,
-            "eprs": 1858,
-            "ls": 11059,
-            "aborted": false
+            "aborted": true
           },
           {
             "circuit": "random",
             "cx": 1627,
-            "eprs": 846,
-            "ls": 4297,
-            "aborted": false
+            "aborted": true
           }
         ]
       },
       {
-        "label": "no_relief",
+        "label": "no_hop_gain",
         "suite": "64q",
-        "gmean_eprs": 166.385102526093,
-        "gmean_ls": 1093.9234062151172,
+        "gmean_eprs": 106.25122425922056,
+        "gmean_ls": 735.235191104796,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 1962,
-            "eprs": 477,
-            "ls": 2728,
+            "eprs": 202,
+            "ls": 1506,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 63,
-            "eprs": 8,
-            "ls": 56,
+            "eprs": 6,
+            "ls": 39,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 64,
-            "eprs": 19,
-            "ls": 104,
+            "eprs": 16,
+            "ls": 89,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 1966,
-            "eprs": 576,
-            "ls": 3162,
+            "eprs": 208,
+            "ls": 1573,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 8126,
-            "eprs": 695,
-            "ls": 8662,
+            "eprs": 501,
+            "ls": 5285,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1627,
-            "eprs": 731,
-            "ls": 3938,
+            "eprs": 712,
+            "ls": 3635,
             "aborted": false
           }
         ]
@@ -514,49 +406,49 @@
       {
         "passes": 1,
         "suite": "25q",
-        "gmean_eprs": 19.171139410828555,
-        "gmean_ls": 217.33106276330642,
+        "gmean_eprs": 20.504483349483284,
+        "gmean_ls": 152.72995700785415,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 558,
-            "eprs": 31,
-            "ls": 524,
+            "eprs": 24,
+            "ls": 261,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 24,
-            "eprs": 1,
-            "ls": 14,
+            "eprs": 2,
+            "ls": 11,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 25,
-            "eprs": 3,
-            "ls": 20,
+            "eprs": 4,
+            "ls": 18,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 580,
-            "eprs": 39,
-            "ls": 492,
+            "eprs": 36,
+            "ls": 312,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 1223,
-            "eprs": 58,
-            "ls": 991,
+            "eprs": 56,
+            "ls": 656,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1124,
-            "eprs": 236,
-            "ls": 1473,
+            "eprs": 192,
+            "ls": 1200,
             "aborted": false
           }
         ]
@@ -564,49 +456,49 @@
       {
         "passes": 2,
         "suite": "25q",
-        "gmean_eprs": 17.35759617261068,
-        "gmean_ls": 216.23911949553306,
+        "gmean_eprs": 18.812153680452457,
+        "gmean_ls": 155.01218426864065,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 558,
-            "eprs": 25,
-            "ls": 402,
+            "eprs": 24,
+            "ls": 261,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 24,
-            "eprs": 1,
-            "ls": 14,
+            "eprs": 2,
+            "ls": 11,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 25,
             "eprs": 3,
-            "ls": 20,
+            "ls": 21,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 580,
-            "eprs": 39,
-            "ls": 492,
+            "eprs": 36,
+            "ls": 312,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 1223,
             "eprs": 50,
-            "ls": 1255,
+            "ls": 632,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1124,
-            "eprs": 187,
-            "ls": 1471,
+            "eprs": 171,
+            "ls": 1167,
             "aborted": false
           }
         ]
@@ -614,49 +506,49 @@
       {
         "passes": 3,
         "suite": "25q",
-        "gmean_eprs": 17.224502040740933,
-        "gmean_ls": 220.5195459662611,
+        "gmean_eprs": 18.7489174629605,
+        "gmean_ls": 161.1146982547547,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 558,
             "eprs": 24,
-            "ls": 488,
+            "ls": 309,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 24,
-            "eprs": 1,
-            "ls": 14,
+            "eprs": 2,
+            "ls": 11,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 25,
             "eprs": 3,
-            "ls": 20,
+            "ls": 21,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 580,
-            "eprs": 39,
-            "ls": 492,
+            "eprs": 36,
+            "ls": 312,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 1223,
-            "eprs": 50,
-            "ls": 1255,
+            "eprs": 49,
+            "ls": 673,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1124,
-            "eprs": 186,
-            "ls": 1363,
+            "eprs": 171,
+            "ls": 1167,
             "aborted": false
           }
         ]
@@ -664,49 +556,49 @@
       {
         "passes": 4,
         "suite": "25q",
-        "gmean_eprs": 17.224502040740933,
-        "gmean_ls": 220.5195459662611,
+        "gmean_eprs": 18.7489174629605,
+        "gmean_ls": 161.1146982547547,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 558,
             "eprs": 24,
-            "ls": 488,
+            "ls": 309,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 24,
-            "eprs": 1,
-            "ls": 14,
+            "eprs": 2,
+            "ls": 11,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 25,
             "eprs": 3,
-            "ls": 20,
+            "ls": 21,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 580,
-            "eprs": 39,
-            "ls": 492,
+            "eprs": 36,
+            "ls": 312,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 1223,
-            "eprs": 50,
-            "ls": 1255,
+            "eprs": 49,
+            "ls": 673,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1124,
-            "eprs": 186,
-            "ls": 1363,
+            "eprs": 171,
+            "ls": 1167,
             "aborted": false
           }
         ]
@@ -716,49 +608,49 @@
       {
         "passes": 1,
         "suite": "64q",
-        "gmean_eprs": 249.04376278489158,
-        "gmean_ls": 1436.221048862571,
+        "gmean_eprs": 128.9722843649771,
+        "gmean_ls": 804.4146952361633,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 1962,
-            "eprs": 275,
-            "ls": 2356,
+            "eprs": 243,
+            "ls": 1609,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 63,
-            "eprs": 177,
-            "ls": 424,
+            "eprs": 8,
+            "ls": 48,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 64,
-            "eprs": 25,
-            "ls": 112,
+            "eprs": 24,
+            "ls": 107,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 1966,
-            "eprs": 364,
-            "ls": 2375,
+            "eprs": 229,
+            "ls": 1655,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 8126,
-            "eprs": 567,
-            "ls": 7644,
+            "eprs": 605,
+            "ls": 5450,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1627,
-            "eprs": 950,
-            "ls": 4321,
+            "eprs": 712,
+            "ls": 3635,
             "aborted": false
           }
         ]
@@ -766,49 +658,49 @@
       {
         "passes": 2,
         "suite": "64q",
-        "gmean_eprs": 161.39116824216543,
-        "gmean_ls": 1129.6290640668135,
+        "gmean_eprs": 115.52918248408847,
+        "gmean_ls": 810.6546586041046,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 1962,
-            "eprs": 244,
-            "ls": 2067,
+            "eprs": 194,
+            "ls": 1535,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 63,
-            "eprs": 19,
-            "ls": 104,
+            "eprs": 6,
+            "ls": 56,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 64,
-            "eprs": 25,
-            "ls": 112,
+            "eprs": 24,
+            "ls": 107,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 1966,
-            "eprs": 364,
-            "ls": 2375,
+            "eprs": 229,
+            "ls": 1655,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 8126,
-            "eprs": 521,
-            "ls": 8617,
+            "eprs": 522,
+            "ls": 5129,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1627,
-            "eprs": 804,
-            "ls": 4217,
+            "eprs": 712,
+            "ls": 3635,
             "aborted": false
           }
         ]
@@ -816,49 +708,49 @@
       {
         "passes": 3,
         "suite": "64q",
-        "gmean_eprs": 144.56778166395725,
-        "gmean_ls": 1110.3420451727438,
+        "gmean_eprs": 112.60723561384859,
+        "gmean_ls": 808.5477992251541,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 1962,
-            "eprs": 212,
-            "ls": 1881,
+            "eprs": 167,
+            "ls": 1468,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 63,
-            "eprs": 13,
-            "ls": 102,
+            "eprs": 6,
+            "ls": 56,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 64,
-            "eprs": 25,
-            "ls": 112,
+            "eprs": 24,
+            "ls": 107,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 1966,
-            "eprs": 329,
-            "ls": 2477,
+            "eprs": 229,
+            "ls": 1655,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 8126,
-            "eprs": 515,
-            "ls": 8751,
+            "eprs": 520,
+            "ls": 5280,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1627,
-            "eprs": 782,
-            "ls": 4023,
+            "eprs": 712,
+            "ls": 3635,
             "aborted": false
           }
         ]
@@ -866,49 +758,49 @@
       {
         "passes": 4,
         "suite": "64q",
-        "gmean_eprs": 139.13621005130202,
-        "gmean_ls": 1089.9703917487655,
+        "gmean_eprs": 112.42604802477777,
+        "gmean_ls": 806.4671499269322,
         "circuits": [
           {
             "circuit": "ae",
             "cx": 1962,
-            "eprs": 212,
-            "ls": 1881,
+            "eprs": 167,
+            "ls": 1468,
             "aborted": false
           },
           {
             "circuit": "ghz",
             "cx": 63,
-            "eprs": 11,
-            "ls": 98,
+            "eprs": 6,
+            "ls": 56,
             "aborted": false
           },
           {
             "circuit": "graphstate",
             "cx": 64,
-            "eprs": 25,
-            "ls": 112,
+            "eprs": 24,
+            "ls": 107,
             "aborted": false
           },
           {
             "circuit": "qft",
             "cx": 1966,
-            "eprs": 309,
-            "ls": 2307,
+            "eprs": 229,
+            "ls": 1655,
             "aborted": false
           },
           {
             "circuit": "qnn",
             "cx": 8126,
             "eprs": 515,
-            "ls": 8751,
+            "ls": 5199,
             "aborted": false
           },
           {
             "circuit": "random",
             "cx": 1627,
-            "eprs": 782,
-            "ls": 4023,
+            "eprs": 712,
+            "ls": 3635,
             "aborted": false
           }
         ]

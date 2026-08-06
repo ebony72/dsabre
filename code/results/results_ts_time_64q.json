@@ -1,0 +1,158 @@
+{
+ "meta": {
+  "date": "2026-07-31",
+  "suite": "64q",
+  "arch": "H-grid 2x3 of 4x4 (96 physical)",
+  "binary": "/Users/sanjiangli/Documents/telesabre/telesabre",
+  "device": "/Users/sanjiangli/Documents/telesabre/devices/H_grid_2_3_4_4.json",
+  "seeds": 3,
+  "timeout_s": 300,
+  "note": "measured in isolation, matching probe_compile_time.py's conditions; seeds_agree records whether best-of-3 buys TeleSABRE anything"
+ },
+ "results": [
+  {
+   "circuit": "ghz",
+   "per_seed_s": [
+    0.32,
+    0.03,
+    0.02
+   ],
+   "total_s": 0.37,
+   "best_seed_s": 0.02,
+   "eprs": [
+    16,
+    16,
+    16
+   ],
+   "seeds_agree": true
+  },
+  {
+   "circuit": "graphstate",
+   "per_seed_s": [
+    1.93,
+    1.96,
+    2.02
+   ],
+   "total_s": 5.91,
+   "best_seed_s": 1.93,
+   "eprs": [
+    62,
+    62,
+    62
+   ],
+   "seeds_agree": true
+  },
+  {
+   "circuit": "qpeexact",
+   "per_seed_s": [
+    1.14,
+    1.13,
+    1.11
+   ],
+   "total_s": 3.38,
+   "best_seed_s": 1.11,
+   "eprs": [
+    289,
+    289,
+    289
+   ],
+   "seeds_agree": true
+  },
+  {
+   "circuit": "ae",
+   "per_seed_s": [
+    1.29,
+    1.29,
+    1.3
+   ],
+   "total_s": 3.88,
+   "best_seed_s": 1.29,
+   "eprs": [
+    353,
+    353,
+    353
+   ],
+   "seeds_agree": true
+  },
+  {
+   "circuit": "qft",
+   "per_seed_s": [
+    6.58,
+    6.58,
+    6.54
+   ],
+   "total_s": 19.7,
+   "best_seed_s": 6.54,
+   "eprs": [
+    312,
+    312,
+    312
+   ],
+   "seeds_agree": true
+  },
+  {
+   "circuit": "random",
+   "per_seed_s": [
+    38.74,
+    38.07,
+    38.07
+   ],
+   "total_s": 114.88,
+   "best_seed_s": 38.07,
+   "eprs": [
+    null,
+    null,
+    null
+   ],
+   "seeds_agree": true
+  },
+  {
+   "circuit": "qaoa",
+   "per_seed_s": [
+    37.13,
+    37.49,
+    37.07
+   ],
+   "total_s": 111.69,
+   "best_seed_s": 37.07,
+   "eprs": [
+    956,
+    956,
+    956
+   ],
+   "seeds_agree": true
+  },
+  {
+   "circuit": "qnn",
+   "per_seed_s": [
+    8.08,
+    8.01,
+    7.93
+   ],
+   "total_s": 24.02,
+   "best_seed_s": 7.93,
+   "eprs": [
+    889,
+    889,
+    889
+   ],
+   "seeds_agree": true
+  },
+  {
+   "circuit": "multiplier",
+   "per_seed_s": [
+    109.99,
+    105.75,
+    105.96
+   ],
+   "total_s": 321.7,
+   "best_seed_s": 105.75,
+   "eprs": [
+    1601,
+    1601,
+    1601
+   ],
+   "seeds_agree": true
+  }
+ ]
+}

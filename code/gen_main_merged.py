@@ -3,9 +3,15 @@ gen_main_merged.py — emit the merged three-panel main-results table.
 
 The TCAD revision merges the separate 25q / 36q / 64q main tables into one
 float to stay inside the page budget.  TeleSABRE and dSABRE columns are read
-from results_{25,36,64}q.json; the pytket-dqc e-bit column is carried in the
-TKET dict below, because pytket-dqc does not depend on any dSABRE setting and
-is not re-run by benchmark.py.
+from results_{25,36,64}q.json.
+
+The main table is a TeleSABRE-vs-dSABRE comparison only: those two share a
+cost model, a physical architecture, and intra-core SWAP accounting, so the
+columns are directly comparable.  pytket-dqc is compared separately in the
+paper (Section IV-C, tab:fair), because its e-bit counts charge no intra-core
+routing and assume communication capacity and entanglement lifetime the device
+does not provide.  Set WITH_TKET=True to restore the two pytket-dqc columns;
+the data path for them (PUBLISHED / _load_physical) is kept live either way.
 
 Writes tables/main_merged.tex (the table body, to be \input or pasted).
 """
@@ -56,6 +62,11 @@ def _load_physical():
 PHYSICAL = None   # populated in main()
 
 TKET = PUBLISHED  # retained name for the fallback path
+
+# Emit the two pytket-dqc columns (e-bits, vs. tket)?  Off: the main table is
+# the like-for-like TeleSABRE comparison; pytket-dqc lives in tab:fair.
+WITH_TKET = False
+NCOL = 9 if WITH_TKET else 7
 
 ORDER = {
     "25q": ["ae", "ghz", "graphstate", "qft", "qnn", "random"],
@@ -115,7 +126,7 @@ def panel(suite):
     recs = [r for r in recs if r["circuit"] in order]
     recs.sort(key=lambda r: order.index(r["circuit"]))
 
-    lines = [f"\\multicolumn{{9}}{{@{{}}l}}{{{PANEL[suite]}}} \\\\",
+    lines = [f"\\multicolumn{{{NCOL}}}{{@{{}}l}}{{{PANEL[suite]}}} \\\\",
              "\\addlinespace[1pt]"]
     m_ts, m_de = [], []          # matched sets, for the TS gmean
     m_tsl, m_del = [], []
@@ -136,15 +147,16 @@ def panel(suite):
         if te is None:
             label += "$^{\\ast}$"
 
-        lines.append(" & ".join([
+        cells = [
             label, str(r["cx"]),
             str(te) if te is not None else "---",
             str(tl) if tl is not None else "---",
             str(ee) if ee is not None else "---",
             str(el) if el is not None else "---",
-            tks,
-            fmt_pct(ee, te), fmt_pct(ee, tkv),
-        ]) + " \\\\")
+        ]
+        cells += [tks, fmt_pct(ee, te), fmt_pct(ee, tkv)] if WITH_TKET \
+            else [fmt_pct(ee, te)]
+        lines.append(" & ".join(cells) + " \\\\")
 
         if te is not None and ee is not None:
             m_ts.append(te); m_de.append(ee)
@@ -157,38 +169,52 @@ def panel(suite):
             if tkv is not None: all_tk.append(tkv)
 
     g_ts, g_de = gmean(m_ts), gmean(m_de)
-    lines.append("\\cmidrule(lr){1-9}")
-    lines.append(" & ".join([
+    lines.append(f"\\cmidrule(lr){{1-{NCOL}}}")
+    cells = [
         f"\\textbf{{gmean}} ({len(m_ts)})", "",
         f"{g_ts:.1f}", f"{gmean(m_tsl):.0f}" if m_tsl else "---",
         f"{g_de:.1f}", f"{gmean(m_del):.0f}" if m_del else "---",
-        f"{gmean(m_tk):.1f}" if m_tk else "---",
-        fmt_pct(g_de, g_ts, bold=True),
-        fmt_pct(g_de, gmean(m_tk), bold=True) if m_tk else "---",
-    ]) + " \\\\")
+    ]
+    cells += [f"{gmean(m_tk):.1f}" if m_tk else "---",
+              fmt_pct(g_de, g_ts, bold=True),
+              fmt_pct(g_de, gmean(m_tk), bold=True) if m_tk else "---"] \
+        if WITH_TKET else [fmt_pct(g_de, g_ts, bold=True)]
+    lines.append(" & ".join(cells) + " \\\\")
 
-    # A second gmean row over every circuit dSABRE routed, for the tket
-    # comparison, whenever TeleSABRE did not complete the whole suite.
-    if len(m_ts) != len(all_de) and all_tk:
-        lines.append(" & ".join([
-            f"\\textbf{{gmean}} ({len(all_de)})", "", "---", "---",
-            f"{gmean(all_de):.1f}", f"{gmean(all_del):.0f}", f"{gmean(all_tk):.1f}",
-            "---", fmt_pct(gmean(all_de), gmean(all_tk), bold=True),
-        ]) + " \\\\")
+    # A second gmean row over every circuit dSABRE routed, whenever TeleSABRE
+    # did not complete the whole suite.  It is the dSABRE figure tab:fair
+    # quotes for the pytket-dqc comparison.
+    if len(m_ts) != len(all_de):
+        cells = [f"\\textbf{{gmean}} ({len(all_de)})", "", "---", "---",
+                 f"{gmean(all_de):.1f}", f"{gmean(all_del):.0f}"]
+        cells += [f"{gmean(all_tk):.1f}" if all_tk else "---", "---",
+                  fmt_pct(gmean(all_de), gmean(all_tk), bold=True) if all_tk
+                  else "---"] if WITH_TKET else ["---"]
+        lines.append(" & ".join(cells) + " \\\\")
     return "\n".join(lines)
 
 
 def large_panel():
-    """The QFT scalability rows, built from the same JSONs as the suites."""
-    rows = [r"\multicolumn{9}{@{}l}{\emph{QFT scalability, H-grid, each router "
-            r"from its own layout}} \\", r"\addlinespace[1pt]"]
+    """The QFT scalability rows.
+
+    These come from results_scaling_b.json, the decomposed series: core size
+    held at 5x5 while the core count grows 2x3 -> 3x4 -> 4x5, so logical qubits
+    per core stay at 16.7/16.7/18.0 and the only variable is the core graph
+    (diameter 3 -> 5 -> 7).  The earlier series mixed both axes -- it doubled
+    the core count from 100q to 200q and then grew the cores at 360q, leaving
+    60 qubits per core against 17, which for a banded QFT of range 19 changes
+    the inherently-inter-core gate fraction from ~57% to 16.5% and made the
+    three rows incomparable.
+    """
+    rows = [rf"\multicolumn{{{NCOL}}}{{@{{}}l}}{{\emph{{QFT scalability, "
+            r"$5{\times}5$ cores throughout, core count $6\to12\to20$}} \\",
+            r"\addlinespace[1pt]"]
     de, tk = [], []
+    src = os.path.join(R, "results_scaling_b.json")
+    recs = {x["label"]: x for x in json.load(open(src))["results"]} \
+        if os.path.exists(src) else {}
     for suite in ("100q", "200q", "360q"):
-        p = os.path.join(R, f"results_{suite}.json")
-        if not os.path.exists(p):
-            continue
-        rec = next((x for x in json.load(open(p))["results"]
-                    if x["circuit"] == "qft"), None)
+        rec = recs.get(suite)
         if rec is None:
             continue
         ts = rec.get("ts") or {}
@@ -197,13 +223,15 @@ def large_panel():
         ee, el = dse.get("eprs"), dse.get("ls")
         tks, tkv = tket_cell(suite, "qft")
         label = suite + ("$^{\\ast}$" if te is None else "")
-        rows.append(" & ".join([
+        cells = [
             label, str(rec["cx"]),
             str(te) if te is not None else "---",
             str(tl) if tl is not None else "---",
-            str(ee), str(el), tks,
-            fmt_pct(ee, te), fmt_pct(ee, tkv),
-        ]) + " \\\\")
+            str(ee), str(el),
+        ]
+        cells += [tks, fmt_pct(ee, te), fmt_pct(ee, tkv)] if WITH_TKET \
+            else [fmt_pct(ee, te)]
+        rows.append(" & ".join(cells) + " \\\\")
         if ee: de.append(ee)
         if tkv: tk.append(tkv)
     return "\n".join(rows)

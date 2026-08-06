@@ -1,0 +1,38 @@
+{
+ "meta": {
+  "date": "2026-07-31",
+  "suite": "64q",
+  "arch": "H-grid 2x3 of 4x4 (96 physical)",
+  "router": "dSE (dsabre_ext.dSABRE_BurstExt)",
+  "protocol": "best of 3 SabreLayout seeds, fwd->bwd->fwd",
+  "purpose": "extend Table V ablation from 6 to 9 circuits",
+  "note": "full/no_hop_gain on the other 6 circuits come from regen_final/ablation.log and nohop_regen/suites.log, same router generation (unchanged since 2026-07-27)"
+ },
+ "results": [
+  {
+   "circuit": "multiplier",
+   "cx": 13040,
+   "config": "full",
+   "eprs": 1523,
+   "ls": 9694,
+   "aborted": false,
+   "time_s": 2176.9
+  },
+  {
+   "circuit": "multiplier",
+   "cx": 13040,
+   "config": "no_lookahead",
+   "eprs": 2123,
+   "ls": 14147,
+   "aborted": false,
+   "time_s": 2251.2
+  },
+  {
+   "circuit": "multiplier",
+   "cx": 13040,
+   "config": "no_cap_penalty",
+   "aborted": true,
+   "time_s": 1285.5
+  }
+ ]
+}

@@ -10,7 +10,8 @@ loop of Section~\ref{sec:workflow}.}
 Appendix~\ref{app:ablation} ablates the node-decay scoring component
 in detail \rev{and gives the full parameter-sensitivity sweep}.
 \rev{Appendix~\ref{app:corenet} gives per-circuit counts for the two
-non-grid core networks of Section~\ref{sec:scalability}.
+non-grid core networks of Section~\ref{sec:scalability} and the core-granularity
+companion experiment (Appendix~\ref{app:granularity}).
 Appendix~\ref{app:regcz} defines the degree-swept synthetic suite and
 reports the mechanism ablation across it.}
 Appendix~\ref{app:link_density} reports an architecture-sensitivity
@@ -294,6 +295,26 @@ random$^{\ast}$ & 1627 & --- & --- & 481 & 5506 & --- \\
 \end{tabular}%
 }
 \end{table}
+
+\subsection{\rev{Core Granularity}}
+\label{app:granularity}
+
+\rev{A companion experiment to the scalability series of
+Section~\ref{sec:largecircuits} isolates core granularity: the same
+200-qubit QFT routed on six $7{\times}7$ cores (294 physical qubits, core
+diameter 3) against twelve $5{\times}5$ cores (300 physical, diameter 5)---
+near-identical qubit budget, opposite trade between core width and core-graph
+length.  \dSABRE{} completes the six-core layout at $353$ EPR and the
+twelve-core layout at $767$, a $2.2\times$ gap.  Read against each
+architecture's own \TeleSABRE{} baseline ($579$ and $1232$ EPR
+respectively) the routing margin is $-39.0\%$ on six cores and $-37.7\%$ on
+twelve---nearly identical, rather than one architecture clearly favouring
+\dSABRE{} over the other.  The headroom a wider core buys (more free slots
+per core to absorb the capacity penalty and checkpoint--rollback) and the
+diameter a shorter core graph costs (fewer, cheaper inter-core hops)
+appear to trade off rather than one effect dominating at this operating
+point; a wider sweep across granularities, architectures, and circuits
+would be needed to say whether either effect wins systematically.}
 
 %%─────────────────────────────────────────────────────────────────────────────
 
@@ -1040,23 +1061,23 @@ wstate                 &   6 &   8 &   6 &  1 \\
 \midrule
 \multicolumn{5}{@{}l}{\emph{64 logical qubits, H-grid, 2--3 ports per core}} \\
 \addlinespace[1pt]
-ae$^{\dagger}$         &  141 &  142 &  202 & ${>}18$ \\
+ae$^{\dagger}$         &  141 &  142 &  141 & ${>}18$ \\
 ghz                    &    5 &    9 &    6 &  1 \\
 graphstate             &    9 &    7 &   16 &  1 \\
-qft$^{\dagger}$        &  183 &  204 &  218 & ${>}7$ \\
-qnn$^{\dagger}$        &  657 &  605 &  501 & ${>}6$ \\
+qft$^{\dagger}$        &  183 &  204 &  192 & ${>}7$ \\
+qnn$^{\dagger}$        &  657 &  605 &  497 & ${>}6$ \\
 random$^{\dagger}$     &  948 &  925 &  712 & ${>}4$ \\
-qpeexact$^{\dagger}$   &   97 &  118 &  192 & ${>}5$ \\
-qaoa$^{\dagger}$       &  513 &  473 &  542 & ${>}7$ \\
-multiplier$^{\dagger}$ & 2956 & 2891 & 1924 & n/d \\
+qpeexact$^{\dagger}$   &   97 &  118 &  204 & ${>}5$ \\
+qaoa$^{\dagger}$       &  513 &  473 &  517 & ${>}7$ \\
+multiplier$^{\dagger}$ & 2956 & 2891 & 1523 & n/d \\
 \cmidrule(lr){1-5}
-\textbf{gmean}         & 168.0 & 176.3 & 188.6 & \\
+\textbf{gmean}         & 168.0 & 176.3 & 174.2 & \\
 \midrule
 \multicolumn{5}{@{}l}{\emph{QFT scalability sweep}} \\
 \addlinespace[1pt]
-100q$^{\dagger}$       &  114 &  137 &  245 & ${>}7$ \\
-200q                   &  487 &  680 &  876 & ${>}1$ \\
-360q                   &  736 &  998 & 2418 & n/d \\
+100q$^{\dagger}$       &  114 &  137 &  239 & ${>}7$ \\
+200q                   &  487 &  680 &  767 & ${>}1$ \\
+360q                   &  736 &  998 & 2208 & n/d \\
 \bottomrule
 \end{tabular}%
 }
@@ -1153,13 +1174,13 @@ wstate     &   70 &   6 & 0.1\,s &   8 & 0.0\,s & $+33\%$ \\
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}
 Circuit & CX & e-bits & time & EPR & time & $\Delta$ \\
 \midrule
-ae         & 1962 &  519 &   8.6\,s & 186 &  14.0\,s & $-64\%$ \\
+ae         & 1962 &  519 &   8.6\,s & 210 &  19.1\,s & $-60\%$ \\
 ghz        &   63 &    7 &   0.2\,s &   7 &   0.0\,s &   $0\%$ \\
 graphstate &   64 &    9 &   0.2\,s &   6 &   0.0\,s & $-33\%$ \\
-qft        & 1966 &  591 &   9.9\,s & 218 &  11.6\,s & $-63\%$ \\
-qnn        & 8126 &  736 & 137.2\,s & 497 &  85.0\,s & $-32\%$ \\
-random     & 1627 & 1181 &   7.2\,s & 732 &  18.1\,s & $-38\%$ \\
-\textbf{gmean} & & \textbf{160.0} & & \textbf{92.3} & & $\mathbf{-42.3\%}$ \\
+qft        & 1966 &  591 &   9.9\,s & 217 &  10.8\,s & $-63\%$ \\
+qnn        & 8126 &  736 & 137.2\,s & 497 & 120.8\,s & $-32\%$ \\
+random     & 1627 & 1181 &   7.2\,s & 705 &  20.3\,s & $-40\%$ \\
+\textbf{gmean} & & \textbf{160.0} & & \textbf{93.6} & & $\mathbf{-41.5\%}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1167,7 +1188,7 @@ random     & 1627 & 1181 &   7.2\,s & 732 &  18.1\,s & $-38\%$ \\
 \textbf{Discussion.}
 Starting from an identical qubit-to-core partition, \dSABRE{} reduces
 EPR consumption over pytket-dqc by a geometric mean of $56.8\%$ on the
-25q suite, $11.9\%$ on the 36q suite, and $42.3\%$ on the 64q suite.
+25q suite, $11.9\%$ on the 36q suite, and $41.5\%$ on the 64q suite.
 Bear in mind the counting asymmetry noted in the main paper:
 \texttt{pytket-dqc} amortises consecutive non-local gates into a
 single hyperedge, so its e-bit advantage is most pronounced on
@@ -1187,7 +1208,7 @@ pytket-dqc's wall time is dominated by KaHyPar and scales with the
 number of hyperedges (2-qubit gates): from $\sim$$0.1$\,s on tiny
 circuits to $137$\,s on qnn-64q (5 seeds).  \dSABRE{}'s routing
 time from a fixed initial layout is comparable for large circuits
-(85\,s for qnn-64q) and negligible ($<0.1$\,s) for small ones.
+($120.8$\,s for qnn-64q) and negligible ($<0.1$\,s) for small ones.
 For circuits with few 2-qubit gates, pytket-dqc's KaHyPar overhead
 exceeds \dSABRE{}'s routing time by one to two orders of magnitude.
 
@@ -1463,10 +1484,10 @@ Suite & Circuit & CX & \dSABRE{} EPR & \dSABRE{} lSW & rCX & rSWAP & DMapS EPR &
 \midrule
 64q & ghz                &   63 &    6 &     39 &   3 &     0 &       3 &       17 & $0.50$           & $0.44$ \\
 64q & graphstate         &   64 &   16 &     89 &   4 &     0 &       4 &       24 & $0.25$           & $0.27$ \\
-64q & qft                & 1966 &  218 &   1622 & 148 &   122 &     392 &     1152 & \textbf{$1.80$}  & $0.71$ \\
-64q & qnn                & 8126 &  501 &   5285 & 405 &   264 &     933 &     3762 & \textbf{$1.86$}  & $0.71$ \\
+64q & qft                & 1966 &  192 &   1567 & 148 &   122 &     392 &     1152 & \textbf{$2.04$}  & $0.74$ \\
+64q & qnn                & 8126 &  497 &   5163 & 405 &   264 &     933 &     3762 & \textbf{$1.88$}  & $0.73$ \\
 64q & random             & 1627 &  712 &   3635 & 378 &   380 &    1138 &     3446 & \textbf{$1.60$}  & $0.95$ \\
-64q & ae$^{\dagger}$     & 1962 &  202 &   1506 & 116 &   115 &     346 &     1119 & \textbf{$1.71$}  & $0.74$ \\
+64q & ae$^{\dagger}$     & 1962 &  141 &   1456 & 116 &   115 &     346 &     1119 & \textbf{$2.45$}  & $0.77$ \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -1718,7 +1739,7 @@ teleport, so teledata counts are lifetime-invariant by construction.
   counter as described in the text).  The $D_{\max}{=}\infty$ column
   reproduces the setting of Table~\ref{tab:main} up to seed and
   pipeline variation and is in aggregate \emph{more} favourable to
-  \texttt{pytket-dqc} (gmean $+24.5\%$ vs $+12.3\%$).  \dSABRE{} EPR
+  \texttt{pytket-dqc} (gmean $+15.0\%$ vs $+3.7\%$).  \dSABRE{} EPR
   (Table~\ref{tab:main}) is $D_{\max}$-invariant.
   $\Delta_{3}$ compares \dSABRE{} against the $D_{\max}{=}3$ column;
   negative favours \dSABRE{}.}}
@@ -1732,17 +1753,17 @@ teleport, so teledata counts are lifetime-invariant by construction.
 \cmidrule(lr){3-7}
 Circuit & EPR & $\infty$ & $10$ & $5$ & $3$ & $1$ & $\Delta_{3}$ (\%) \\
 \midrule
-ae         & 202 & 137 &  191 &  292 &  423 & 1118 & $-52.2$ \\
+ae         & 141 & 137 &  191 &  292 &  423 & 1118 & $-66.7$ \\
 ghz        &   6 &   5 &    5 &    5 &    5 &    5 & $+20.0$ \\
 graphstate &  16 &   6 &    6 &    6 &    6 &    6 & $+166.7$ \\
-qft        & 218 & 190 &  265 &  400 &  572 & 1416 & $-61.9$ \\
-qnn        & 501 & 540 & 1009 & 1592 & 2435 & 6866 & $-79.4$ \\
+qft        & 192 & 190 &  265 &  400 &  572 & 1416 & $-66.4$ \\
+qnn        & 497 & 540 & 1009 & 1592 & 2435 & 6866 & $-79.6$ \\
 random     & 712 & 908 &  908 &  922 &  967 & 1453 & $-26.4$ \\
-qpeexact   & 192 &  79 &  136 &  245 &  378 & 1064 & $-49.2$ \\
-qaoa       & 542 & 472 &  548 &  878 & 1282 & 3402 & $-57.7$ \\
-multiplier & 1924 & 2950 & 3352 & 4008 & 5004 & 10930 & $-61.6$ \\
+qpeexact   & 204 &  79 &  136 &  245 &  378 & 1064 & $-46.0$ \\
+qaoa       & 517 & 472 &  548 &  878 & 1282 & 3402 & $-59.7$ \\
+multiplier & 1523 & 2950 & 3352 & 4008 & 5004 & 10930 & $-69.6$ \\
 \midrule
-\textbf{gmean} $\Delta$ (\%) & & $+24.5$ & $-1.6$ & $-25.8$ & $\mathbf{-42.1}$ & $-70.7$ & \\
+\textbf{gmean} $\Delta$ (\%) & & $+15.0$ & $-9.1$ & $-31.5$ & $\mathbf{-46.5}$ & $-72.9$ & \\
 \bottomrule
 \end{tabular}%
 }
@@ -1877,16 +1898,16 @@ Suite & Circuit    & Qubits & CX gates & Depth & CX/qubit \\
 Circuit & CX & ($1$ seed) & ($3$ seeds) & ($5$ seeds) \\
 \midrule
 GHZ                     &    63 & \rev{0.02}   & \rev{0.06}    & \rev{0.4} \\
-Graphstate              &    64 & \rev{1.97}   & \rev{0.17}    & \rev{0.6} \\
-AE                      &  1962 & \rev{1.27}   & \rev{31.08}   & \rev{277.3} \\
-QFT                     &  1966 & \rev{6.53}   & \rev{37.21}   & \rev{239.1} \\
-Random$^{\ast\dagger}$  &  1627 & ---          & \rev{51.75}   & \rev{324.6} \\
-QPEexact                &  2139 & \rev{1.11}   & \rev{36.20}   & \rev{239.9} \\
-QAOA$^{\dagger}$        &  3920 & \rev{36.58}  & \rev{97.97}   & \rev{371.6} \\
-QNN$^{\dagger}$         &  8126 & \rev{8.56}   & \rev{285.23}  & \rev{479.0} \\
-Multiplier$^{\dagger}$  & 13040 & \rev{101.11} & \rev{1441.07} & \rev{478.6} \\
+Graphstate              &    64 & \rev{1.93}   & \rev{0.19}    & \rev{0.6} \\
+AE                      &  1962 & \rev{1.29}   & \rev{31.17}   & \rev{277.3} \\
+QFT                     &  1966 & \rev{6.54}   & \rev{33.92}   & \rev{239.1} \\
+Random$^{\ast\dagger}$  &  1627 & ---          & \rev{53.70}   & \rev{324.6} \\
+QPEexact                &  2139 & \rev{1.11}   & \rev{33.31}   & \rev{239.9} \\
+QAOA$^{\dagger}$        &  3920 & \rev{37.07}  & \rev{104.27}   & \rev{371.6} \\
+QNN$^{\dagger}$         &  8126 & \rev{7.93}   & \rev{282.53}  & \rev{479.0} \\
+Multiplier$^{\dagger}$  & 13040 & \rev{105.75} & \rev{1408.03} & \rev{478.6} \\
 \cmidrule(lr){1-5}
-\textbf{gmean} (8)      &       & \rev{\textbf{3.22}} & \rev{\textbf{19.03}}
+\textbf{gmean} (8)      &       & \rev{\textbf{3.21}} & \rev{\textbf{18.95}}
                                 & \rev{\textbf{65.2}} \\
 \midrule
 \multicolumn{5}{@{}l}{\emph{\rev{QFT scalability, $5{\times}5$ cores, core count $6\to12\to20$}}} \\
@@ -1914,13 +1935,13 @@ Multiplier$^{\dagger}$  & 13040 & \rev{101.11} & \rev{1441.07} & \rev{478.6} \\
   ]
 % TeleSABRE, one seed (deterministic); Random omitted -- does not converge.
 \addplot[only marks, mark=triangle*, mark size=2.1pt, color=black!70]
-  coordinates {(63,0.02) (64,1.97) (1962,1.27) (1966,6.53) (2139,1.11)
-               (3920,36.58) (8126,8.56) (13040,101.11)};
+  coordinates {(63,0.02) (64,1.93) (1962,1.29) (1966,6.54) (2139,1.11)
+               (3920,37.07) (8126,7.93) (13040,105.75)};
 \addlegendentry{\TeleSABRE{} ($1$ seed)}
 % dSABRE, three SabreLayout seeds.
 \addplot[only marks, mark=*, mark size=1.9pt, color=blue!65!black]
-  coordinates {(63,0.06) (64,0.17) (1627,51.75) (1962,31.08) (1966,37.21)
-               (2139,36.20) (3920,97.97) (8126,285.23) (13040,1441.07)};
+  coordinates {(63,0.06) (64,0.19) (1627,53.70) (1962,31.17) (1966,33.92)
+               (2139,33.31) (3920,104.27) (8126,282.53) (13040,1408.03)};
 \addlegendentry{\dSABRE{} ($3$ seeds)}
 % pytket-dqc, best-of-5 search, physical network model.
 \addplot[only marks, mark=square*, mark size=1.8pt, color=red!65!black]
@@ -1966,7 +1987,7 @@ Multiplier$^{\dagger}$  & 13040 & \rev{101.11} & \rev{1441.07} & \rev{478.6} \\
 completes; over all nine \dSABRE{} is $21.3$\,s and \texttt{pytket-dqc}
 $77.9$\,s.  The ordering is not uniform and the exceptions are informative.
 \TeleSABRE{} leads overall, as a compiled binary against interpreted Python
-should, but loses to \dSABRE{} by $12\times$ on Graphstate, where its sampling
+should, but loses to \dSABRE{} by $10\times$ on Graphstate, where its sampling
 needs many iterations to converge; \dSABRE{} is slowest on the two largest
 circuits, paying Eq.~\ref{eq:complexity}'s $Mn$ scoring term in interpreted
 code.  \texttt{pytket-dqc} is an order of magnitude behind both even though its
@@ -1993,7 +2014,7 @@ $13\,040$-CX Multiplier on six cores costs it $479$\,s and the $13\,300$-CX
   $c_{\mathrm{tele}}\cdot\text{EPR}+c_{\mathrm{swap}}\cdot\text{SWAP}$.
   Negative is better.  \rev{Each suite is taken over its full circuit set:
   six at 25q and 36q, and at 64q the eight of nine on which \TeleSABRE{}
-  converges---the same basis as Table~\ref{tab:main}'s $-39.4\%$.}}
+  converges---the same basis as Table~\ref{tab:main}'s $-48.7\%$.}}
 \label{tab:sensitivity}
 \setlength{\tabcolsep}{6pt}
 \small

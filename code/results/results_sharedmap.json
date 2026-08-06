@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "date": "2026-08-06"
+  },
+  "results": [
+    {
+      "suite": "25q",
+      "circuit": "ae",
+      "cx": 558,
+      "ts": {
+        "eprs": 26,
+        "ls": 292,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 23,
+        "ls": 276
+      }
+    },
+    {
+      "suite": "25q",
+      "circuit": "ghz",
+      "cx": 24,
+      "ts": {
+        "eprs": 4,
+        "ls": 36,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 2,
+        "ls": 10
+      }
+    },
+    {
+      "suite": "25q",
+      "circuit": "graphstate",
+      "cx": 25,
+      "ts": {
+        "eprs": 13,
+        "ls": 47,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 4,
+        "ls": 36
+      }
+    },
+    {
+      "suite": "25q",
+      "circuit": "qft",
+      "cx": 580,
+      "ts": {
+        "eprs": 46,
+        "ls": 405,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 33,
+        "ls": 354
+      }
+    },
+    {
+      "suite": "25q",
+      "circuit": "qnn",
+      "cx": 1223,
+      "ts": {
+        "eprs": 54,
+        "ls": 659,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 48,
+        "ls": 659
+      }
+    },
+    {
+      "suite": "25q",
+      "circuit": "random",
+      "cx": 1124,
+      "ts": {
+        "eprs": 271,
+        "ls": 1248,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 175,
+        "ls": 1167
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "ae",
+      "cx": 1962,
+      "ts": {
+        "eprs": 353,
+        "ls": 1494,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 333,
+        "ls": 1864
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "ghz",
+      "cx": 63,
+      "ts": {
+        "eprs": 16,
+        "ls": 132,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 10,
+        "ls": 121
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "graphstate",
+      "cx": 64,
+      "ts": {
+        "eprs": 62,
+        "ls": 281,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 30,
+        "ls": 155
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "qft",
+      "cx": 1966,
+      "ts": {
+        "eprs": 312,
+        "ls": 1711,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 262,
+        "ls": 1840
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "qnn",
+      "cx": 8126,
+      "ts": {
+        "eprs": 889,
+        "ls": 5471,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 625,
+        "ls": 5596
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "random",
+      "cx": 1627,
+      "ts": null,
+      "dsabre": null
+    },
+    {
+      "suite": "64q",
+      "circuit": "qpeexact",
+      "cx": 2139,
+      "ts": {
+        "eprs": 289,
+        "ls": 1706,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 222,
+        "ls": 1737
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "qaoa",
+      "cx": 3920,
+      "ts": {
+        "eprs": 956,
+        "ls": 4189,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 639,
+        "ls": 4089
+      }
+    },
+    {
+      "suite": "64q",
+      "circuit": "multiplier",
+      "cx": 13040,
+      "ts": {
+        "eprs": 1601,
+        "ls": 9654,
+        "seed": 0
+      },
+      "dsabre": {
+        "eprs": 1388,
+        "ls": 9390
+      }
+    }
+  ]
+}

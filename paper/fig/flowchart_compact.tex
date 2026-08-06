@@ -1,0 +1,42 @@
+% Single-column variant of fig/flowchart.tex (which is kept for reference).
+% Node labels are abbreviated and the detail moved into the caption; the base
+% font is one step larger than the two-column version so that, after the
+% \resizebox to \columnwidth, node text lands at ~6.8pt rather than ~5.5pt.
+\begin{tikzpicture}[
+  node distance=4mm and 5mm,
+  every node/.style={font=\small},
+  block/.style={draw, rounded corners=1.5pt, align=center,
+                minimum height=7mm, minimum width=7mm,
+                fill=blue!4, inner sep=2pt},
+  decision/.style={draw, diamond, aspect=2.2, align=center,
+                   fill=orange!10, inner sep=1pt},
+  arrow/.style={-{Stealth[length=2mm]}, thick},
+]
+\node[block] (input) {DAG $W$, layout $\ell$};
+\node[block, below=4mm of input] (drain) {\textbf{P1.}~Drain front};
+\node[decision, below=7mm of drain] (prog) {\textbf{P4.}~$|W|$ shrank?};
+\node[decision, below=4mm of prog] (comp) {$F$\\empty?};
+\node[decision, left=7mm of comp] (cls) {\textbf{P2.}~$F_\mathrm{intra}$\\empty?};
+\node[block, right=3mm of comp, fill=green!8] (done) {Done};
+\node[block, above=7mm of cls] (intra)
+   {\textbf{P3a.}~SWAP\\(Eq.\,\ref{eq:intra})};
+\node[block, left=4mm of intra] (inter)
+   {\textbf{P3b.}~Teleport\\(Eq.\,\ref{eq:dsabre})};
+\node[decision, right=7mm of prog] (deadlock) {$L_\mathrm{deadlock}$\\reached?};
+\node[block, above=7mm of deadlock] (recovery) {Restore ckpt;\\force-hop};
+
+\draw[arrow] (input)  -- (drain);
+\draw[arrow] (drain)  -- (prog);
+\draw[arrow] (prog) -- (comp) node[midway,right,font=\footnotesize] {yes};
+\draw[arrow] (comp) -- (cls) node[midway,right,yshift=2mm,font=\footnotesize] {no};
+\draw[arrow] (comp) -- (done) node[midway,above,xshift=-1mm,font=\footnotesize] {yes};
+\draw[arrow] (cls) -- (intra) node[midway,left,font=\footnotesize] {no};
+\draw[arrow] (cls.west)  -| (inter.south) node[midway,left,font=\footnotesize] {yes};
+\draw[arrow] (inter.north)  |- (drain.west);
+\draw[arrow] (intra.north) |- (drain.west);
+\draw[arrow] (prog) -- (deadlock) node[midway,above,font=\footnotesize] {no};
+\draw[arrow] (recovery.west) -- (drain);
+\draw[arrow] (deadlock) -- ++ (0mm,-26mm) -| (cls.south)
+   node[midway,left,font=\footnotesize] {no};
+\draw[arrow] (deadlock) -- (recovery) node[midway,left,font=\footnotesize] {yes};
+\end{tikzpicture}

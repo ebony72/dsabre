@@ -1,0 +1,174 @@
+{
+ "meta": {
+  "date": "2026-07-31",
+  "suite": "64q",
+  "arch": "H-grid 2x3 of 4x4 (96 physical)",
+  "router": "dSE (dsabre_ext.dSABRE_BurstExt)",
+  "hw": "deadlock_limit=100, max_backup_attempts=100, max_iterations=20000",
+  "note": "total_s is the cost of the full best-of-3 protocol; benchmark.py's time_s records best_seed_s only"
+ },
+ "results": [
+  {
+   "circuit": "ghz",
+   "cx": 63,
+   "per_seed_s": [
+    0.02,
+    0.02,
+    0.02
+   ],
+   "total_s": 0.06,
+   "best_seed_s": 0.02,
+   "eprs": [
+    6,
+    6,
+    6
+   ],
+   "best_epr": 6,
+   "reproduces": false
+  },
+  {
+   "circuit": "graphstate",
+   "cx": 64,
+   "per_seed_s": [
+    0.05,
+    0.08,
+    0.06
+   ],
+   "total_s": 0.19,
+   "best_seed_s": 0.05,
+   "eprs": [
+    18,
+    26,
+    16
+   ],
+   "best_epr": 16,
+   "reproduces": true
+  },
+  {
+   "circuit": "qpeexact",
+   "cx": 2139,
+   "per_seed_s": [
+    9.12,
+    10.45,
+    13.74
+   ],
+   "total_s": 33.31,
+   "best_seed_s": 9.12,
+   "eprs": [
+    204,
+    224,
+    287
+   ],
+   "best_epr": 204,
+   "reproduces": false
+  },
+  {
+   "circuit": "ae",
+   "cx": 1962,
+   "per_seed_s": [
+    10.95,
+    10.46,
+    9.76
+   ],
+   "total_s": 31.17,
+   "best_seed_s": 9.76,
+   "eprs": [
+    141,
+    202,
+    196
+   ],
+   "best_epr": 141,
+   "reproduces": false
+  },
+  {
+   "circuit": "qft",
+   "cx": 1966,
+   "per_seed_s": [
+    11.67,
+    10.43,
+    11.82
+   ],
+   "total_s": 33.92,
+   "best_seed_s": 10.43,
+   "eprs": [
+    201,
+    192,
+    229
+   ],
+   "best_epr": 192,
+   "reproduces": false
+  },
+  {
+   "circuit": "random",
+   "cx": 1627,
+   "per_seed_s": [
+    17.05,
+    18.16,
+    18.49
+   ],
+   "total_s": 53.7,
+   "best_seed_s": 17.05,
+   "eprs": [
+    733,
+    739,
+    712
+   ],
+   "best_epr": 712,
+   "reproduces": false
+  },
+  {
+   "circuit": "qaoa",
+   "cx": 3920,
+   "per_seed_s": [
+    31.5,
+    35.29,
+    37.48
+   ],
+   "total_s": 104.27,
+   "best_seed_s": 31.5,
+   "eprs": [
+    542,
+    608,
+    517
+   ],
+   "best_epr": 517,
+   "reproduces": false
+  },
+  {
+   "circuit": "qnn",
+   "cx": 8126,
+   "per_seed_s": [
+    105.65,
+    88.35,
+    88.53
+   ],
+   "total_s": 282.53,
+   "best_seed_s": 88.35,
+   "eprs": [
+    497,
+    587,
+    615
+   ],
+   "best_epr": 497,
+   "reproduces": false
+  },
+  {
+   "circuit": "multiplier",
+   "cx": 13040,
+   "per_seed_s": [
+    473.25,
+    461.97,
+    472.81
+   ],
+   "total_s": 1408.03,
+   "best_seed_s": 461.97,
+   "eprs": [
+    1523,
+    1805,
+    2039
+   ],
+   "best_epr": 1523,
+   "reproduces": false
+  }
+ ]
+}
