@@ -1,5 +1,96 @@
 # TODO
 
+## Router review 2026-08-06 — 2 of 7 suggested fixes applied, 5 open
+
+An external review of `code/router.py` (`_apply_teleport` focus) proposed seven
+"mandatory" fixes plus an `l2p`/`p2l` bijection invariant test. Each was checked
+against the code and, where reproducible, reproduced. Two were silent-wrong-answer
+bugs and are **applied**; the rest are open, ordered below by whether they can move
+a published number.
+
+Baseline for any re-check: instrumenting every mutating router method with the
+proposed bijection assertion and running the full 25q (6 circuits) and 64q (11
+circuits) suites — dSE, layout candidate 0, single forward pass — gives **zero
+violations** over ~5,000 teleports and ~35,000 SWAPs. The maps are not currently
+being corrupted; the assertion is a tripwire for future edits, not a live bug.
+
+### Applied 2026-08-06 (25q and 64q verified bit-identical)
+
+- **`initial_layout` validation** (`route()`). `p2l` was built last-write-wins, so
+  a repeated physical qubit silently dropped a logical one and routing returned
+  `aborted=False` with every gate retired, for a start state where two qubits share
+  one site. Now raises `ValueError`; an off-chip physical raises there too, instead
+  of a bare `KeyError` from a distance lookup much later.
+- **>2-qubit operation rejection** (`route()`). A 3-qarg node is neither drained as
+  a 1q gate nor seen by `_front_2q`, so it blocked its wires and the run ended in
+  `DEADLOCK_BACKUP_FAILED` — an input error read as a hard circuit. Now raises
+  `ValueError`. Preflight over all 76 circuits in the 9 circuit dirs found zero >2q
+  ops, so nothing published is affected; the likely future trigger is an unstripped
+  `barrier`.
+
+### Open — safe, no number moves
+
+- **Teleport cost accounting is inconsistent.** `_apply_teleport` (router.py:412)
+  charges `cost_teleport + cost_teleport_per_hop * core_dist`; `_force_make_room`
+  (router.py:562) charges the base only. Same single hop measured at 23.0 vs 10.0
+  with `cost_teleport_per_hop=4.0`. Harmless today — that field is 0.0 in
+  `config.py` and no driver overrides it — so fix it before someone sets it nonzero.
+- **Contiguous core-ID assumption.** `architecture.py:74` pre-seeds
+  `_inter_links_between` over `range(num_cores)`, and `router.py:216` builds
+  `free_cache` the same way. Non-contiguous IDs (e.g. `{0, 5}`) raise
+  `KeyError: (0, 5)` at *construction*, so the router line is unreachable-bad and
+  all three builders are contiguous anyway. Two-line hygiene fix
+  (`for c in arch.intra`); lowest priority, since it fails loudly.
+
+### Open — real, but they change results; gate behind a flag and regenerate
+
+- **`_force_make_room` can evict the gate's own anchor.** It takes `exclude_virt`
+  (one qubit), not a `protect` set, and `_backup_plan` (router.py:863) calls it on
+  `next_core` with no exclusion at all — and on the last hop `next_core == c2`, the
+  anchor's core. Reproduced: with the anchor on core 1's outgoing port,
+  `_force_make_room(1)` teleports it to core 3, so the mover is then driven to a
+  core the anchor has already left. Fix is a `protect` set replacing `exclude_virt`.
+- **router.py:712's comment is false, from the same gap.** It claims "`anchor` never
+  changes core here: relay hops protect it via `protect=`" — but the comment
+  directly below explains why that reasoning fails for `mover` (`_force_make_room`
+  inside `_apply_teleport` knows only the filler), and it fails identically for
+  `anchor`. `target_core` is computed once at router.py:710 and never rechecked;
+  what saves it is incidental — `_ipath` raises `KeyError` across cores and the
+  `except Exception` at router.py:761 rolls the transaction back, discarding a whole
+  relay chain. Fix the comment even if the code is left alone.
+- **Caller-side EPR leak around `_force_make_room`.** The function is already atomic
+  (its only `False` return, router.py:546, precedes every state mutation), so "make
+  it transactional" is a no-op. The leak is at router.py:862: it spends a real EPR
+  relocating a qubit, and if the `_apply_teleport` two lines later fails, that rolls
+  back only its own changes — the room-making teleport stays applied and stays
+  counted. Small blast radius: at 64q only ae/qft/qnn/qpeexact reach the backup path
+  at all (2–3 activations each), and none of the largest circuits do.
+
+### Rejected — not during the TCAD revision
+
+- **Resetting `backup_attempts` after gate progress.** It is a deliberate global
+  budget, not an oversight: `config.py:15` documents scaling it per suite and the
+  drivers do (100 at 64q, 200 for pytket-large). Resetting on progress makes the
+  abort criterion strictly weaker, so aborts flip to completions. `code/results/`
+  holds 162 `aborted: true` entries, concentrated in exactly the ablation suites
+  (freeslots, occupancy, sabrelayout, regcz) where the abort *is* the finding —
+  changing this re-opens those tables and invites the reading that the success
+  criterion was tuned. Termination does not need it; `max_iterations` backstops.
+
+### The proposed invariant test
+
+Worth adding, but not where the review aimed it. `_apply_teleport` already runs
+exactly those two assertions post-commit (router.py:426-431), and the third
+(`len(set(l2p.values())) == len(l2p)`) is redundant — if two logicals share a
+physical, `p2l` matches at most one, so assertion 1 already fires. The *unguarded*
+mutations are the intra-core SWAP block (router.py:1104), `_fallback_local_swap`
+(router.py:513) and both `_backup_plan` SWAP chains (router.py:796, router.py:889).
+Put it there behind a debug flag. Two notes: the existing check costs O(n) but
+`_snapshot` already copies both maps, so it is not worth removing for speed; and
+because it runs post-commit and rolls back to entry state, it cannot distinguish
+"I broke it" from "it arrived broken" — an entry assertion under the same flag
+would.
+
 ## Teleport-commitment mechanisms (2026-08-03→04, not adopted — see TELEPORT_COMMITMENT.md)
 
 Diagnosed that dSE re-scores every pending inter-core gate from scratch each

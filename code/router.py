@@ -914,6 +914,14 @@ class General_dSABRE_Router:
     def route(self, dag, initial_layout):
         """Route `dag` under `initial_layout`.
 
+        Raises
+        ------
+        ValueError
+            If `dag` holds an operation on more than two qubits, or if
+            `initial_layout` is not an injective map into this architecture's
+            physical qubits.  Both are caller errors that routing has no way
+            to express as a result -- see the checks below.
+
         Returns
         -------
         (metrics, final_layout)
@@ -923,9 +931,39 @@ class General_dSABRE_Router:
             metrics["compile_time"] : wall-clock seconds
         """
         arch = self.arch
+
+        # A >2q operation is neither drained as a 1q gate nor picked up by
+        # _front_2q, so it blocks its wires forever and the run ends in
+        # DEADLOCK_BACKUP_FAILED -- an input error disguised as a hard
+        # circuit.  Barriers are the likely source: every benchmark driver
+        # strips them, so this fires only when one forgets.
+        for node in dag.op_nodes():
+            if len(node.qargs) > 2:
+                raise ValueError(
+                    f"routing supports 1- and 2-qubit operations only; "
+                    f"'{node.name}' acts on {len(node.qargs)} qubits. "
+                    f"Decompose it (and strip barriers) before routing."
+                )
+
         l2p  = initial_layout.copy()
         p2l  = {p: None for p in arch.Gr.nodes}
+        # Validate as p2l is built.  The assignment below is last-write-wins:
+        # a physical qubit used twice would silently drop one logical qubit,
+        # and routing then reports a clean success -- aborted=False, every
+        # gate retired -- for a start state where two qubits share one site.
+        # An off-chip physical instead surfaces much later, as a bare KeyError
+        # from inside a distance lookup.
         for lq, p in l2p.items():
+            if p not in p2l:
+                raise ValueError(
+                    f"initial_layout puts logical qubit {lq} on physical "
+                    f"qubit {p}, which is not in this architecture"
+                )
+            if p2l[p] is not None:
+                raise ValueError(
+                    f"initial_layout puts logical qubits {p2l[p]} and {lq} "
+                    f"on the same physical qubit {p}"
+                )
             p2l[p] = lq
         wdag = deepcopy(dag)
 
