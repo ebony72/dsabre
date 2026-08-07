@@ -786,6 +786,27 @@ through fwd→bwd→fwd and best-of-3, the same mechanism that swung `ae`
 202 → 141 when only `_backup_plan` changed. The gmean over nine circuits is
 the number that means something.
 
+**200q suite** (`K=12`, `M=25`, `P=300`, `n=200`, `F=100`), the four circuits
+measured so far — and the picture inverts: safe mode *wins*.
+
+| circuit | base | strict | **split** | base `force_make_room` | base aborts |
+|---|---|---|---|---|---|
+| ghz | 15 | 15 | 15 | 0 | 0 |
+| graphstate | 63 | 66 | 66 | 0 | 0 |
+| qft | 975 | 971 | **742 (−23.9 %)** | 93 | **1** |
+| qpeexact | 994 | 905 | **918 (−7.6 %)** | 113 | 0 |
+
+Two things stand out. The default router is doing heavy reactive room-making
+here — 93 and 113 `_force_make_room` calls, against 0 in both safe arms — which
+is the signature of the capacity drift the invariant removes, and it is
+*costing* EPRs. And it **aborted one of the three `qft_200` layouts**, which
+safe mode routed. On the wider architecture the invariant stops being a tax
+and starts being an optimisation.
+
+`random_200` aborted under the *default* router on all three layouts; it is
+re-running under all conditions. `vqe_su2`, `wstate` and `qnn_200`
+(79 798 CX) are not yet measured.
+
 Two things the cost buys that the EPR column does not show: the abort is gone,
 and the 360q protocol no longer depends on best-of-3 masking a failed seed —
 default mode reports 559 only because seed 2 happened to survive.
@@ -891,14 +912,17 @@ per condition):**
 
 Three findings:
 
-1. **Rollbacks are essentially never taken.** Zero across all 47 374 snapshots
-   of the 64q suite; across every suite measured, the only nonzero count is
-   **one** rollback, in `qft_100` under the default router. The atomic-transaction
-   machinery built in the 2026-08-03/05 sessions (`_apply_teleport`'s checked
-   rollback, `_route_gate_transaction`) is a safety net whose failure path the
-   published suites do not exercise. Verified rather than assumed: a
-   deliberately invalid `TeleportAction` increments the counter, so the zero is
-   real, not an unwired probe.
+1. **Rollbacks are almost never taken, and only by the default router.** Zero
+   across all 47 374 snapshots of the 64q suite. They become nonzero only on
+   the widest architecture: 1 on `qft_100`, then 5 on `qft_200` and 4 on
+   `qpeexact_200` — against 12 188 and 22 049 snapshots, so still under
+   0.05 %. **Every one of them is in the default router**; both safe arms
+   take zero everywhere measured, which is what the invariant is supposed to
+   buy. The atomic-transaction machinery built in the 2026-08-03/05 sessions
+   (`_apply_teleport`'s checked rollback, `_route_gate_transaction`) is a
+   safety net the published suites barely exercise. Verified rather than
+   assumed: a deliberately invalid `TeleportAction` increments the counter, so
+   the zeros are real, not an unwired probe.
 2. **The transaction machinery costs under 0.4 % of compile time**, and 0.04 %
    in the split configuration. Snapshot creation — two dict copies on every
    candidate teleport, the hottest path — totals 0.04 s over a 349 s run. The
