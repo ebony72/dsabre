@@ -787,7 +787,7 @@ through fwd→bwd→fwd and best-of-3, the same mechanism that swung `ae`
 the number that means something.
 
 **100q suite** (`K=6`, `M=25`, `P=150`, `n=100`, `F=50`), six circuits
-(`random` measured separately in §13.2; `qnn` not run):
+(`random` measured separately in §13.3; `qnn` not run):
 
 | circuit | base | strict | **split** |
 |---|---|---|---|
@@ -1051,7 +1051,37 @@ articulation points, so no suite exercises the staging retry of §6. On the
 Safe mode is *better* on both, and the star — whose hub is a genuine capacity
 bottleneck — is where the invariant helps most (−20 %).
 
-### 13.2 A real abort, and the implementation bug behind it
+### 13.2 Abort inventory — every abort observed, and when
+
+**Safe mode has never aborted since the `_safe_drain` fix.** Zero across the
+64q suite (9 circuits), 100q (7, including `random_100`), 200q (4 measured),
+360q, heavy-hex ring and star, and the deliberately-unsafe layout stress test —
+in both floor settings. `safe_route_failed` is 0 in every one of them.
+
+Every abort observed in this work, in any configuration:
+
+| instance | router | when it gave up | failure |
+|---|---|---|---|
+| `qft_360` pass 2, seed 0 | **default** | iteration 20 124, 4 535 unrouted, budget 50 000 | `DEADLOCK_BACKUP_FAILED` — free slots at `[72,0,0,51,0,3]` |
+| `qft_200`, 1 of 3 layouts | **default** | — | aborted; safe mode routes it |
+| `random_200`, 3 of 3 layouts | **default** | after 3.3 h | aborted outright — no result at all |
+| `random_100`, 3 of 3 layouts | safe, **strict floor, pre-fix** | `ITERATION_LIMIT` at 50 000, 23 111 unrouted | the `_safe_drain` bug of §13.3, fixed in `dce7bb2` |
+
+So the only safe-mode abort ever seen was an implementation defect in the
+escape hatch, not a failure of the guarantee — at that abort
+`safe_route_failed` was 0, `force_make_room` was 0, and the invariant held.
+
+**The nearest safe mode has come to trouble since** is falling back to
+`_safe_drain`, which is logged as `ITERATION_LIMIT_SAFE_DRAIN` and completes
+the route rather than aborting. That has happened exactly once —
+`random_100` under the strict floor — and **never under the shipped default**,
+where the same instance finishes inside the iteration budget at +0.4 % EPR.
+
+Aborts are, in other words, now entirely a default-router phenomenon, and they
+concentrate where capacity drift is worst: the 12-core 200q architecture and
+the 486-slot 360q one.
+
+### 13.3 A real abort, and the implementation bug behind it
 
 `random_100` (36 109 CX, `n=100` on `P=150`, 67 % fill — the densest instance
 tested) **aborted under safe mode**, with `ITERATION_LIMIT` at exactly 50 000
@@ -1113,7 +1143,7 @@ iterations on this instance, so the budget is genuinely tight for both
 routers — safe mode's extra iterations are what push the strict floor over
 into the drain.
 
-### 13.3 What the guarantee still does not cover
+### 13.4 What the guarantee still does not cover
 
 - **It is a guarantee about routing, not about cost.** `_safe_drain` bounds
   EPR at `2·diam(G_C)` per remote gate; nothing bounds how bad that is
