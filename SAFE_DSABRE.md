@@ -786,6 +786,23 @@ through fwd→bwd→fwd and best-of-3, the same mechanism that swung `ae`
 202 → 141 when only `_backup_plan` changed. The gmean over nine circuits is
 the number that means something.
 
+**100q suite** (`K=6`, `M=25`, `P=150`, `n=100`, `F=50`), six circuits
+(`random` measured separately in §13.2; `qnn` not run):
+
+| circuit | base | strict | **split** |
+|---|---|---|---|
+| ghz | 6 | 6 | 6 |
+| graphstate | 21 | 21 | 21 |
+| qft | 239 | 261 | **225 (−5.9 %)** |
+| qpeexact | 275 | 264 | 281 (+2.2 %) |
+| vqe_su2 | 19 | 19 | 19 |
+| wstate | 12 | 12 | 12 |
+| **total** | **572** | 583 | **564** |
+| **gmean** | — | +0.8 % | **−0.6 %** |
+
+`force_make_room` 18 → 0; iterations 16 771 → 16 634, again slightly *below*
+the default router.
+
 **200q suite** (`K=12`, `M=25`, `P=300`, `n=200`, `F=100`), the four circuits
 measured so far — and the picture inverts: safe mode *wins*.
 
@@ -806,6 +823,41 @@ and starts being an optimisation.
 `random_200` aborted under the *default* router on all three layouts; it is
 re-running under all conditions. `vqe_su2`, `wstate` and `qnn_200`
 (79 798 CX) are not yet measured.
+
+### 10.6 The trend across suites
+
+`safe_split` against the default router, geometric mean EPR:
+
+| suite | cores | `P` | circuits | **Δ EPR** |
+|---|---|---|---|---|
+| 64q | 6 | 96 | 9 | **+4.2 %** |
+| 100q | 6 | 150 | 6 | **−0.6 %** |
+| 200q | 12 | 300 | 4 (of 8) | **−7.4 %** |
+| 360q | 6 | 486 | 1 (`qft`) | +20.9 %¹ |
+
+¹ measured under the *strict* floor before `tier1_floor=2` became the default;
+not yet re-run.
+
+**The wider the chip, the more the invariant pays for itself.** That tracks the
+mechanism rather than being a coincidence: capacity drift is what safe mode
+prevents, and drift has more room to develop across 12 cores than 6. The
+`force_make_room` column is the direct evidence — the default router makes 93
+and 113 reactive room-making calls on the 200q pair, and 0 at ghz/graphstate
+scale, while both safe arms are at 0 everywhere.
+
+**On the circuits the paper actually reports at 100q and 200q** — the
+published suites contain only `qft` and `qpeexact` at each size — safe mode is
+a net win of **−9.3 % gmean, −12.8 % total**, better on three of the four:
+
+| | published dSE | this harness, base | **safe (split)** |
+|---|---|---|---|
+| qft_100 | 239 | 239 ✓ | **225** |
+| qpeexact_100 | 275 | 275 ✓ | 281 |
+| qft_200 | 975 | 975 ✓ | **742** |
+| qpeexact_200 | 994 | 994 ✓ | **918** |
+
+The base column reproducing the committed results digit for digit is also the
+check that this harness runs the published protocol and not a variant of it.
 
 Two things the cost buys that the EPR column does not show: the abort is gone,
 and the 360q protocol no longer depends on best-of-3 masking a failed seed —
