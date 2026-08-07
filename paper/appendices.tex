@@ -7,7 +7,10 @@ fit the page limit but is useful for reproducibility and for readers
 interested in specific design or empirical questions.
 \rev{Appendix~\ref{app:pseudocode} gives the pseudocode of the routing
 loop of Section~\ref{sec:workflow}, and Appendix~\ref{app:complexity}
-derives its cost equation and validates it against measurement.}
+derives its cost equation and validates it against measurement.
+Appendix~\ref{app:safemode} gives an optional capacity-safe mode that
+converts termination into termination \emph{with success}, and measures its
+cost.}
 Appendix~\ref{app:ablation} ablates the node-decay scoring component
 in detail \rev{and gives the full parameter-sensitivity sweep}.
 \rev{Appendix~\ref{app:corenet} gives per-circuit counts for the two
@@ -297,6 +300,183 @@ exponent unchanged & fit of $t$ vs $N$, optimised & $N^{1.93}$ \\
 \end{tabular}%
 }
 \end{table}
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{\rev{A Capacity-Safe Mode That Cannot Fail}}
+\label{app:safemode}
+
+\rev{\noindent Appendix~\ref{app:complexity} shows that \dSABRE{}
+terminates, but only by budget exhaustion: bounded counters stop the loop,
+and nothing argues that it stops with every gate routed.  This appendix
+closes that gap with an optional mode, states the conditions under which its
+guarantee is a theorem, and measures what it costs.  It is off by default,
+so every number elsewhere in this paper is unaffected.}
+
+\subsection{\rev{How the default router can fail}}
+\label{app:safemode_failure}
+
+\rev{Capacity enters the scoring function as a soft penalty, while a
+teleport is \emph{legal} whenever its destination core holds one free slot.
+A legal move may therefore take a core to zero occupancy headroom, and
+nothing pushes back.  Total free capacity $F{=}P{-}n$ is exactly conserved
+by both operations---a SWAP moves no qubit between cores and a teleport
+moves one---so routing cannot consume headroom, but it can \emph{concentrate}
+it.}
+
+\rev{On the 360-qubit QFT the concentration is severe.  The initial layout
+is even, with $[24,16,19,25,15,27]$ free slots across the six cores; the
+forward pass succeeds and still leaves $[68,2,2,22,20,12]$, one core holding
+$54\%$ of all headroom.  The backward pass then reaches $[72,0,0,51,0,3]$
+and abandons routing with $4535$ operations outstanding---not for want of
+budget, which was more than twice what it used.  Every one of that pass's
+$62$ deadlock recoveries, and all $83$ across the three initial layouts,
+ran with at least one core at zero.  A qubit in such a core generally cannot
+be teleported out, because clearing the outgoing communication port requires
+a free slot to displace its occupant into; when both operands of a gate sit
+in full cores, no move exists.  The failure is invisible in
+Table~\ref{tab:scalability} because the best-of-three protocol reports a
+surviving pass.}
+
+\subsection{\rev{The invariant}}
+\label{app:safemode_invariant}
+
+\rev{Safe mode replaces the soft penalty with a legality condition, so that
+\begin{equation}
+\mathrm{free}(c)\;\ge\;r \quad\text{for every core } c,
+\label{eq:safe_invariant}
+\end{equation}
+with reserve $r{=}2$, holds at every boundary between actions.  It is
+feasible exactly when $P \ge n + rK + 1$; since $F$ is conserved this is a
+property of the architecture and circuit, checked once.  The $+1$ is what
+guarantees a \emph{donor}: if every core held at most $r$ free slots the
+total would be at most $rK$, so some core always holds $r{+}1$ and can give
+one away without breaching Eq.~\ref{eq:safe_invariant} itself.}
+
+\rev{Two rather than one is the smallest reserve that makes the
+\emph{optimal} relocation plan legal.  Walking a qubit along a shortest core
+path touches each intermediate core twice: on arrival its headroom falls to
+$r{-}1\ge 1$, still enough to clear the destination port, and its departure
+restores it.  Only the endpoint keeps the deficit.  With a reserve of one,
+an arrival can empty an intermediate core and strand the qubit there, and
+the relocation must instead relay headroom \emph{ahead of} the qubit before
+every hop---because the slot a hop vacates always reappears one core behind
+it, never in front.  That costs approximately $3d$ teleports for a gate at
+core distance $d$ instead of $d$.}
+
+\subsection{\rev{Guaranteed gate execution}}
+\label{app:safemode_transaction}
+
+\rev{Under Eq.~\ref{eq:safe_invariant} any remote gate can be executed by a
+transaction that cannot fail.  Choose a meeting core $m$ minimising
+$\dcore(a,m)+\dcore(b,m)+\rho(m)$ over the cores holding the two operands and any
+core with headroom to spare, where $\rho(m)$ is the cost of relaying enough
+headroom to $m$; ensure $m$ can absorb the arrivals; then teleport the
+operand (or operands) along a shortest core path and route the pair together
+inside $m$.  Every hop is legal by the argument above, every intermediate
+core is restored on departure, and the endpoint is covered by the relay, so
+the state again satisfies Eq.~\ref{eq:safe_invariant} on exit.  The whole
+thing is wrapped in one rollback, which no measured run has ever taken.}
+
+\rev{When the meeting core already has headroom the cost is exactly $d$
+teleports---the information-theoretic lower bound, since each teleport
+advances one qubit by one core.  When it does not, the relay adds at most
+$d$ more, and $2d$ is optimal among plans that leave the occupancy vector
+unchanged: relocating a qubit from $a$ to $b$ shifts occupancy by
+$({-}1,{+}1)$, so cancelling it needs one unit of counter-flow, itself
+costing $\dcore(a,b)$.}
+
+\subsection{\rev{Termination with success}}
+\label{app:safemode_theorem}
+
+\rev{\textbf{Theorem.}  Let the core graph be connected, every core's
+coupling graph be connected with $M \ge r{+}3$ qubits, $P \ge n{+}rK{+}1$,
+and the initial layout satisfy Eq.~\ref{eq:safe_invariant}.  Then safe mode
+routes every gate of the input circuit; it does not abort.}
+
+\rev{Eq.~\ref{eq:safe_invariant} is preserved by every ordinary action and
+restored by every transaction, hence holds at every boundary; each
+transaction therefore meets its precondition, succeeds, and retires a gate,
+so the unrouted count strictly decreases and at most $|C|$ transactions
+occur.  Between them the loop runs at most $L_\mathrm{d}$ non-progressing
+iterations, giving $|C|(L_\mathrm{d}{+}2)$ overall---and, at any point,
+$N_r(L_\mathrm{d}{+}1)$ iterations still required, a figure the router can
+report.  Every former abort path instead drains the remaining gates through
+the transaction, which bounds the worst case at $2D_K$ teleports per remote
+gate.  The condition $M\ge r{+}3$ is what guarantees a relay can always find
+a filler qubit that is not one of the gate's own operands; all five
+hypotheses are checked before routing starts, so a violation is reported
+rather than discovered inside a transaction.}
+
+\subsection{\rev{What it costs}}
+\label{app:safemode_cost}
+
+\rev{Table~\ref{tab:safemode} gives the 64-qubit suite under the same
+protocol as the main text.  The guarantee costs $4.2\%$ EPR pairs in
+geometric mean and $0.1\%$ in total, and needs \emph{fewer} routing
+iterations than the default---because the mechanism it replaces,
+a reactive room-making step invoked when a teleport finds a full core, stops
+being reachable at all.  Per-circuit variance is larger than the mean in
+both directions, which is characteristic of the three-pass protocol: one
+different choice in the forward pass propagates through the layout every
+later pass inherits.}
+
+\rev{The reserve is what does the work, not the strictness of the legality
+rule.  Requiring ordinary teleports to preserve the full reserve
+unaided---rather than letting the transaction re-establish it when it
+runs---rejects $1.9$--$25\%$ of the moves the heuristic would otherwise
+choose and costs $20.8\%$ EPR pairs, five times as much, for no additional
+guarantee.  The setting reported here is the cheaper one.}
+
+\rev{On the 360-qubit QFT, safe mode routes the pass the default router
+abandons, from bit-identically the same starting layout.  The transaction
+was invoked $126$ times, took no rollback, and left the chip at
+$[23,3,2,81,14,3]$---headroom still concentrated, but with no core empty.}
+
+\begin{table}[t]
+\centering
+\caption{\rev{Safe mode against the default router, 64-qubit suite,
+three initial layouts $\times$ forward--backward--forward.  EPR pairs;
+lower is better.}}
+\label{tab:safemode}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Circuit & Default & Safe & $\Delta$ \\
+\midrule
+ae          & $141$   & $153$   & $+8.5\%$  \\
+ghz         & $6$     & $6$     & $0.0\%$   \\
+graphstate  & $16$    & $16$    & $0.0\%$   \\
+qft         & $192$   & $233$   & $+21.4\%$ \\
+qnn         & $497$   & $497$   & $0.0\%$   \\
+random      & $712$   & $712$   & $0.0\%$   \\
+qpeexact    & $204$   & $229$   & $+12.3\%$ \\
+qaoa        & $517$   & $544$   & $+5.2\%$  \\
+multiplier  & $1523$  & $1421$  & $-6.7\%$  \\
+\midrule
+Total       & $3808$  & $3811$  & $+0.1\%$  \\
+Geo.\ mean  & ---     & ---     & $+4.2\%$  \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{\rev{Mechanism counters, whole suite}}} \\
+Guaranteed transactions      & $0$     & $9$     & \\
+\quad of which failed        & ---     & $0$     & \\
+Reactive room-making calls   & $21$    & $0$     & \\
+Routing iterations           & $69\,155$ & $65\,721$ & $-5.0\%$ \\
+Transaction rollbacks        & $0$     & $0$     & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{\rev{When it is worth enabling}}
+\label{app:safemode_when}
+
+\rev{The default router is not observed to fail on any suite in this paper
+once the best-of-three protocol is applied, so the guarantee buys robustness
+rather than better solutions.  It is worth enabling where a single routing
+attempt must succeed---an automated pipeline with no seed to fall back on,
+or a fill factor high enough that headroom concentration is likely.  It also
+removes a dependence worth naming: without it, the 360-qubit result relies
+on the protocol masking a failed seed.}
 
 %%─────────────────────────────────────────────────────────────────────────────
 \section{Component Ablations}

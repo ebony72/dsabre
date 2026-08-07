@@ -203,6 +203,10 @@ class General_dSABRE_Router:
         """
         arch = self.arch
         cfg  = self.config
+        # Capacity as a legality condition (safe_mode): a teleport into
+        # `next_c` is legal only if it leaves the destination at or above
+        # `tier1_floor - 1`.  Default mode keeps the historical ">= 1" rule.
+        min_dst_free = self._tier1_floor() if cfg.safe_mode else 1
 
         def score_nodes(node_list, free_cache):
             out = []
@@ -224,7 +228,7 @@ class General_dSABRE_Router:
 
                 for (virt, p_src, src_c, tgt_c) in [(q1, p1, c1, c2), (q2, p2, c2, c1)]:
                     for next_c in arch.core_graph.neighbors(src_c):
-                        if free_cache.get(next_c, 0) < 1:
+                        if free_cache.get(next_c, 0) < min_dst_free:
                             continue
                         for (p_comm_src, p_comm_dst) in arch.inter_links_between(src_c, next_c):
                             n_s = min(
@@ -310,6 +314,8 @@ class General_dSABRE_Router:
         Checkpointing is then O(1) and only a rollback pays O(N) -- the right
         trade, since checkpoints outnumber rollbacks by orders of magnitude.
         """
+        self._n_wdag_rebuilds += 1
+        _t0 = time.perf_counter()
         fresh = deepcopy(dag)
         by_id = {n._node_id: n for n in fresh.op_nodes()}
         for nid in self._retired_log[:mark]:
@@ -323,6 +329,7 @@ class General_dSABRE_Router:
             for n in fresh.topological_op_nodes()
         }
         self._remaining = len(fresh.op_nodes())
+        self._t_wdag_rebuild += time.perf_counter() - _t0
         return _RetiringDAG(fresh, self)
 
     # ── Transactions ───────────────────────────────────────────────────────────
@@ -337,6 +344,11 @@ class General_dSABRE_Router:
         has grown.  Snapshots nest: an inner rollback restores the inner entry
         state, leaving an enclosing one free to restore its own later.
         """
+        # Transaction counters live on the router, not in `metrics`: a rollback
+        # restores every scalar metric, so a counter kept there would undo its
+        # own increment and always read 0.
+        self._n_snapshots += 1
+        _t0 = time.perf_counter() if self.config.profile_transactions else 0.0
         saved_l2p = l2p.copy()
         saved_p2l = p2l.copy()
         # Scalars only: "trace" (list) is handled by truncation below, and no
@@ -345,13 +357,19 @@ class General_dSABRE_Router:
                            if not isinstance(v, (list, dict))}
         saved_trace_len = (len(metrics["trace"])
                            if metrics.get("trace") is not None else 0)
+        if self.config.profile_transactions:
+            self._t_snapshot += time.perf_counter() - _t0
 
         def rollback() -> bool:
+            self._n_rollbacks += 1
+            _t1 = time.perf_counter() if self.config.profile_transactions else 0.0
             l2p.clear();  l2p.update(saved_l2p)
             p2l.clear();  p2l.update(saved_p2l)
             metrics.update(saved_counters)
             if metrics.get("trace") is not None:
                 del metrics["trace"][saved_trace_len:]
+            if self.config.profile_transactions:
+                self._t_rollback += time.perf_counter() - _t1
             return False
 
         return rollback
@@ -481,13 +499,37 @@ class General_dSABRE_Router:
         if current_phys == a.n_s:
             staging_path = [current_phys]
         else:
+            restricted = nx.restricted_view(arch.intra[a.src_core],
+                                            [a.p_comm_src], [])
             try:
-                staging_path = nx.shortest_path(
-                    nx.restricted_view(arch.intra[a.src_core], [a.p_comm_src], []),
-                    current_phys, a.n_s,
-                )
+                staging_path = nx.shortest_path(restricted, current_phys, a.n_s)
             except (nx.NetworkXNoPath, nx.NodeNotFound):
-                return rollback()
+                # `a.n_s` was picked by the caller as the port neighbour nearest
+                # `virt` in the UNRESTRICTED core graph, so on a topology whose
+                # port is a cut vertex it can sit in a different component of
+                # `intra - {port}` than `virt` does.  Some port neighbour always
+                # shares virt's component (every component of `intra - {port}`
+                # touches the port, since `intra` is connected), so retry over
+                # the reachable ones instead of failing the whole action.  Grid
+                # cores have no articulation points, so this never fires there
+                # -- hence the safe_mode gate, which keeps default-mode output
+                # bit-identical.
+                staging_path = None
+                if cfg.safe_mode:
+                    best = None
+                    for nb in arch.intra[a.src_core].neighbors(a.p_comm_src):
+                        if nb == current_phys:
+                            best = [current_phys]
+                            break
+                        try:
+                            p = nx.shortest_path(restricted, current_phys, nb)
+                        except (nx.NetworkXNoPath, nx.NodeNotFound):
+                            continue
+                        if best is None or len(p) < len(best):
+                            best = p
+                    staging_path = best
+                if staging_path is None:
+                    return rollback()
 
         for i in range(len(staging_path) - 1):
             u, v = staging_path[i], staging_path[i + 1]
@@ -505,15 +547,19 @@ class General_dSABRE_Router:
         # ── Pre-teleport validation ───────────────────────────────────────
         # Both ports free and the staging slot holds exactly a.virt -- the
         # teleport must never move a bystander (or nothing) while recording
-        # a.virt in the trace.
+        # a.virt in the trace.  `staging_slot` is a.n_s except on the
+        # cut-vertex retry above, which may land on a different port neighbour.
+        staging_slot = staging_path[-1]
         if (p2l[a.p_comm_src] is not None
                 or p2l[a.p_comm_dst] is not None
-                or p2l[a.n_s] != a.virt
-                or l2p.get(a.virt) != a.n_s):
+                or p2l[staging_slot] != a.virt
+                or l2p.get(a.virt) != staging_slot
+                or not arch.intra[a.src_core].has_edge(staging_slot,
+                                                       a.p_comm_src)):
             return rollback()
 
         # ── Commit ────────────────────────────────────────────────────────
-        p2l[a.n_s] = None
+        p2l[staging_slot] = None
         p2l[a.p_comm_dst] = a.virt
         l2p[a.virt] = a.p_comm_dst
         hop_cost = (cfg.cost_teleport
@@ -523,10 +569,11 @@ class General_dSABRE_Router:
         metrics["eprs"]  += 1
         metrics["cost"]  += hop_cost
         if cfg.trace_routing:
-            # Record a.n_s, the slot virt actually teleports from -- not the
-            # stale a.p_src captured at scoring time.
+            # Record the slot virt actually teleports from -- not the stale
+            # a.p_src captured at scoring time.
             metrics["trace"].append(
-                ("TELE", a.virt, a.n_s, a.p_comm_dst, a.src_core, a.next_core)
+                ("TELE", a.virt, staging_slot, a.p_comm_dst,
+                 a.src_core, a.next_core)
             )
 
         # ── Postcondition: both layout maps stayed mutually consistent ────
@@ -796,6 +843,431 @@ class General_dSABRE_Router:
             return rollback()
         return True
 
+    # ── Capacity-safe routing (2026-08-07, config.safe_mode) ───────────────────
+    #
+    # Invariant (†): free(c) >= core_reserve for every core, at every boundary
+    # between top-level actions.  Feasibility (F†): F = P - n >= r*K + 1, so by
+    # pigeonhole some core always holds >= r+1 free ("donor") -- a slot it can
+    # give away without breaching (†) itself.  F is exactly conserved, so (F†)
+    # is a property of the architecture and circuit, checked once in route().
+    #
+    # (†) is what makes the OPTIMAL relocation plan always legal.  Walking a
+    # qubit along a shortest core path touches each intermediate core twice:
+    # on arrival its free count drops to >= r-1 >= 1 (still enough to clear the
+    # destination port), and departure restores it.  Only the endpoint keeps
+    # the deficit, which is what `need` reserves for.  So a remote gate at core
+    # distance d costs exactly d teleports -- the information-theoretic lower
+    # bound -- whenever the meeting core already has the headroom, and d plus a
+    # relay otherwise.  Under the weaker "free >= 1" precondition the same
+    # procedure pays ~3d, because the slot a hop vacates always reappears one
+    # core BEHIND the qubit while the next hop needs it one core AHEAD.
+    #
+    # See SAFE_DSABRE.md for the derivation, the termination-with-success
+    # theorem, and the measured cost of the legality rule.
+
+    def _tier1_floor(self) -> int:
+        """Free slots a destination needs for an ordinary teleport to be legal."""
+        cfg = self.config
+        return (cfg.core_reserve + 1 if cfg.tier1_floor is None
+                else cfg.tier1_floor)
+
+    def _tier1_is_strict(self) -> bool:
+        """True when Tier 1 alone maintains free >= core_reserve.
+
+        When it does not, `_safe_route_gate` must restore the reserve itself
+        before it can plan -- its `d`-optimal hop sequence assumes it.
+        """
+        return self._tier1_floor() >= self.config.core_reserve + 1
+
+    @staticmethod
+    def iterations_bound(remaining_2q: int, config: HardwareConfig) -> int:
+        """Worst-case main-loop iterations still needed, in safe mode.
+
+        Every iteration either retires at least one operation or increments the
+        no-progress counter; after `deadlock_limit` of the latter the
+        guaranteed transaction fires and retires a gate outright (§5 of
+        SAFE_DSABRE.md).  So no gate can absorb more than
+        `deadlock_limit + 1` iterations, and
+
+            I_remaining <= remaining_2q * (deadlock_limit + 1)
+
+        Only 2-qubit gates count: 1-qubit gates and already-adjacent
+        intra-core 2q gates are drained inside the iteration that finds them,
+        without consuming one of their own.
+
+        This is a genuine bound, not an estimate -- it holds at every step, so
+        `router.iterations_bound(router._remaining_2q(wdag), cfg)` is a live
+        "iterations still required" figure.  It is loose by construction: it
+        assumes every remaining gate stalls for the full deadlock window, which
+        measurement puts 1-3 orders of magnitude above the actual count.
+
+        Outside safe mode there is no bound -- `max_iterations` is a budget the
+        route can hit and abort on, which is the difference this mode removes.
+        """
+        return remaining_2q * (config.deadlock_limit + 1)
+
+    @staticmethod
+    def deadlock_limit_for(arch: DistributedArchitecture,
+                           safe_mode: bool = False) -> int:
+        """A `deadlock_limit` derived rather than hand-tuned per suite.
+
+        **Default mode.** Recovery is a gamble that can fail outright, so the
+        limit wants to be high enough that a gate which was about to resolve
+        by ordinary means is not interrupted: at most `diam(core graph)` hops,
+        each preceded by up to `diam(core)` intra-core SWAP iterations to reach
+        the staging slot, plus the teleport.  The factor 4 is the smallest
+        integer covering the values hand-tuned before this mode existed
+        (50 / 100 / 200 at 25q / 64q / 360q, against 56 / 84 / 204 here).
+
+        **Safe mode: go small.**  That reasoning turns out not to survive
+        measurement.  Recovery cannot fail, so interrupting a gate early costs
+        nothing but the transaction itself -- and a sweep over the 64q suite
+        (L = 10, 25, 50, 100, 200) found total EPR **flat**: 2573 at L=10
+        against 2579 at every larger value, while pass-1 iterations rose
+        monotonically 13 542 -> 26 544.  L=10 matches the default router's own
+        iteration count (13 436) at identical EPR, and tightens
+        `iterations_bound` by 20x.  There is no measured reason to let the
+        heuristic thrash before invoking a transaction that always succeeds.
+        """
+        if safe_mode:
+            return 10
+        diam_core = max(max(d.values()) for d in arch.core_dist.values())
+        diam_intra = max(max(max(d.values()) for d in arch.intra_dist[c].values())
+                         for c in range(arch.num_cores))
+        return 4 * max(1, diam_core) * (diam_intra + 1)
+
+    @staticmethod
+    def iterations_estimate(iterations_so_far: int, retired_2q: int,
+                            remaining_2q: int) -> float:
+        """Live linear extrapolation of iterations still needed.
+
+        `iterations_bound` is valid at every step but loose by 1-2 orders of
+        magnitude (measured 18-200x on the 64q suite), because it assumes every
+        remaining gate stalls for a full deadlock window.  Iteration count is
+        driven by how many gates are *remote under the current layout*, which
+        no function of (n, |G_2q|) alone predicts -- measured
+        iterations/|G_2q| ranges 0.5-5.5 across the 64q suite.  So pair the
+        bound with this: extrapolate from the rate observed so far, which is
+        self-correcting as routing proceeds.  Returns inf before any gate has
+        retired.
+        """
+        if retired_2q <= 0:
+            return float("inf")
+        return iterations_so_far * (remaining_2q / retired_2q)
+
+    def _free_by_core(self, p2l) -> list:
+        """Free-slot count per core, one pass over p2l."""
+        arch = self.arch
+        occ = [0] * arch.num_cores
+        for p, lq in p2l.items():
+            if lq is not None:
+                occ[arch.core_of(p)] += 1
+        return [len(arch.core_qubits(c)) - occ[c] for c in range(arch.num_cores)]
+
+    def _find_donor_core(self, target_core, p2l, min_free):
+        """Nearest core to `target_core`, EXCLUDING it, with >= min_free free.
+
+        `_find_nearest_slack_core` can return `target_core` itself, which is
+        useless when the point is to move a slot INTO it.
+        """
+        arch = self.arch
+        visited = {target_core}
+        queue = deque([target_core])
+        while queue:
+            c = queue.popleft()
+            for nb in arch.core_graph.neighbors(c):
+                if nb in visited:
+                    continue
+                visited.add(nb)
+                if self._free_slots(nb, arch, p2l) >= min_free:
+                    return nb
+                queue.append(nb)
+        return None
+
+    def _relay_slack_to(self, target_core, l2p, p2l, metrics, need, protect=()):
+        """Raise free(target_core) to >= `need` without breaching (†).
+
+        Unlike `_relay_room_to`, the donor threshold and the target requirement
+        are separate: a donor must hold >= core_reserve + 1 so that giving one
+        slot away leaves it at the reserve, while `need` is whatever the caller
+        must make room for.  Each chain hands the slack along one core at a
+        time; every intermediate is transiently +1 and returns to its entry
+        count, so no core ever drops below its entry value.
+
+        One transaction: a chain that stalls rolls the whole thing back.
+        """
+        arch = self.arch
+        donor_floor = self.config.core_reserve + 1
+        if self._free_slots(target_core, arch, p2l) >= need:
+            return True
+        rollback = self._snapshot(l2p, p2l, metrics)
+        for _ in range(need + arch.num_cores):
+            if self._free_slots(target_core, arch, p2l) >= need:
+                return True
+            source = self._find_donor_core(target_core, p2l, donor_floor)
+            if source is None:
+                return rollback()
+            path = arch.core_path[source][target_core]
+            for i in range(len(path) - 1):
+                cur, nxt = path[i], path[i + 1]
+                # Slack sits at `cur`; pull a non-protected qubit out of `nxt`
+                # into `cur`, handing the slack on to `nxt`.
+                filler = next(
+                    (p2l[p] for p in arch.core_qubits(nxt)
+                     if p2l[p] is not None and p2l[p] not in protect),
+                    None,
+                )
+                if filler is None:
+                    return rollback()
+                links = arch.inter_links_between(nxt, cur)
+                if not links:
+                    return rollback()
+                p_comm_src, p_comm_dst = links[0]
+                p_src = l2p[filler]
+                n_s = min(arch.intra[nxt].neighbors(p_comm_src),
+                          key=lambda n: self._idist(nxt, p_src, n))
+                if not self._apply_teleport(
+                        TeleportAction(None, filler, p_src, n_s,
+                                       p_comm_src, p_comm_dst,
+                                       nxt, cur, cur, score=0.0),
+                        l2p, p2l, metrics,
+                ):
+                    return rollback()
+                metrics["relay_hops"] += 1
+        return rollback()
+
+    def _plan_meeting_core(self, node, l2p, p2l):
+        """Cheapest safe way to co-locate `node`'s two operands.
+
+        Returns (meeting_core, movers, need) minimising
+
+            d_C(a,m) + d_C(b,m) + relay(m)
+
+        over three families, all of which keep (†):
+          * m = a or m = b -- one operand moves, the meeting core must reach
+            reserve+1 so it is still at the reserve once the arrival lands;
+          * m = any core already holding reserve+2 -- both operands move and no
+            relay is needed at all, which can beat the two-body options when a
+            roomy core sits on a shortest path.
+        relay(m) is the exact cost of the shortfall: the BFS distance to the
+        nearest donor, which is optimal for the single slot m in {a,b} can
+        need (a chain through a non-donor core costs at least as much, by the
+        triangle inequality).
+        """
+        arch = self.arch
+        r = self.config.core_reserve
+        q1, q2 = node.qargs[0], node.qargs[1]
+        a, b = arch.core_of(l2p[q1]), arch.core_of(l2p[q2])
+        free = self._free_by_core(p2l)
+
+        def relay_cost(m, need):
+            if free[m] >= need:
+                return 0
+            donor = self._find_donor_core(m, p2l, r + 1)
+            if donor is None:
+                return None
+            return arch.core_dist[donor][m] * (need - free[m])
+
+        best = None
+        for m, movers in ((a, (q2,)), (b, (q1,))):
+            rc = relay_cost(m, r + 1)
+            if rc is None:
+                continue
+            cost = arch.core_dist[a][m] + arch.core_dist[b][m] + rc
+            if best is None or cost < best[0]:
+                best = (cost, m, movers, r + 1)
+        for m in range(arch.num_cores):
+            if m in (a, b) or free[m] < r + 2:
+                continue
+            cost = arch.core_dist[a][m] + arch.core_dist[b][m]
+            if best is not None and cost >= best[0]:
+                continue
+            best = (cost, m, (q1, q2), r + 2)
+        if best is None:
+            return None
+        return best[1], best[2], best[3]
+
+    def _safe_route_gate(self, node, wdag, l2p, p2l, metrics) -> bool:
+        """Execute `node` under (†), atomically.
+
+        Either the gate retires and (†) still holds, or nothing happened.
+        Under (†)+(F†) on a connected core graph this cannot fail; the rollback
+        paths are assertions, and `metrics["safe_route_failed"]` counts any
+        that fire so a violated hypothesis is visible rather than silent.
+        """
+        arch = self.arch
+        q1, q2 = node.qargs[0], node.qargs[1]
+        rollback = self._snapshot(l2p, p2l, metrics)
+
+        # With a relaxed `tier1_floor`, ordinary routing is allowed to spend the
+        # reserve down (never to zero), so restore it before planning -- the
+        # hop sequence below is only legal from a state satisfying (†).  A
+        # donor always exists under (F†): if every core held <= core_reserve
+        # the total would be <= core_reserve*K < F.  No-op when Tier 1 is
+        # strict, which is why the fast path costs a single boolean.
+        if not self._tier1_is_strict():
+            if not self._make_layout_safe(l2p, p2l, metrics, protect=(q1, q2)):
+                metrics["safe_route_failed"] += 1
+                return rollback()
+
+        if arch.core_of(l2p[q1]) != arch.core_of(l2p[q2]):
+            plan = self._plan_meeting_core(node, l2p, p2l)
+            if plan is None:
+                metrics["safe_route_failed"] += 1
+                return rollback()
+            m, movers, need = plan
+            if not self._relay_slack_to(m, l2p, p2l, metrics, need,
+                                        protect=(q1, q2)):
+                metrics["safe_route_failed"] += 1
+                return rollback()
+            for x in movers:
+                # Bounded by the core-graph diameter; the +1 guard is defensive.
+                for _ in range(arch.num_cores + 1):
+                    cur = arch.core_of(l2p[x])
+                    if cur == m:
+                        break
+                    nxt = arch.core_path[cur][m][1]
+                    hopped = False
+                    for p_comm_src, p_comm_dst in arch.inter_links_between(cur,
+                                                                           nxt):
+                        p_src = l2p[x]
+                        n_s = min(arch.intra[cur].neighbors(p_comm_src),
+                                  key=lambda n: self._idist(cur, p_src, n))
+                        if self._apply_teleport(
+                                TeleportAction(node, x, p_src, n_s,
+                                               p_comm_src, p_comm_dst,
+                                               cur, nxt, m, score=0.0),
+                                l2p, p2l, metrics,
+                        ):
+                            hopped = True
+                            break
+                    if not hopped:
+                        metrics["safe_route_failed"] += 1
+                        return rollback()
+                if arch.core_of(l2p[x]) != m:
+                    metrics["safe_route_failed"] += 1
+                    return rollback()
+
+        ci = arch.core_of(l2p[q1])
+        p1, p2 = l2p[q1], l2p[q2]
+        try:
+            path = self._ipath(ci, p1, p2)
+        except Exception:
+            metrics["safe_route_failed"] += 1
+            return rollback()
+        for i in range(len(path) - 2):
+            u, v = path[i], path[i + 1]
+            qu, qv = p2l[u], p2l[v]
+            if qu is not None: l2p[qu] = v
+            if qv is not None: l2p[qv] = u
+            p2l[u], p2l[v] = qv, qu
+            metrics["ls"]   += 1
+            metrics["cost"] += self.config.cost_local_swap
+            if self.config.trace_routing:
+                metrics["trace"].append(("SWAP", u, v, ci))
+        if not arch.Gr.has_edge(l2p[q1], l2p[q2]):
+            metrics["safe_route_failed"] += 1
+            return rollback()
+
+        wdag.remove_op_node(node)
+        metrics["safe_routes"] += 1
+        if self.config.trace_routing:
+            metrics["trace"].append(("GATE", q1, q2, ci))
+        return True
+
+    def _safe_pick_gate(self, front, l2p, p2l):
+        """Front-layer gate with the cheapest safe plan (ties: most stuck)."""
+        best, best_key = None, None
+        for n in front:
+            plan = self._plan_meeting_core(n, l2p, p2l)
+            if plan is None:
+                continue
+            m, movers, _ = plan
+            cost = (self.arch.core_dist[self.arch.core_of(l2p[n.qargs[0]])][m]
+                    + self.arch.core_dist[self.arch.core_of(l2p[n.qargs[1]])][m])
+            key = (cost, -self._gate_dist(n, l2p))
+            if best_key is None or key < best_key:
+                best, best_key = n, key
+        return best if best is not None else (front[0] if front else None)
+
+    def _safe_progress(self, front_inter, wdag, l2p, p2l, metrics) -> bool:
+        """One guaranteed gate, if safe mode is on. False when it is off."""
+        if not self.config.safe_mode or not front_inter:
+            return False
+        node = self._safe_pick_gate(front_inter, l2p, p2l)
+        return (node is not None
+                and self._safe_route_gate(node, wdag, l2p, p2l, metrics))
+
+    def _safe_drain(self, wdag, l2p, p2l, metrics) -> bool:
+        """Retire every remaining gate with `_safe_route_gate` alone.
+
+        The escape hatch that replaces `ITERATION_LIMIT` as an abort: heuristic
+        search is abandoned, and each remaining gate is executed by the
+        guaranteed transaction.  Cost is bounded by 2*diam(core graph) EPRs per
+        remote gate; termination is the strictly decreasing gate count.
+        """
+        arch = self.arch
+        guard = self._remaining + 1
+        while self._remaining > 0 and guard > 0:
+            guard -= 1
+            progress = True
+            while progress:
+                progress = False
+                for n in list(wdag.front_layer()):
+                    if len(n.qargs) < 2:
+                        metrics["1q_gates"] += 1
+                        wdag.remove_op_node(n)
+                        progress = True
+                front = self._front_2q(wdag)
+                if not front:
+                    break
+                ready = [n for n in front
+                         if arch.Gr.has_edge(l2p[n.qargs[0]], l2p[n.qargs[1]])]
+                for n in ready:
+                    wdag.remove_op_node(n)
+                    if self.config.trace_routing:
+                        metrics["trace"].append(
+                            ("GATE", n.qargs[0], n.qargs[1],
+                             arch.core_of(l2p[n.qargs[0]]))
+                        )
+                    progress = True
+            if self._remaining == 0:
+                break
+            front = self._front_2q(wdag)
+            if not front:
+                break
+            node = self._safe_pick_gate(front, l2p, p2l)
+            if node is None or not self._safe_route_gate(node, wdag, l2p, p2l,
+                                                         metrics):
+                return False
+        return self._remaining == 0
+
+    def _make_layout_safe(self, l2p, p2l, metrics, protect=()) -> bool:
+        """Bring an entry layout up to (†) by relaying slack into short cores.
+
+        Pass 1 of `run_sabre_passes` starts from `sabre_locked_boundary_layout`,
+        which already reserves >= 2 slots per core on every published suite; in
+        safe mode pass 1 also EXITS safe, so passes 2 and 3 inherit a safe state
+        and this is a no-op.  It exists so an externally supplied (or archived
+        pre-safe-mode) layout is repaired rather than rejected.
+        """
+        arch = self.arch
+        r = self.config.core_reserve
+        for _ in range(arch.num_cores + 1):
+            short = [c for c in range(arch.num_cores)
+                     if self._free_slots(c, arch, p2l) < r]
+            if not short:
+                return True
+            fixed_any = False
+            for c in short:
+                if self._relay_slack_to(c, l2p, p2l, metrics, r,
+                                        protect=protect):
+                    fixed_any = True
+            if not fixed_any:
+                return False
+        return not [c for c in range(arch.num_cores)
+                    if self._free_slots(c, arch, p2l) < r]
+
     # ── Whole-gate transactional recovery (2026-08-05) ─────────────────────────
     #
     # _backup_plan's cross-core branches (both the greedy and the relay-mode
@@ -919,6 +1391,15 @@ class General_dSABRE_Router:
         front = self._front_2q(wdag)
         if not front:
             return False
+        if self.config.safe_mode:
+            # Guaranteed path first: under (†) this cannot fail, so the greedy
+            # branches below are unreachable in safe mode.  They stay as a
+            # fallback rather than an assertion so a violated hypothesis
+            # degrades to today's behaviour instead of aborting the route.
+            node = self._safe_pick_gate(front, l2p, p2l)
+            if node is not None and self._safe_route_gate(node, wdag, l2p, p2l,
+                                                          metrics):
+                return True
         stuck = max(front, key=lambda n: self._gate_dist(n, l2p))
         q1, q2 = stuck.qargs[0], stuck.qargs[1]
         p1, p2 = l2p[q1], l2p[q2]
@@ -1203,6 +1684,9 @@ class General_dSABRE_Router:
         _real = deepcopy(dag)
         self._init_dag_state(_real)
         wdag = _RetiringDAG(_real, self)
+        n_2q_at_entry = sum(1 for n in _real.op_nodes() if len(n.qargs) == 2)
+        self._n_snapshots = self._n_rollbacks = self._n_wdag_rebuilds = 0
+        self._t_snapshot = self._t_rollback = self._t_wdag_rebuild = 0.0
 
         metrics = {
             "ls": 0, "teles": 0, "catcomms": 0, "eprs": 0,
@@ -1211,18 +1695,99 @@ class General_dSABRE_Router:
             # ── Mechanism instrumentation ─────────────────────────────────────
             # force_make_room : calls to _force_make_room (deadlock recovery)
             "force_make_room": 0,
-            # relay_hops : filler teleports issued by _relay_room_to (only
-            # nonzero when config.backup_relay_mode is True)
+            # relay_hops : filler teleports issued by _relay_room_to /
+            # _relay_slack_to
             "relay_hops": 0,
+            # safe_routes / safe_route_failed : gates retired by the guaranteed
+            # transaction, and attempts that hit one of its assertion paths --
+            # the latter must stay 0 while (†) and (F†) hold (config.safe_mode)
+            "safe_routes": 0,
+            "safe_route_failed": 0,
             "trace": [] if self.config.trace_routing else None,
         }
         failure_log = []
+
+        # ── Capacity-safe preconditions ───────────────────────────────────
+        # Every hypothesis of the termination-with-success theorem
+        # (SAFE_DSABRE.md §5) is checked here.  A guarantee whose hypotheses go
+        # unchecked is not a guarantee: each of these, violated, turns
+        # `_safe_route_gate` from "cannot fail" into "fails, or raises
+        # KeyError from a distance lookup on an unreachable core".
+        if self.config.safe_mode:
+            r = self.config.core_reserve
+            if r < 2:
+                # `_safe_route_gate` relays only at the meeting core, which is
+                # sound only from free >= 2: with a reserve of 1 an
+                # intermediate core reaches 0 as the mover arrives and can
+                # strand it there.  A reserve-1 guarantee needs a relay before
+                # EVERY hop (SAFE_DSABRE.md §2.1) -- a different procedure, not
+                # a parameter of this one.
+                raise ValueError(
+                    f"safe_mode requires core_reserve >= 2 (got {r}): the "
+                    f"guaranteed transaction's hop sequence is only legal from "
+                    f"a state with two free slots per core."
+                )
+            if not self.config.enable_deadlock_recovery:
+                raise ValueError(
+                    "safe_mode requires enable_deadlock_recovery=True: the "
+                    "guaranteed transaction is reached through the deadlock "
+                    "path, so disabling recovery removes the guarantee."
+                )
+            if not nx.is_connected(arch.core_graph):
+                raise ValueError(
+                    "safe_mode requires a connected core graph; this one has "
+                    f"{nx.number_connected_components(arch.core_graph)} "
+                    "components, so a gate straddling two of them can never "
+                    "be routed."
+                )
+            bad_intra = [c for c in range(arch.num_cores)
+                         if not nx.is_connected(arch.intra[c])]
+            if bad_intra:
+                raise ValueError(
+                    f"safe_mode requires every core's coupling graph to be "
+                    f"connected; cores {bad_intra} are not, so a qubit cannot "
+                    f"always reach a comm port."
+                )
+            # A relay must always find a filler qubit that is not one of the
+            # gate's own two operands.  On the relay path every core has
+            # occupancy >= kappa - (need - 1) >= kappa - r - 1, and at most one
+            # protected qubit sits there, so kappa >= r + 3 leaves one spare.
+            small = [c for c in range(arch.num_cores)
+                     if len(arch.core_qubits(c)) < r + 3]
+            if small:
+                raise ValueError(
+                    f"safe_mode with core_reserve={r} requires every core to "
+                    f"hold at least {r + 3} physical qubits (so a relay can "
+                    f"always find a non-gate filler); cores {small} are "
+                    f"smaller."
+                )
+            total_free = len(p2l) - len(l2p)
+            if total_free < r * arch.num_cores + 1:
+                raise ValueError(
+                    f"safe_mode needs P - n >= core_reserve*K + 1 = "
+                    f"{r * arch.num_cores + 1}, but this architecture leaves "
+                    f"only {total_free} free slots for {len(l2p)} qubits on "
+                    f"{arch.num_cores} cores. Lower core_reserve, use a larger "
+                    f"architecture, or route with safe_mode=False."
+                )
+            if not self._make_layout_safe(l2p, p2l, metrics):
+                raise ValueError(
+                    "safe_mode could not bring the initial layout up to "
+                    f"free >= {r} per core: "
+                    f"{[self._free_slots(c, arch, p2l) for c in range(arch.num_cores)]}"
+                )
         _t_start = time.perf_counter()
 
         iteration        = 0
         last_remaining   = self._remaining
         no_progress_iters = 0
         backup_attempts  = 0
+        # Safe mode: every recovery retires a gate, so the useful bound on
+        # activations is the gate count, not a hand-tuned constant -- capping
+        # below it would abort a route the guarantee says must finish.
+        max_backups = (max(self.config.max_backup_attempts, self._remaining + 1)
+                       if self.config.safe_mode
+                       else self.config.max_backup_attempts)
         committed_nid    = None  # DAG node id of the gate the last teleport advanced
         extended_cache   = None
 
@@ -1244,6 +1809,14 @@ class General_dSABRE_Router:
             if iteration >= self.config.max_iterations:
                 remaining = self._remaining
                 elapsed   = time.perf_counter() - _t_start
+                # Safe mode: the budget running out stops the heuristic search,
+                # not the route.  Every remaining gate is retired by the
+                # guaranteed transaction instead.
+                if (self.config.safe_mode
+                        and self._safe_drain(wdag, l2p, p2l, metrics)):
+                    failure_log.append(
+                        ("ITERATION_LIMIT_SAFE_DRAIN", iteration, remaining, elapsed))
+                    break
                 failure_log.append(("ITERATION_LIMIT", iteration, remaining, elapsed))
                 metrics["aborted"] = True
                 metrics["compile_time"] = elapsed
@@ -1329,7 +1902,14 @@ class General_dSABRE_Router:
                 candidates = self._generate_candidates(front_inter, extended_cache, l2p, p2l,
                                                        committed_nid=committed_nid)
                 if not candidates:
-                    if not self._fallback_local_swap(front_inter, wdag, l2p, p2l, metrics):
+                    # In safe mode an empty list means no neighbouring core has
+                    # headroom -- which a local SWAP cannot change, so go
+                    # straight to the guaranteed transaction rather than
+                    # burning iterations until deadlock_limit fires.
+                    if not (self._safe_progress(front_inter, wdag, l2p, p2l,
+                                                metrics)
+                            or self._fallback_local_swap(front_inter, wdag,
+                                                         l2p, p2l, metrics)):
                         remaining = self._remaining
                         elapsed   = time.perf_counter() - _t_start
                         failure_log.append(("NO_ACTIONS_NO_FALLBACK", iteration, remaining, elapsed))
@@ -1353,7 +1933,10 @@ class General_dSABRE_Router:
                         # list -- measured, 4-55% of all rebuilds were this.
                         # Retirement is still caught by the current_remaining
                         # test above, and rollback by the reset below.
-                    elif not self._fallback_local_swap(front_inter, wdag, l2p, p2l, metrics):
+                    elif not (self._safe_progress(front_inter, wdag, l2p, p2l,
+                                                  metrics)
+                              or self._fallback_local_swap(front_inter, wdag,
+                                                           l2p, p2l, metrics)):
                         remaining = self._remaining
                         elapsed   = time.perf_counter() - _t_start
                         failure_log.append(("ALL_CANDIDATES_REJECTED", iteration, remaining, elapsed))
@@ -1380,7 +1963,12 @@ class General_dSABRE_Router:
                     break
                 backup_attempts += 1
                 elapsed = time.perf_counter() - _t_start
-                if backup_attempts > self.config.max_backup_attempts:
+                if backup_attempts > max_backups:
+                    if (self.config.safe_mode
+                            and self._safe_drain(wdag, l2p, p2l, metrics)):
+                        failure_log.append(
+                            ("BACKUP_EXHAUSTED_SAFE_DRAIN", iteration, remaining, elapsed))
+                        break
                     failure_log.append(("DEADLOCK_BACKUP_EXHAUSTED", iteration, remaining, elapsed))
                     metrics["aborted"] = True
                     break
@@ -1395,6 +1983,11 @@ class General_dSABRE_Router:
                 extended_cache = None
                 committed_nid  = None  # l2p/wdag were rolled back to the checkpoint
                 if not self._backup_plan(wdag, l2p, p2l, metrics):
+                    if (self.config.safe_mode
+                            and self._safe_drain(wdag, l2p, p2l, metrics)):
+                        failure_log.append(
+                            ("BACKUP_FAILED_SAFE_DRAIN", iteration, remaining, elapsed))
+                        break
                     failure_log.append(("DEADLOCK_BACKUP_FAILED", iteration, remaining, elapsed))
                     metrics["aborted"] = True
                     break
@@ -1408,4 +2001,22 @@ class General_dSABRE_Router:
 
         metrics["compile_time"] = time.perf_counter() - _t_start
         metrics["failure_log"]  = failure_log
+        # Iterations actually consumed, against the safe-mode worst case
+        # computed from the gate count at entry (see `iterations_bound`).
+        metrics["iterations"]       = iteration
+        metrics["iterations_bound"] = self.iterations_bound(n_2q_at_entry,
+                                                            self.config)
+        # Transaction accounting.  `snapshots`/`rollbacks` cover every nested
+        # transaction (`_apply_teleport`, `_relay_slack_to`, `_safe_route_gate`
+        # ...); `wdag_rebuilds` are the O(N) whole-DAG replays a deadlock
+        # checkpoint restore costs, which is the expensive kind.  The *_s
+        # timings are only populated when config.profile_transactions is set,
+        # so the hot path pays nothing by default (wdag_rebuild_s is always
+        # timed -- it is rare and dominant when it happens).
+        metrics["snapshots"]       = self._n_snapshots
+        metrics["rollbacks"]       = self._n_rollbacks
+        metrics["wdag_rebuilds"]   = self._n_wdag_rebuilds
+        metrics["wdag_rebuild_s"]  = round(self._t_wdag_rebuild, 4)
+        metrics["snapshot_s"]      = round(self._t_snapshot, 4)
+        metrics["rollback_s"]      = round(self._t_rollback, 4)
         return metrics, l2p

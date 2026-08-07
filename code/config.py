@@ -80,6 +80,43 @@ class HardwareConfig:
     cap_penalty: float = 15.0
     capacity_threshold: int = 3
 
+    # ── Capacity-safe mode (2026-08-07) ───────────────────────────────────────
+    # Promotes capacity from the soft `cap_penalty` above to a LEGALITY
+    # condition, which turns "every core keeps >= core_reserve free slots" from
+    # a starting condition into an invariant, and makes deadlock recovery
+    # provably able to execute any remote gate.  See SAFE_DSABRE.md.
+    #
+    # False (default) matches all prior results bit-for-bit.  With True:
+    #   * a teleport into core c is legal only if free(c) > core_reserve, so the
+    #     post-state is still >= core_reserve;
+    #   * deadlock recovery runs `_safe_route_gate` first -- relay slack to the
+    #     meeting core, walk one operand there hop by hop, execute -- which
+    #     cannot fail while the invariant holds;
+    #   * the iteration limit stops being an abort: routing switches to
+    #     draining the remaining gates with `_safe_route_gate`.
+    # Requires P - n >= core_reserve * num_cores + 1 (checked in route()), so a
+    # donor core with a spare slot always exists by pigeonhole.
+    safe_mode: bool = False
+    core_reserve: int = 2
+    # Free slots a destination core must hold for an ORDINARY (Tier-1) teleport
+    # to be legal, so the destination ends at tier1_floor - 1.
+    #
+    # The default 2 keeps every core at >= 1 free -- zero is what actually
+    # breaks routing, since a qubit in a full core generally cannot be
+    # teleported out (no free slot to evict the outgoing comm port into).  The
+    # RESERVE of `core_reserve` free slots is a separate requirement, needed
+    # only by `_safe_route_gate` and only while it runs, so it re-establishes
+    # it itself on entry via `_make_layout_safe` rather than making Tier 1 pay
+    # to preserve it on every iteration.
+    #
+    # None selects the strict alternative, core_reserve + 1, under which Tier 1
+    # maintains the reserve unaided.  It is not worth it: measured on the 64q
+    # suite the strict floor rejects 1.9-25% of the moves the router would
+    # otherwise choose against 0.0-0.6% here, costing +20.8% EPR (gmean)
+    # against +4.2%, with 124 guaranteed transactions against 9.  See
+    # SAFE_DSABRE.md §10.4-10.5.
+    tier1_floor: int | None = 2
+
     # ── Deadlock recovery ──────────────────────────────────────────────────────
     # Maximum routing iterations before declaring failure.
     max_iterations: int = 10000
@@ -107,3 +144,11 @@ class HardwareConfig:
     # ── Diagnostics ───────────────────────────────────────────────────────────
     # When True, every SWAP and teleport is appended to metrics["trace"].
     trace_routing: bool = False
+    # When True, time spent creating snapshots and executing rollbacks is
+    # accumulated into metrics["snapshot_s"] / metrics["rollback_s"].  Off by
+    # default: `_snapshot` runs on every candidate teleport, so two
+    # perf_counter() calls per transaction would show up in the compile-time
+    # column the paper reports.  Counts (metrics["snapshots"] /
+    # ["rollbacks"] / ["wdag_rebuilds"]) and metrics["wdag_rebuild_s"] are
+    # collected unconditionally -- an integer increment, and a rebuild is rare.
+    profile_transactions: bool = False
