@@ -1188,7 +1188,67 @@ into the drain.
   different procedure, not a parameter of this one — so the config raises
   rather than silently offering a broken guarantee.
 
-## 14. Open risks
+## 14. Should safe mode replace the default router?
+
+**Not during this revision. Yes as the recommended setting for new work, and a
+strong candidate for the default once the paper lands.**
+
+### 14.1 What the case rests on
+
+| | default | safe (`tier1_floor=2`) |
+|---|---|---|
+| EPR, gmean | — | **+4.2 / −0.6 / −7.4 / +2.9 %** (64/100/200/360q) |
+| compile time, 64q suite | 348.9 s | **338.9 s (−2.9 %)** |
+| iterations, 64q suite | 69 155 | **65 721** |
+| `_force_make_room` calls | 21 / 18 / 206 / 107 | **0 everywhere** |
+| transaction rollbacks | 0–5 | **0 everywhere** |
+| min free reached | **0**, on 6 of 9 circuits at 64q | ≥ 1 always, ≥ 2 at boundaries |
+| aborts | `qft_360` p2, `qft_200` 1/3, `random_200` 3/3 | **none** |
+| worst case | none — `max_iterations` is a budget it can hit | `2·D_K` teleports per remote gate; `N_r(L_d+1)` iterations |
+
+It is EPR-neutral, compile-time-neutral, removes the abort class, and removes
+`_force_make_room` — the one mechanism with no invariant behind it, and the
+subject of two prior bug investigations (`apply_teleport_conflicts.docx` §9 and
+the 2026-08-05 `KeyError`). On the merits of the mechanism the case is strong.
+
+### 14.2 Why not now
+
+1. **Every published table came from the default router.** Switching the
+   default invalidates 25q, 36q, 64q, 100q, 200q, 360q, every ablation, and
+   both external comparisons, and they would all need regenerating mid-revision
+   against a page budget with no slack. The review report did not ask for this.
+2. **Coverage is incomplete.** 25q and 36q have never been run in safe mode at
+   all. `qnn_100` and `qnn_200` are unrun. 200q has 4 of 8 circuits.
+   `random_200` is still in flight.
+3. **Three regressions are unexplained.** `qft_64` +21.4 %, `qpeexact_64`
+   +12.3 %, `qpeexact_360` +18.6 %. The per-circuit variance of the three-pass
+   protocol is a plausible cause but nobody has diagnosed one of them. A
+   setting should not become the default while its worst cases are unexplained.
+4. **The `_safe_drain` bug is a warning about coverage, not a one-off.** Safe
+   mode's stress paths — the drain, `_make_layout_safe`, the cut-vertex staging
+   retry — are by construction unreachable until something goes wrong, so no
+   suite exercises them. Each now has exactly one test. That is thin for a
+   default.
+5. **Safe mode *refuses* architectures the default handles.** `P < n + 2K + 1`
+   raises rather than degrading — correct for an opt-in mode, wrong for a
+   default. It needs a documented fallback policy first.
+
+### 14.3 What would make it ready
+
+- 25q and 36q measured; 200q completed; `qnn` at 100q and 200q measured.
+- One of the three regressions diagnosed to the point of a mechanism.
+- A fallback policy for infeasible architectures (degrade to the default
+  router with a warning, rather than raise).
+- `deadlock_limit` re-swept under `tier1_floor=2` — the "L=10 is free"
+  measurement was taken under the strict floor, where Tier 2 fired 124 times
+  instead of 9.
+- A full regeneration of every table, after the revision is accepted.
+
+Until then the appendix's framing — an optional mode, off by default, for
+pipelines where a single attempt must succeed — is the honest one, and
+`config.safe_mode = False` should stay.
+
+## 15. Open risks
 
 1. **EPR regresses — measured, +20.8 % gmean at 64q and +20.9 % at 360q**
    (§10.3). This was the flagged risk and it materialised, roughly 3× what §8
