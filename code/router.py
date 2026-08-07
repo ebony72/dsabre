@@ -1210,6 +1210,13 @@ class General_dSABRE_Router:
         guard = self._remaining + 1
         while self._remaining > 0 and guard > 0:
             guard -= 1
+            # Drain to a fixed point.  The loop must NOT stop the moment
+            # `_front_2q` is empty: retiring the front's 1q gates can expose
+            # more 1q gates, leaving the front temporarily free of 2q gates
+            # while the DAG is far from empty.  Bailing out there made
+            # `_safe_drain` report failure on a circuit it had merely not
+            # finished draining -- the cause of `random_100`'s ITERATION_LIMIT
+            # abort, with `safe_route_failed` still 0.
             progress = True
             while progress:
                 progress = False
@@ -1218,10 +1225,7 @@ class General_dSABRE_Router:
                         metrics["1q_gates"] += 1
                         wdag.remove_op_node(n)
                         progress = True
-                front = self._front_2q(wdag)
-                if not front:
-                    break
-                ready = [n for n in front
+                ready = [n for n in self._front_2q(wdag)
                          if arch.Gr.has_edge(l2p[n.qargs[0]], l2p[n.qargs[1]])]
                 for n in ready:
                     wdag.remove_op_node(n)
@@ -1233,9 +1237,11 @@ class General_dSABRE_Router:
                     progress = True
             if self._remaining == 0:
                 break
+            # After the fixed point the front holds no 1q gate, so a non-empty
+            # DAG has a 2q gate in front and this cannot be empty.
             front = self._front_2q(wdag)
             if not front:
-                break
+                return False
             node = self._safe_pick_gate(front, l2p, p2l)
             if node is None or not self._safe_route_gate(node, wdag, l2p, p2l,
                                                          metrics):

@@ -975,7 +975,44 @@ articulation points, so no suite exercises the staging retry of §6. On the
 Safe mode is *better* on both, and the star — whose hub is a genuine capacity
 bottleneck — is where the invariant helps most (−20 %).
 
-### 13.2 What the guarantee still does not cover
+### 13.2 A real abort, and the implementation bug behind it
+
+`random_100` (36 109 CX, `n=100` on `P=150`, 67 % fill — the densest instance
+tested) **aborted under safe mode**, with `ITERATION_LIMIT` at exactly 50 000
+iterations and 23 111 operations outstanding. The theorem was not violated:
+
+| | value | reading |
+|---|---|---|
+| `safe_route_failed` | **0** | no transaction ever failed |
+| `force_make_room` | **0** | the invariant held throughout |
+| exit free vector | `[14,7,9,5,4,11]` | min 4 — (†) intact at the abort |
+| `safe_routes` | 2 535 | the guaranteed path did its job 2 535 times |
+
+The failure was in `_safe_drain`'s control flow. It stopped draining the
+moment `_front_2q` came back empty — but retiring the front layer's 1-qubit
+gates can expose *more* 1-qubit gates, so the front is briefly free of 2q
+gates while the DAG is far from empty. The drain reported failure on a
+circuit it had merely not finished draining, and the caller turned that into
+an abort. Fixed by draining to a fixed point; after that a non-empty DAG
+always has a 2q gate in front, so the empty-front branch is unreachable.
+
+Two things worth taking from it:
+
+- **`_safe_drain` was the least-tested part of the implementation** precisely
+  because it is the escape hatch: nothing else reaches it, so no suite
+  exercised it until an instance was budget-starved enough to need it.
+  `test_safe_drain.py` now covers it directly — it fails on the pre-fix code
+  and passes after.
+- **The guarantee's own instrumentation is what localised it.** With
+  `safe_route_failed = 0` and the invariant intact at the abort, the
+  transaction was exonerated immediately and only the control flow around it
+  was left to inspect.
+
+`random_100` also shows the default router is at 48 185 of its 50 000
+iterations on this instance, so the budget is genuinely tight for both
+routers — safe mode's extra iterations are what push it over into the drain.
+
+### 13.3 What the guarantee still does not cover
 
 - **It is a guarantee about routing, not about cost.** `_safe_drain` bounds
   EPR at `2·diam(G_C)` per remote gate; nothing bounds how bad that is
