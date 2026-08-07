@@ -9,12 +9,53 @@ See also: `../CLAUDE.md` for the full project reference.
 
 ---
 
+## Revision Workflow (branch `tcad-revision`)
+
+**Do not work on the response letter before the revision itself is finished.**
+
+Land the manuscript changes the review report asks for first — `dsabre.tex`,
+`appendices.tex`, the generated tables, and the rebuilt PDF — and only then
+write the point-by-point response to the reviewers. A response drafted ahead
+of the revision cites text the paper does not yet contain, and has to be
+rewritten once the edits actually land.
+
+### Page budget: the main paper must come in under 13 pages
+
+The submitted PDF is 18 pages. Everything cut from `dsabre.tex` to reach the
+limit goes into `appendices.tex` (the online appendices) — **nothing is
+deleted outright**. Move the text, keep the numbers, and leave a one-sentence
+pointer in the main paper (`\rev{... reported in the online appendices}`) so a
+reviewer can still find the evidence they asked for. Cutting a result the
+review report requested and not relocating it reads as a non-response.
+
+When moving a block: cut prose + table together, renumber nothing by hand
+(labels move with the block), and check that `\ref{}`s from the main text to
+the moved label still resolve — `appendices.tex` is compiled both standalone
+(`appendices_standalone.tex`) and, for cross-references, against `dsabre.aux`.
+
+### Keep the abstract concise and short
+
+Target **~200 words**. The abstract carries the motivation, the one-sentence
+core idea, and the headline result against `\TeleSABRE{}` — nothing else.
+
+It is not a summary of the contributions list. Baseline-by-baseline results
+(`pytket-dqc`), secondary architectures (the heavy-hex ring and star), and
+mechanism-by-mechanism accounting belong in the introduction's contribution
+bullets and in Section IV, not here. Reviewer 3 asked for an abstract that
+conveys the core idea; length works against that, so when a revision adds a
+claim to the abstract, cut another one out rather than appending.
+
+---
+
 ## File Structure
 
 | File | Description |
 |------|-------------|
 | `router.py` | Self-contained `General_dSABRE_Router` — imports from {config,architecture,actions}.py |
-| `dsabre_ext.py` | `dSABRE_BurstExt` — BFS extended-set variant (called "dSE" in benchmarks, "\dSABRE{}" in paper) |
+| `dsabre_ext.py` | `dSABRE_BFSExt` — BFS extended-set variant (called "dSE" in benchmarks, "\dSABRE{}" in paper) |
+| `_baseline_*.py` | Frozen pre-optimisation router/ext/architecture — reference for the verifiers, do not edit |
+| `verify_router.py` | Diffs the default router against the baseline over all four suites |
+| `verify_architecture.py` | Diffs the composed `phys_dist` against a dense all-pairs table |
 | `config.py` | `HardwareConfig` — FEWER params than main repo (no `max_burst_walk_depth`) |
 | `architecture.py` | `build_h_grid_architecture`, `DistributedArchitecture` |
 | `actions.py` | `TeleportAction` and related primitives |
@@ -31,13 +72,54 @@ See also: `../CLAUDE.md` for the full project reference.
 
 | Code name | Paper name | Description |
 |-----------|-----------|-------------|
-| `dS` / `General_dSABRE_Router` | `\dSABRE{}`-Topo | Topological-order extended set |
-| `dSE` / `dSABRE_BurstExt` | `\dSABRE{}` | BFS-layer extended set (production router) |
+| `dS` / `General_dSABRE_Router` | `\dSABRE{}`-Topo | Topological-order extended set (`_top_ext`) |
+| `dSE` / `dSABRE_BFSExt` | `\dSABRE{}` | BFS-layer extended set (`_bfs_ext`), production router |
 | `TS` / `TeleSABRE` | `\TeleSABRE{}` | Reference C++ router |
+
+**Extended-set method names (renamed 2026-08-07).** `_inter_ext` is the hook
+`route()` calls; a subclass picks a construction by overriding it.
+`_top_ext` (router.py) fills the inter-core set in topological order,
+`_bfs_ext` (dsabre_ext.py) by BFS layer. `_get_local_extended` builds the
+per-core *intra* sets and is a different axis — don't confuse it with the
+two above. The old names were `_extended_2q` (both) and `dSABRE_BurstExt`;
+`dSABRE_BurstExt` survives as an alias, since ~30 driver scripts import it.
+
+**`dSE` is the default dSABRE router.** Every headline number, every
+architecture comparison and every scalability row is `dSE`. Run `dS` *only*
+where the two extended-set constructions are being compared — the
+"Topological extended set (not BFS)" row of the mechanism ablation
+(Table VI, row 3), which is computed from `benchmark.py`'s `dS` column over
+the six-circuit ablation subset. A benchmark driver that emits a `dS` column
+everywhere is doing double the work for one table cell; new drivers should
+default to `dSE` alone.
 
 ---
 
 ## Key Invariants & Gotchas
+
+### The default router is the optimised one (2026-08-07)
+
+`router.py`, `dsabre_ext.py` and `architecture.py` carry the incremental
+implementation: maintained in-degrees and gate counter, log-based
+checkpoints, incremental `Δ_F`/`Δ_E` in `_best_intra_swap`, an exact early
+exit in `_get_local_extended`, and a composed (not materialised) `phys_dist`.
+Output is **bit-identical** to the pre-optimisation code — verified over 207
+routing passes across the 25/36/64/360-qubit suites — at 3.2–5.6× less
+compile time.
+
+- The pre-optimisation code is frozen as `_baseline_router.py`,
+  `_baseline_dsabre_ext.py`, `_baseline_architecture.py`. **Do not edit them**;
+  they exist so `verify_router.py` / `verify_architecture.py` can diff against
+  the implementation that produced every published number.
+- **Re-run both verifiers after any router or architecture change.** They
+  compare metrics, final layout, failure log and (on 25q) the full SWAP /
+  teleport trace.
+- The router now carries per-route state, so one instance is safe to reuse
+  sequentially (as `run_sabre_passes` does) but **not** across threads.
+- Incremental in-degrees are correct only because gates leave the DAG solely
+  from the front layer. Retiring a non-front node would desync them silently.
+- `phys_dist` composition assumes unit-weight intra-core edges; a non-unit
+  architecture falls back to the dense table automatically.
 
 ### Router API
 - `router.py`'s `route()` takes a **DAGCircuit**, NOT a QuantumCircuit

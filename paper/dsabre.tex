@@ -47,6 +47,7 @@
 \newcommand{\dphys}{d_{\mathrm{phys}}}
 \newcommand{\dintra}{d_{\mathrm{intra}}}
 \newcommand{\dcore}{d_{\mathrm{core}}}
+\newcommand{\dport}{d_{\mathrm{port}}}
 \newcommand{\logi}[1]{\mathrm{q}_{#1}}
 \newcommand{\phys}[1]{\mathrm{p}_{#1}}
 
@@ -417,19 +418,33 @@ concrete topologies used in our experiments.
 
 \paragraph{Hierarchical distance precomputation.}
 Because intra-core and inter-core costs decouple, the all-pairs distance
-$\dphys$ over $G_\arch$ admits a two-level Dijkstra computation that is
+$\dphys$ over $G_\arch$ admits a two-level shortest-path computation that is
 substantially cheaper than running Dijkstra on the full $|V|$-vertex graph.
 First, all-pairs distances are computed once \emph{inside} a single core
-$V_i$ (size $|V_i|=M$) in $O(M^2 \log M)$ time, giving $\dintra$.
+$V_i$ (size $|V_i|=M$) by breadth-first search in $O(M^2)$ time, giving
+$\dintra$.
 Second, the \emph{core graph} (a multigraph of $K$ super-nodes connected
-by inter-core links) is solved in $O(K^2 \log K)$ time, giving $\dcore$.
-Third, $\dphys(p,q)$ for any $p\in V_i$, $q\in V_j$ is recovered as
-$\dintra(p,\pi_i^*) + \dcore(i,j) + \dintra(\pi_j^*,q)$ minimised over
-boundary-port pairs $(\pi_i^*, \pi_j^*)$ realising the optimal core-graph
-path.
+by inter-core links) is solved in $O(K^2)$ time, giving $\dcore$.
+\rev{Third, a port-to-port table $\dport$ is obtained by Dijkstra over the
+$O(K)$ communication ports alone---two ports of one core joined at their
+$\dintra$ distance, the ends of each inter-core link at the link
+weight---in $O(K^2\log K)$ time.  Every $p\to q$ path leaves $p$'s core
+through some port and enters $q$'s through another, so for $p\in V_i$,
+$q\in V_j$ with $\Pi_i$ the ports of core $i$,
+\begin{equation}
+  \dphys(p,q)=\min_{\pi\in\Pi_i,\ \pi'\in\Pi_j}
+    \dintra(p,\pi)+\dport(\pi,\pi')+\dintra(\pi',q),
+  \label{eq:dphys}
+\end{equation}
+taking $\dintra(p,q)$ as well when $i{=}j$ so a route that leaves and
+re-enters one core is never missed.  Equation~\ref{eq:dphys} is exact, not
+an approximation, and is verified against a dense all-pairs table on every
+pair of every architecture used in this paper.}
 This brings precomputation from $O((KM)^2 \log(KM))$ down to
-$O(KM^2\log M + K^2\log K)$ and is the only architecture-dependent setup
-\dSABRE{} performs; routing itself uses $O(1)$ table lookups thereafter.
+$O(KM^2 + K^2\log K)$ \rev{and resident space from $\Theta(P^2)$ to
+$O(KM^2+K^2)$}, and is the only architecture-dependent setup
+\dSABRE{} performs; \rev{a $\dphys$ query then costs $O(|\Pi|^2)$ and is
+memoised, so routing sees $O(1)$ lookups after the first.}
 
 \subsection{Qubit Routing and \SABRE{}}
 \label{sec:routing}
@@ -995,22 +1010,47 @@ warm-restart.  Best of three SabreLayout seeds is reported.
 
 \emph{Cost.}
 \label{sec:complexity}
-Write $N{=}|C|$ for the gate count; $n$, $P$, $K$ and $M$ are as in
-Table~\ref{tab:notation}.  Architecture distance
-tables are precomputed once in $O(KM^2\!\log M + K^2\!\log K)$
-(Section~\ref{sec:arch}) and are not charged per circuit.  Per
-iteration, inter-core scoring generates $O(n)$ candidates and
-intra-core scoring $O(M)$ per core, giving $O(Mn+P)$, which is $O(Mn)$
-whenever $n\ge K$ as on all our suites.  With physical diameter
-$O(\sqrt{P})$ bounding the inserted operations,
+Write $N{=}|C|$ for the gate count, $N_r$ for the gates still unrouted,
+$D_M$ and $D_K$ for the intra-core and core-graph diameters, and $A$,
+$B$, $T$ for the intra-core SWAPs, the teleports, and the iterations the
+router performs; the rest is as in Table~\ref{tab:notation}.  Distance
+tables are precomputed once per architecture in $O(KM^2{+}K^2\log K)$
+(Section~\ref{sec:arch}) and are not charged per circuit.
+
+\rev{Scoring is charged per \emph{applied move} rather than per
+iteration.  An iteration applies one SWAP in each core that holds an
+unexecuted local gate, so pricing a whole-chip per-iteration cost against
+an iteration count derived from one move per iteration would count the
+same per-core parallelism twice.  The number of (iteration, active core)
+pairs is exactly $A$; every iteration applies at least one move, so
+$T=O(A+B)$; and a gate needs $O(D_M)$ SWAPs and $O(D_K)$ teleports, one
+teleport crossing a whole core, so $A=O(ND_M)$ and $B=O(ND_K)$.}
+\rev{Scoring one intra-core SWAP costs $O(|F_\mathrm{c}|{+}L)$: front-layer
+gates are qubit-disjoint, so a candidate exchanges the contents of two
+slots and can move at most \emph{two} of them, leaving every other term of
+$\Delta_F$ identically zero.}  Scoring one teleport costs $O(Mn{+}P)$:
+$O(n)$ candidates at $O(M{+}L)$ each---the $M$ is the scan for an eviction
+target---over an $O(P)$ free-slot census.  \rev{Rebuilding the lookahead
+sets costs $O(N_r)$ per iteration; the inter-core set is $O(n{+}L)$ once
+in-degrees are carried between calls, but the taint-propagated scan
+building $E_\mathrm{c}$ admits no such bound, as a core's size-$L$ quota
+may never be met.}  Hence
 \begin{equation}
-  T_\mathrm{total} = O\!\left(N\sqrt{P}\cdot Mn\right).
+  T_\mathrm{total} = O\!\big(\underbrace{N(D_M{+}D_K)N_r}_{\text{lookahead}}
+    + \underbrace{N D_M (M{+}L)}_{\text{SWAP scoring}}
+    + \underbrace{N D_K (Mn{+}P)}_{\text{teleport scoring}}\big)
   \label{eq:complexity}
 \end{equation}
-Restricting intra-core scoring to core-local edges yields a factor-$K$
-per-iteration improvement over flat \SABRE{}~\cite{li2019tackling} on
-the same $P$ qubits, growing with core count.  \rev{The derivation is
-in the online appendices.}
+\rev{under the iteration budget, past which the router aborts.  Charging
+per move rather than per iteration removes a factor $M$ from the SWAP
+term; $D_M{+}D_K$ is $O(\sqrt{M}{+}\sqrt{K})$ on a grid-of-grids but
+linear in $K$ on a core ring; and the $N_r$ term makes compile time
+quadratic in circuit size in practice (measured $N^{2.1}$).  The full
+derivation, the structural facts it rests on, and a measured validation
+are in the online appendices.}  Restricting intra-core scoring to
+core-local edges reduces the front-layer term by up to a factor $K$
+over flat \SABRE{}~\cite{li2019tackling} on the same $P$ qubits, when
+front gates spread across cores.
 
 
 %%─────────────────────────────────────────────────────────────────────────────
@@ -1321,16 +1361,16 @@ monotonically in $c_{\mathrm{tele}}$ on every suite.}
 compilers on the 64-qubit suite.  In geometric mean \TeleSABRE{} leads at
 $3.2$\,s, \dSABRE{} follows at $19.0$\,s, and \texttt{pytket-dqc} trails at
 $65$\,s, nearly flat in circuit size because the partitioner sets it.
-Between the two routers the gap is the constant in Eq.~\ref{eq:complexity}
-(Section~\ref{sec:complexity}), not the exponent: the ratio holds within
-about one order of magnitude across a $200\times$ range of circuit
-size---the signature of per-operation overhead---\TeleSABRE{} compiled
-C\texttt{++} with cached lookups, \dSABRE{} paying its $O(Mn)$
-per-iteration cost in interpreted Python, $13\times$ slower on the
-13\,040-CX Multiplier and $10\times$ \emph{faster} on Graphstate, where
-\TeleSABRE{}'s sampling needs many iterations to converge.  A compiled
-implementation would close most of the gap; EPR pairs, not compile
-seconds, are the scarce resource on this hardware.}
+Between the two routers the gap is partly super-linear:
+Eq.~\ref{eq:complexity}'s $N_r$ term makes \dSABRE{} quadratic in gate
+count (measured $N^{2.1}$), so the ratio drifts about one order of
+magnitude across a $200\times$ range of circuit size---$13\times$ slower on
+the 13\,040-CX Multiplier, $10\times$ \emph{faster} on Graphstate, where
+\TeleSABRE{}'s sampling needs many iterations to converge.  The rest is
+per-operation overhead against compiled C\texttt{++} with cached lookups.
+Bounding the $E_\mathrm{c}$ scan, not a change of language, removes the
+super-linear part; EPR pairs, not compile seconds, are the scarce resource
+on this hardware.}
 
 %%─────────────────────────────────────────────────────────────────────────────
 \subsection{Ablation Study}

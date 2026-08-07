@@ -1,3 +1,12 @@
+"""FROZEN pre-optimisation reference (working tree, 2026-08-07).
+
+architecture.py as it stood before d_phys was made hierarchical, kept so
+the composed table can be differentially tested against the dense one
+that produced every published number.  Do not edit: its only job is to
+stay exactly what it was.  See verify_architecture.py.
+
+Original docstring follows.
+"""
 """
 Distributed quantum processor architecture definitions.
 
@@ -9,108 +18,6 @@ tables are built at construction time for O(1) lookup during routing.
 
 import networkx as nx
 from typing import Dict, List, Tuple
-
-
-_MISS = object()
-
-
-class _PhysDistRow:
-    """The `phys_dist[p]` row, so `.get(p, {}).get(q, 999)` keeps working."""
-
-    __slots__ = ("_pd", "_p")
-
-    def __init__(self, pd, p):
-        self._pd = pd
-        self._p = p
-
-    def get(self, q, default=None):
-        d = self._pd.distance(self._p, q)
-        return default if d is None else d
-
-    def __getitem__(self, q):
-        d = self._pd.distance(self._p, q)
-        if d is None:
-            raise KeyError(q)
-        return d
-
-    def __contains__(self, q):
-        return self._pd.distance(self._p, q) is not None
-
-
-class HierarchicalPhysDist:
-    """d_phys composed from d_intra and a port-to-port table, then memoised.
-
-    Any p->q path leaves p's core through some port and enters q's through
-    another, so
-
-        d_phys(p,q) = min over ports pi of core(p), pi' of core(q) of
-                        d_intra(p,pi) + d_port(pi,pi') + d_intra(pi',q)
-
-    and the port graph carries exactly those two edge kinds.  For p and q in
-    one core the direct d_intra(p,q) is admitted too, so a route that leaves
-    and re-enters is never missed.  The identity is exact: it is checked
-    against a dense all-pairs table over every pair of every architecture in
-    the paper by verify_architecture.py.
-    """
-
-    def __init__(self, arch, port_dist):
-        self.arch = arch
-        self._dport = port_dist
-        self._cache = {}
-
-    def get(self, p, default=None):
-        return _PhysDistRow(self, p) if p in self.arch.qubit_to_core else default
-
-    def __getitem__(self, p):
-        if p not in self.arch.qubit_to_core:
-            raise KeyError(p)
-        return _PhysDistRow(self, p)
-
-    def __contains__(self, p):
-        return p in self.arch.qubit_to_core
-
-    def distance(self, p, q):
-        """Weighted shortest-path distance, or None if unreachable."""
-        key = (p, q) if p <= q else (q, p)
-        hit = self._cache.get(key, _MISS)
-        if hit is not _MISS:
-            return hit
-        d = self._compute(p, q)
-        self._cache[key] = d
-        return d
-
-    def _compute(self, p, q):
-        arch = self.arch
-        qc = arch.qubit_to_core
-        if p not in qc or q not in qc:
-            return None
-        cp, cq = qc[p], qc[q]
-        best = None
-        if cp == cq:
-            best = arch.intra_dist[cp].get(p, {}).get(q)
-        di_p = arch.intra_dist[cp].get(p, {})
-        di_q = arch.intra_dist[cq].get(q, {})
-        for pi in arch._core_comm_ports[cp]:
-            a = di_p.get(pi)
-            if a is None:
-                continue
-            row = self._dport.get(pi)
-            if row is None:
-                continue
-            for pj in arch._core_comm_ports[cq]:
-                mid = row.get(pj)
-                if mid is None:
-                    continue
-                b = di_q.get(pj)
-                if b is None:
-                    continue
-                tot = a + mid + b
-                if best is None or tot < best:
-                    best = tot
-        return best
-
-    def cache_size(self):
-        return len(self._cache)
 
 
 class DistributedArchitecture:
@@ -181,51 +88,11 @@ class DistributedArchitecture:
             self._inter_links_between[(cu, cv)].append((u, v))
             self._inter_links_between[(cv, cu)].append((v, u))
 
-        # d_phys, composed hierarchically rather than materialised.  A dense
-        # all-pairs Dijkstra over the whole chip costs O(P^2 log P) time and
-        # Theta(P^2) space -- 86-97% of construction time, and the very cost
-        # the two-level decomposition exists to avoid.  Instead a port-to-port
-        # table over the O(K) communication ports is built in O(K^2 log K) and
-        # d_phys is composed on demand (see HierarchicalPhysDist), which is
-        # exact and O(1) after memoisation.  Resident space drops from
-        # Theta(P^2) to O(KM^2 + K^2), a factor of roughly K.
-        #
-        # The composition mixes `intra_dist` (unweighted BFS above) with
-        # weighted link costs, so it is only sound when intra-core edges carry
-        # unit weight.  Every architecture in this repo satisfies that; one
-        # that does not falls back to the dense table rather than serving
-        # distances that disagree with it.
-        if self._intra_edges_are_unit_weight():
-            self._port_graph = self._build_port_graph()
-            self._port_dist = dict(nx.all_pairs_dijkstra_path_length(self._port_graph))
-            self.phys_dist = HierarchicalPhysDist(self, self._port_dist)
-        else:
-            self._port_dist = None
-            self.phys_dist: Dict[int, Dict[int, int]] = dict(
-                nx.all_pairs_dijkstra_path_length(self.Gr)
-            )
-
-    def _intra_edges_are_unit_weight(self) -> bool:
-        return all(data.get("weight", 1) == 1
-                   for g in self.intra.values()
-                   for _a, _b, data in g.edges(data=True))
-
-    def _build_port_graph(self) -> nx.Graph:
-        """Ports as nodes; intra-core port pairs and inter-core links as edges."""
-        pg = nx.Graph()
-        pg.add_nodes_from(self.comm_qubits)
-        for core_id, ports in self._core_comm_ports.items():
-            d = self.intra_dist[core_id]
-            for i, a in enumerate(ports):
-                for b in ports[i + 1:]:
-                    w = d.get(a, {}).get(b)
-                    if w is not None:
-                        pg.add_edge(a, b, weight=w)
-        for u, v in self.inter_core_links:
-            w = self.Gr[u][v].get("weight", 1)
-            if not pg.has_edge(u, v) or pg[u][v]["weight"] > w:
-                pg.add_edge(u, v, weight=w)
-        return pg
+        # Full-chip Dijkstra: intra edges weight 1, inter edges weight 10.
+        # O(n²) space; enables O(1) cross-core distance lookup in hot paths.
+        self.phys_dist: Dict[int, Dict[int, int]] = dict(
+            nx.all_pairs_dijkstra_path_length(self.Gr)
+        )
 
     def core_of(self, p: int) -> int:
         return self.qubit_to_core[p]
@@ -237,27 +104,15 @@ class DistributedArchitecture:
         return self._inter_links_between.get((c0, c1), [])
 
     def memory_report(self) -> dict:
-        """Estimate RAM footprint of the precomputed distance tables (bytes).
-
-        Under the hierarchical d_phys the resident tables are the per-core,
-        core-graph, and port ones; the composed d_phys cache is reported
-        separately since it grows only with the pairs actually queried
-        (6-41% of P^2 over a whole suite, falling as P grows).
-        """
+        """Estimate RAM footprint of the precomputed distance tables (bytes)."""
         _ENTRY = 56  # one Python (int, int) dict entry, conservative lower bound
+        phys_n  = sum(len(v) for v in self.phys_dist.values())
         intra_n = sum(len(v) for d in self.intra_dist.values() for v in d.values())
         core_n  = sum(len(v) for v in self.core_dist.values())
-        if self._port_dist is None:
-            phys_n = sum(len(v) for v in self.phys_dist.values())
-            cached = None
-        else:
-            phys_n = sum(len(v) for v in self._port_dist.values())
-            cached = self.phys_dist.cache_size()
         return {
             "num_qubits":  len(self.data_qubits),
             "num_cores":   self.num_cores,
             "total_bytes": (phys_n + intra_n + core_n) * _ENTRY,
-            "phys_dist_cached": cached,
         }
 
 

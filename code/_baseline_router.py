@@ -1,3 +1,13 @@
+"""FROZEN pre-optimisation reference (repo state 2026-08-07, commit acc9005).
+
+Kept so the optimised default in router.py can be differentially tested
+against the implementation that produced every published number.  Do not
+edit: its only job is to stay exactly what it was.  See verify_router.py.
+
+
+Original docstring follows.
+
+"""
 """
 dSABRE — Distributed SABRE router for multi-core quantum processors.
 
@@ -11,24 +21,6 @@ Deadlock recovery: if no progress is made for `deadlock_limit` consecutive
 iterations, the router restores a checkpoint and executes a forced hop
 (backup plan).  After `max_backup_attempts` failed recoveries the route is
 marked aborted.
-
-Extended sets.  Two are built, on different axes and with different costs:
-`_top_ext` fills the inter-core set in topological order and `_bfs_ext`
-(dsabre_ext.py) fills it by BFS layer -- `_inter_ext` is the hook route()
-calls, so a subclass selects one by overriding that; `_get_local_extended`
-builds the per-core intra sets.
-
-Incremental bookkeeping (2026-08-07).  Costs that used to be Theta(N) on
-*every* iteration are now O(1) amortised: remaining in-degrees are carried
-across calls instead of rebuilt, the unrouted-gate count is maintained
-rather than recounted, checkpoints record a mark in a retirement log
-instead of deep-copying the DAG, `_best_intra_swap` scores only the gates a
-candidate SWAP can move, and `_get_local_extended` stops once no core can
-admit another gate.  None of this changes what the router decides: the
-output is bit-identical to the pre-optimisation implementation, frozen as
-`_baseline_router.py` and checked by `verify_router.py` across the
-25/36/64/360-qubit suites.  The measured effect is 3.5-5.6x less compile
-time; see the complexity appendix of the paper.
 """
 
 import time
@@ -40,31 +32,6 @@ import networkx as nx
 from config import HardwareConfig
 from architecture import DistributedArchitecture
 from actions import TeleportAction
-
-
-class _RetiringDAG:
-    """Thin proxy over a DAGCircuit that reports gate retirements to the router.
-
-    Every attribute except `remove_op_node` forwards untouched, so helpers
-    that only read the DAG (`_front_2q`, `_backup_plan`, `_get_local_extended`)
-    operate on it exactly as on the real object.
-
-    Interception is what keeps the maintained in-degrees, the unrouted-gate
-    counter, and the retirement log in step with the DAG, wherever the
-    retirement happens.
-    """
-
-    def __init__(self, dag, router):
-        self._dag = dag
-        self._router = router
-
-    def __getattr__(self, name):
-        return getattr(self._dag, name)
-
-    def remove_op_node(self, node):
-        # Successors must be read before the node is spliced out.
-        self._router._on_retire(self._dag, node)
-        self._dag.remove_op_node(node)
 
 
 class General_dSABRE_Router:
@@ -138,23 +105,13 @@ class General_dSABRE_Router:
 
     # ── Candidate generation ───────────────────────────────────────────────────
 
-    def _inter_ext(self, dag, front, size):
-        """Inter-core extended set: the hook route() calls.
-
-        Subclasses select a construction by overriding this.  The default is
-        the topological fill of `_top_ext`; `dSABRE_BFSExt` swaps in the
-        BFS-layer fill of `_bfs_ext`.
-        """
-        return self._top_ext(dag, front, size)
-
-    def _top_ext(self, dag, front, size):
-        """Topological fill ("top-ext"): up to `size` (gate, depth) pairs.
+    def _extended_2q(self, dag, front, size):
+        """Return up to `size` (gate, depth) pairs beyond the front layer.
 
         depth is the gate's DAG distance from the front layer (front = depth 0;
-        immediate successors = depth 1).  Depths come from a single topological
-        pass tracking the longest predecessor chain.  Interleaves all wires
-        uniformly, so a deep chain on one wire can crowd out a shallow gate on
-        another -- which is what `_bfs_ext` exists to avoid.
+        immediate successors = depth 1).  Base implementation computes depths
+        via a single topological pass tracking the longest predecessor chain.
+        dSABRE_BurstExt overrides this with a BFS-layer expansion.
         """
         front_nids = {n._node_id for n in front}
         # depth[nid] = DAG distance from the nearest front-layer ancestor
@@ -270,60 +227,6 @@ class General_dSABRE_Router:
         candidates = score_nodes(front_inter, free_cache)
         candidates.sort(key=lambda a: a.score)
         return candidates
-
-    # ── Incremental DAG state ──────────────────────────────────────────────────
-    #
-    # Three quantities that used to be recomputed from the whole DAG on every
-    # iteration.  All are seeded in route() and maintained by `_on_retire`,
-    # which `_RetiringDAG` calls on every removal.  Correctness rests on gates
-    # leaving the DAG only from the front layer -- true of the drain loop,
-    # `_backup_plan`, and `_route_gate_transaction` -- which makes the retired
-    # set downward closed.  A surviving node therefore has no retired
-    # successors, and `remove_op_node`'s splicing never creates an edge between
-    # two survivors, so decrementing a retiring node's successors keeps
-    # `_indeg` exactly equal to a from-scratch rebuild on the reduced DAG.
-
-    def _init_dag_state(self, real_dag):
-        """Seed maintained in-degrees, the unrouted-gate count, and the log."""
-        self._indeg = {
-            n._node_id: sum(1 for p in real_dag.predecessors(n)
-                            if getattr(p, 'qargs', None))
-            for n in real_dag.topological_op_nodes()
-        }
-        self._remaining = len(real_dag.op_nodes())
-        self._retired_log = []
-
-    def _on_retire(self, real_dag, node):
-        """Called by the proxy just before `node` leaves the DAG."""
-        self._remaining -= 1
-        self._retired_log.append(node._node_id)
-        for succ in real_dag.successors(node):
-            sid = getattr(succ, '_node_id', None)
-            if sid is not None and getattr(succ, 'qargs', None):
-                self._indeg[sid] -= 1
-
-    def _rebuild_wdag(self, dag, mark):
-        """Reconstruct the working DAG as of retirement `mark`.
-
-        Replaces `deepcopy(ckpt_wdag)`: replays the first `mark` retirements,
-        in their original order, onto a fresh copy of the untouched input.
-        Checkpointing is then O(1) and only a rollback pays O(N) -- the right
-        trade, since checkpoints outnumber rollbacks by orders of magnitude.
-        """
-        fresh = deepcopy(dag)
-        by_id = {n._node_id: n for n in fresh.op_nodes()}
-        for nid in self._retired_log[:mark]:
-            victim = by_id.get(nid)
-            if victim is not None:
-                fresh.remove_op_node(victim)
-        del self._retired_log[mark:]
-        self._indeg = {
-            n._node_id: sum(1 for p in fresh.predecessors(n)
-                            if getattr(p, 'qargs', None))
-            for n in fresh.topological_op_nodes()
-        }
-        self._remaining = len(fresh.op_nodes())
-        return _RetiringDAG(fresh, self)
 
     # ── Transactions ───────────────────────────────────────────────────────────
 
@@ -552,17 +455,6 @@ class General_dSABRE_Router:
         the front layer, tracked per qubit as the number of intra-core gates
         on that qubit's path since the front.  Tainted-qubit propagation is
         shared across all cores in one traversal.
-
-        The scan stops once no core can admit another gate.  That exit is
-        exact rather than a cutoff: `l2p` is fixed for the duration of the
-        call, so each qubit's core is fixed and `tainted` only grows; a gate
-        joins core c only with two untainted operands in c, so once every
-        still-requested core holds fewer than two untainted qubits, no later
-        node in the order can be admitted.  `live[c]` counts those qubits.
-        Without it the scan runs to the end of the topological order on
-        72-100% of calls, because taint propagation frequently makes a core's
-        size-L quota unreachable.  Cores with no pending gate are still
-        counted in `live`, which can only delay the exit, never advance it.
         """
         arch = self.arch
         tainted = set()
@@ -571,32 +463,18 @@ class General_dSABRE_Router:
         remaining = set(core_ids)
         # qubit_depth[q] = depth of the last gate seen on qubit q (0 for front)
         qubit_depth: dict = {q: 0 for n in front for q in n.qargs}
-
-        live = {ci: 0 for ci in remaining}
-        for q, p in l2p.items():
-            c = arch.core_of(p)
-            if c in live:
-                live[c] += 1
-        eligible = {c for c in remaining if live[c] >= 2}
-
         for n in wdag.topological_op_nodes():
-            if not eligible:
+            if not remaining:
                 break
             if len(n.qargs) < 2:
                 continue
             q1, q2 = n.qargs[0], n.qargs[1]
             c1, c2 = arch.core_of(l2p[q1]), arch.core_of(l2p[q2])
-            # A cross-core gate and a gate on an already-tainted wire are
-            # handled identically: taint both operands and move on.
-            if c1 != c2 or q1 in tainted or q2 in tainted:
-                for q in (q1, q2):
-                    if q not in tainted:
-                        tainted.add(q)
-                        c = arch.core_of(l2p[q])
-                        if c in live:
-                            live[c] -= 1
-                            if live[c] < 2:
-                                eligible.discard(c)
+            if c1 != c2:
+                tainted.update([q1, q2])
+                continue
+            if q1 in tainted or q2 in tainted:
+                tainted.update([q1, q2])
                 continue
             if id(n) in front_ids:
                 continue
@@ -606,7 +484,6 @@ class General_dSABRE_Router:
                 qubit_depth[q1] = qubit_depth[q2] = depth
                 if len(ext[c1]) >= self.config.lookahead_size:
                     remaining.discard(c1)
-                    eligible.discard(c1)
         return ext
 
     def _fallback_local_swap(self, front_inter, wdag, l2p, p2l, metrics):
@@ -1042,106 +919,6 @@ class General_dSABRE_Router:
 
         return moved_any
 
-    # ── Intra-core SWAP selection ──────────────────────────────────────────────
-
-    @staticmethod
-    def _merge_ix(a, b):
-        """Union of two ascending index lists, ascending, without duplicates."""
-        if not b:
-            return a
-        if not a:
-            return b
-        out, i, j = [], 0, 0
-        while i < len(a) and j < len(b):
-            if a[i] < b[j]:
-                out.append(a[i]); i += 1
-            elif a[i] > b[j]:
-                out.append(b[j]); j += 1
-            else:
-                out.append(a[i]); i += 1; j += 1
-        out.extend(a[i:]); out.extend(b[j:])
-        return out
-
-    def _best_intra_swap(self, ci, local_front, local_ext, l2p, p2l):
-        """Lowest-scoring intra-core SWAP in core `ci`, or None.
-
-        Scores every candidate on Eq. H_intra, but only against the gates the
-        candidate can actually move.  A SWAP exchanges the contents of two
-        slots, so a gate's distance term changes only if one of its operands
-        sits on u or v; every other term of both sums is exactly zero.
-
-        Front-layer gates are qubit-disjoint (each wire contributes at most
-        one), so at most *two* front gates are affected whatever |F_c| is --
-        which is what turns the per-core cost from O(d|F_c|(|F_c|+L)) into
-        O(d(|F_c|+L)), and removes a factor M from the chip-wide bound.
-        Extended-set gates are not disjoint, so they are indexed by qubit.
-
-        Identical to scoring the full sums, not merely equivalent: the omitted
-        terms are integer zeros; the surviving terms are accumulated in their
-        original list order, so float addition is never reordered; `involved`
-        is built in the original order, so the `score < min_score` first-wins
-        tie-break is unchanged; and the normalisers use the full lengths.
-        """
-        arch  = self.arch
-        decay = self.config.lookahead_decay
-        w_e   = self.config.weight_extended
-        n_f   = max(len(local_front), 1)
-        n_e   = max(len(local_ext), 1)
-
-        # qubit -> index of its front gate (disjointness makes this a function)
-        front_ix = {}
-        for i, n in enumerate(local_front):
-            front_ix[n.qargs[0]] = i
-            front_ix[n.qargs[1]] = i
-        # qubit -> ascending indices of the extended gates it appears in
-        ext_ix: dict = {}
-        for i, (n, _d) in enumerate(local_ext):
-            ext_ix.setdefault(n.qargs[0], []).append(i)
-            ext_ix.setdefault(n.qargs[1], []).append(i)
-
-        involved = set()
-        for n in local_front:
-            involved.update([l2p[n.qargs[0]], l2p[n.qargs[1]]])
-
-        best_swap, min_score = None, float("inf")
-        for u in involved:
-            for v in arch.Gr.neighbors(u):
-                if arch.core_of(v) != ci:
-                    continue
-                qu, qv = p2l[u], p2l[v]
-
-                def moved(q, _u=u, _v=v):
-                    p = l2p[q]
-                    return _v if p == _u else (_u if p == _v else p)
-
-                f_ix = []
-                if qu is not None and qu in front_ix:
-                    f_ix.append(front_ix[qu])
-                if qv is not None and qv in front_ix and front_ix[qv] not in f_ix:
-                    f_ix.append(front_ix[qv])
-                delta_Hf = 0
-                for i in sorted(f_ix):
-                    n = local_front[i]
-                    q1, q2 = n.qargs[0], n.qargs[1]
-                    delta_Hf += (self._idist(ci, moved(q1), moved(q2))
-                                 - self._idist(ci, l2p[q1], l2p[q2]))
-
-                e_ix = self._merge_ix(ext_ix.get(qu, []) if qu is not None else [],
-                                      ext_ix.get(qv, []) if qv is not None else [])
-                delta_He = 0
-                for i in e_ix:
-                    n, depth = local_ext[i]
-                    q1, q2 = n.qargs[0], n.qargs[1]
-                    delta_He += (decay ** depth) * (
-                        self._idist(ci, moved(q1), moved(q2))
-                        - self._idist(ci, l2p[q1], l2p[q2])
-                    )
-
-                score = (delta_Hf / n_f) + w_e * (delta_He / n_e)
-                if score < min_score:
-                    min_score, best_swap = score, (u, v)
-        return best_swap
-
     # ── Main routing loop ──────────────────────────────────────────────────────
 
     def route(self, dag, initial_layout):
@@ -1198,11 +975,7 @@ class General_dSABRE_Router:
                     f"on the same physical qubit {p}"
                 )
             p2l[p] = lq
-        # Wrapped so every retirement updates the maintained in-degrees,
-        # unrouted-gate counter, and retirement log.
-        _real = deepcopy(dag)
-        self._init_dag_state(_real)
-        wdag = _RetiringDAG(_real, self)
+        wdag = deepcopy(dag)
 
         metrics = {
             "ls": 0, "teles": 0, "catcomms": 0, "eprs": 0,
@@ -1220,7 +993,7 @@ class General_dSABRE_Router:
         _t_start = time.perf_counter()
 
         iteration        = 0
-        last_remaining   = self._remaining
+        last_remaining   = len(list(wdag.op_nodes()))
         no_progress_iters = 0
         backup_attempts  = 0
         committed_nid    = None  # DAG node id of the gate the last teleport advanced
@@ -1235,14 +1008,14 @@ class General_dSABRE_Router:
 
         ckpt_l2p   = l2p.copy()
         ckpt_p2l   = p2l.copy()
-        ckpt_mark  = len(self._retired_log)        # O(1) checkpoint
+        ckpt_wdag  = deepcopy(wdag)
         ckpt_counters  = {k: metrics[k] for k in ckpt_counter_keys}
         ckpt_trace_len = len(metrics["trace"]) if metrics["trace"] is not None else 0
         prev_remaining = last_remaining
 
-        while self._remaining > 0:
+        while wdag.op_nodes():
             if iteration >= self.config.max_iterations:
-                remaining = self._remaining
+                remaining = len(list(wdag.op_nodes()))
                 elapsed   = time.perf_counter() - _t_start
                 failure_log.append(("ITERATION_LIMIT", iteration, remaining, elapsed))
                 metrics["aborted"] = True
@@ -1276,10 +1049,10 @@ class General_dSABRE_Router:
                             )
                     progress = True
 
-            if self._remaining == 0:
+            if not wdag.op_nodes():
                 break
 
-            current_remaining = self._remaining
+            current_remaining = len(list(wdag.op_nodes()))
             if current_remaining < prev_remaining:
                 extended_cache = None
             prev_remaining = current_remaining
@@ -1307,9 +1080,36 @@ class General_dSABRE_Router:
                 local_ext_cache = self._get_local_extended(wdag, front, core_to_gates.keys(), l2p)
 
                 for ci, local_front in core_to_gates.items():
+                    involved = set()
+                    for n in local_front:
+                        involved.update([l2p[n.qargs[0]], l2p[n.qargs[1]]])
                     local_ext = local_ext_cache[ci]
-                    best_swap = self._best_intra_swap(ci, local_front, local_ext,
-                                                      l2p, p2l)
+
+                    best_swap, min_score = None, float("inf")
+                    for u in involved:
+                        for v in arch.Gr.neighbors(u):
+                            if arch.core_of(v) != ci:
+                                continue
+                            delta_Hf = sum(
+                                self._idist(ci,
+                                            v if l2p[n.qargs[0]] == u else (u if l2p[n.qargs[0]] == v else l2p[n.qargs[0]]),
+                                            v if l2p[n.qargs[1]] == u else (u if l2p[n.qargs[1]] == v else l2p[n.qargs[1]]))
+                                - self._idist(ci, l2p[n.qargs[0]], l2p[n.qargs[1]])
+                                for n in local_front
+                            )
+                            delta_He = sum(
+                                (self.config.lookahead_decay ** depth) * (
+                                    self._idist(ci,
+                                                v if l2p[n.qargs[0]] == u else (u if l2p[n.qargs[0]] == v else l2p[n.qargs[0]]),
+                                                v if l2p[n.qargs[1]] == u else (u if l2p[n.qargs[1]] == v else l2p[n.qargs[1]]))
+                                    - self._idist(ci, l2p[n.qargs[0]], l2p[n.qargs[1]])
+                                )
+                                for n, depth in local_ext
+                            )
+                            score = ((delta_Hf / max(len(local_front), 1))
+                                     + self.config.weight_extended * (delta_He / max(len(local_ext), 1)))
+                            if score < min_score:
+                                min_score, best_swap = score, (u, v)
 
                     if best_swap:
                         u, v = best_swap
@@ -1325,12 +1125,12 @@ class General_dSABRE_Router:
             elif front_inter:
                 # Inter-core teleportation: score candidates, execute best.
                 if extended_cache is None:
-                    extended_cache = self._inter_ext(wdag, front, self.config.lookahead_size)
+                    extended_cache = self._extended_2q(wdag, front, self.config.lookahead_size)
                 candidates = self._generate_candidates(front_inter, extended_cache, l2p, p2l,
                                                        committed_nid=committed_nid)
                 if not candidates:
                     if not self._fallback_local_swap(front_inter, wdag, l2p, p2l, metrics):
-                        remaining = self._remaining
+                        remaining = len(list(wdag.op_nodes()))
                         elapsed   = time.perf_counter() - _t_start
                         failure_log.append(("NO_ACTIONS_NO_FALLBACK", iteration, remaining, elapsed))
                         metrics["aborted"] = True
@@ -1347,26 +1147,21 @@ class General_dSABRE_Router:
                             break
                     if applied is not None:
                         committed_nid  = applied.node._node_id
-                        # The extended set is NOT invalidated here.  A teleport
-                        # removes no gate, and _inter_ext reads only (dag,
-                        # front, size), so a rebuild would return the same
-                        # list -- measured, 4-55% of all rebuilds were this.
-                        # Retirement is still caught by the current_remaining
-                        # test above, and rollback by the reset below.
+                        extended_cache = None
                     elif not self._fallback_local_swap(front_inter, wdag, l2p, p2l, metrics):
-                        remaining = self._remaining
+                        remaining = len(list(wdag.op_nodes()))
                         elapsed   = time.perf_counter() - _t_start
                         failure_log.append(("ALL_CANDIDATES_REJECTED", iteration, remaining, elapsed))
                         metrics["aborted"] = True
                         break
 
-            remaining = self._remaining
+            remaining = len(list(wdag.op_nodes()))
             if remaining < last_remaining:
                 last_remaining    = remaining
                 no_progress_iters = 0
                 ckpt_l2p   = l2p.copy()
                 ckpt_p2l   = p2l.copy()
-                ckpt_mark  = len(self._retired_log)
+                ckpt_wdag  = deepcopy(wdag)
                 ckpt_counters  = {k: metrics[k] for k in ckpt_counter_keys}
                 ckpt_trace_len = len(metrics["trace"]) if metrics["trace"] is not None else 0
             else:
@@ -1386,7 +1181,7 @@ class General_dSABRE_Router:
                     break
                 l2p        = ckpt_l2p.copy()
                 p2l        = ckpt_p2l.copy()
-                wdag       = self._rebuild_wdag(dag, ckpt_mark)
+                wdag       = deepcopy(ckpt_wdag)
                 for k in ckpt_counter_keys:
                     metrics[k] = ckpt_counters[k]
                 if metrics["trace"] is not None:
@@ -1398,11 +1193,11 @@ class General_dSABRE_Router:
                     failure_log.append(("DEADLOCK_BACKUP_FAILED", iteration, remaining, elapsed))
                     metrics["aborted"] = True
                     break
-                remaining = last_remaining = self._remaining
+                remaining = last_remaining = len(list(wdag.op_nodes()))
                 no_progress_iters = 0
                 ckpt_l2p   = l2p.copy()
                 ckpt_p2l   = p2l.copy()
-                ckpt_mark  = len(self._retired_log)
+                ckpt_wdag  = deepcopy(wdag)
                 ckpt_counters  = {k: metrics[k] for k in ckpt_counter_keys}
                 ckpt_trace_len = len(metrics["trace"]) if metrics["trace"] is not None else 0
 

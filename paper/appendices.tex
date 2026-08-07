@@ -6,7 +6,8 @@ The appendices supplement the main paper with material that did not
 fit the page limit but is useful for reproducibility and for readers
 interested in specific design or empirical questions.
 \rev{Appendix~\ref{app:pseudocode} gives the pseudocode of the routing
-loop of Section~\ref{sec:workflow}.}
+loop of Section~\ref{sec:workflow}, and Appendix~\ref{app:complexity}
+derives its cost equation and validates it against measurement.}
 Appendix~\ref{app:ablation} ablates the node-decay scoring component
 in detail \rev{and gives the full parameter-sensitivity sweep}.
 \rev{Appendix~\ref{app:corenet} gives per-circuit counts for the two
@@ -90,6 +91,212 @@ $\pi_d$.  Once the move completes, $\ell$ and $\ell^{-1}$ are updated
 in place: $q_1$'s image becomes $\pi_d$, the staging slot $n_s$ it
 vacated becomes free, and $\pi_d$'s prior occupant, if any, takes the
 image of wherever it was evicted to.}
+
+%%─────────────────────────────────────────────────────────────────────────────
+\section{\rev{Computational Complexity}}
+\label{app:complexity}
+
+\rev{\noindent This appendix derives Eq.~\ref{eq:complexity} of
+Section~\ref{sec:complexity}: the structural facts it rests on, why costs
+are charged per applied move rather than per iteration, which terms are
+required by the algorithm and which are artefacts an implementation may
+remove, and a measured validation of the result.}
+
+\subsection{\rev{Model and notation}}
+
+\rev{A circuit is a DAG $C$ on $n$ logical qubits with $N{=}|C|$
+operations, each on at most two qubits; $N_r$ denotes the operations not
+yet routed at a given moment.  The architecture has $K$ cores of $M$
+qubits, $P{=}KM$ in total, intra-core degree at most $\delta$ (four on a
+grid, three on a heavy-hex tile), $|\Pi|$ communication ports per core,
+and diameters $D_M$ within a core and $D_K$ over the core graph.  $L$ is
+the extended-set capacity.  Over one call to \textsc{route}, write $A$ for
+the intra-core SWAPs applied, $B$ for the teleports, and $T$ for the main
+loop iterations.  All are counted as executed, not as bounded by
+hyperparameters.}
+
+\subsection{\rev{Four structural facts}}
+
+\rev{\textbf{(F1) The DAG is sparse.}  A gate acts on at most two wires and
+has at most one immediate predecessor and one immediate successor on each,
+so in- and out-degree are at most two and $|E_C|\le 2N$.  Computing every
+node's in-degree from scratch is therefore $\Theta(N)$, while updating them
+on a retirement is $O(1)$.}
+
+\rev{\textbf{(F2) Front-layer gates are qubit-disjoint.}  The front layer
+holds, per wire, that wire's earliest unexecuted gate, so it is a matching
+on qubits and $|F|\le n/2$.  An intra-core SWAP exchanges the contents of
+two slots; each slot holds at most one logical qubit and each qubit lies in
+at most one front gate, so a candidate SWAP changes the distance term of at
+most \emph{two} front gates and every other term of $\Delta_F$ is
+identically zero.  This is what removes the $|F_\mathrm{c}|$ factor---and
+with it a factor $M$ from the chip-wide bound---from the per-candidate
+cost of Eq.~\ref{eq:intra}.}
+
+\rev{\textbf{(F3) BFS layers are matchings.}  In the inter-core extended
+set of Section~\ref{sec:bfsext} a layer is the set of gates whose remaining
+in-degree has just reached zero.  Two gates sharing a qubit are ordered
+along that wire, so they can never become ready together: layer width is at
+most $n/2$.  Single-qubit gates are drained before scoring, so every layer
+contributes at least one gate to $E$, at most $L$ layers are peeled, and
+every layer but the last is emitted in full---hence
+$\sum_{k<\kappa}w_k\le L$ and only the truncated final layer can be wide.
+One construction therefore costs $O(|F|+L)=O(n+L)$.}
+
+\rev{\textbf{(F4) Retirement is downward closed.}  Gates leave the working
+DAG only from the front layer, whether drained, executed after a SWAP, or
+retired by deadlock recovery.  The retired set is thus a prefix: a
+surviving node has no retired successors, and splicing a retired node out
+never creates an edge between two survivors.  Two consequences follow.
+In-degrees can be maintained by decrementing a retiring node's successors,
+which by (F1) is $O(1)$.  And a checkpoint need not copy the DAG: it is a
+mark in the retirement log, and a rollback replays the log onto a fresh
+copy of the input.}
+
+\subsection{\rev{Precomputation}}
+
+\rev{The three tables of Section~\ref{sec:arch} cost $O(KM^2)$ for
+$\dintra$ and $O(K^2)$ for $\dcore$, both unweighted breadth-first
+searches, and $O(K^2\log K)$ for the port table $\dport$, a Dijkstra over
+the $O(K)$ ports alone.  Equation~\ref{eq:dphys} is exact because any
+$p\to q$ walk decomposes as an intra-core segment to the first port it
+leaves through, a port-to-port walk, and an intra-core segment from the
+last port it enters through; the port graph carries precisely those two
+edge kinds.  Resident space is $O(KM^2+K^2)$ against $\Theta(P^2)$ for a
+dense table---a factor of roughly $K$, since $P^2=K^2M^2$---and a query
+costs $O(|\Pi|^2)$ before memoisation.  This is architecture setup, paid
+once and not per circuit.}
+
+\subsection{\rev{Charging per move, not per iteration}}
+
+\rev{An iteration applies one SWAP in each core that holds an unexecuted
+local gate, and the per-core costs sum to $O(Mn)$ over the chip because
+$|F_\mathrm{c}|\le M/2$ and $\sum_c|F_\mathrm{c}|\le n/2$.  A separate
+argument bounds the iteration count by $O(N(D_M{+}D_K))$, one move per
+iteration.  Multiplying the two overstates the total: the first is tight
+only when all $K$ cores are active, and an iteration in which all $K$ cores
+are active retires $K$ SWAPs, which makes the second loose by the same
+factor.  Splitting the sum by what each term is charged against removes the
+double count:}
+\begin{equation}
+T_\mathrm{total}=\underbrace{\sum_{t\le T}\!E(t)}_{\text{once per iteration}}
+ +\underbrace{\sum_{(t,c)}\!S_c(t)}_{\text{once per applied SWAP}}
+ +\underbrace{\sum_{t\in\mathcal{B}}\!W(t)}_{\text{once per teleport}} ,
+\label{eq:charge}
+\end{equation}
+\rev{where $E$ is lookahead reconstruction, $S_c$ intra-core SWAP scoring
+in core $c$, and $W$ teleport scoring.  The number of (iteration, active
+core) pairs is exactly $A$; every iteration applies at least one move, so
+$T=O(A{+}B)$; and a gate needs $O(D_M)$ SWAPs and $O(D_K)$ teleports---one
+teleport crosses a whole core, which is also why the relevant scale is
+$D_M{+}D_K$ and not the chip diameter $O(D_MD_K)$.  Hence $A=O(ND_M)$ and
+$B=O(ND_K)$.  Substituting $E=O(N_r)$, $S_c=O(|F_\mathrm{c}|{+}L)$ by (F2),
+and $W=O(Mn{+}P)$ into Eq.~\ref{eq:charge} gives
+Eq.~\ref{eq:complexity}.  Empirically the parallel branch is almost never
+taken---$1.00$ to $1.01$ active cores per intra-core iteration across the
+64-qubit suite---so the per-move charge is the tight one and the
+per-iteration product was loose by close to a factor $M$.}
+
+\subsection{\rev{The two lookahead sets}}
+
+\rev{The two sets have genuinely different complexities, and the
+distinction is what makes Eq.~\ref{eq:complexity} quadratic rather than
+linear in $N$.}
+
+\rev{The inter-core set $E$ costs $O(n{+}L)$ per call by (F1) and (F3),
+provided remaining in-degrees are carried between calls rather than
+rebuilt; rebuilding makes it $\Theta(N_r)$.  It is not $O(L)$: seeding
+walks the front layer, and the burst-priority rule of
+Section~\ref{sec:bfsext} must classify the truncated final layer, which
+(F3) bounds only by $n/2$.  $E$ also depends on the DAG alone and not on
+the layout, so it needs recomputation only when a gate retires---never
+after a teleport, which removes no gate.}
+
+\rev{The intra-core set $E_\mathrm{c}$ admits no bound better than
+$O(N_r)$, and this is a property of the construction rather than of any
+implementation.  A gate enters $E_\mathrm{c}$ only if both operands are
+untainted and in the core, and taint, once acquired, propagates along the
+wire forever; a single cross-core gate therefore removes both its qubits
+permanently.  A core's size-$L$ quota is consequently often unreachable,
+and the scan then runs to the end of the topological order.  One exact
+early exit is available---once every still-requested core holds fewer than
+two untainted qubits, no later node can be admitted, since $\ell$ is fixed
+for the duration of the scan and taint only grows---but it shortens the
+scan without removing the term.  Bounding $E_\mathrm{c}$ explicitly would
+leave $O(Mn{+}P)$ per iteration and a total linear in $N$, at the cost of
+changing the heuristic's output.}
+
+\subsection{\rev{What is inherent}}
+
+\rev{Four lower bounds hold for the algorithm as specified, independent of
+implementation.  Every gate must be examined once, giving $\Omega(N)$.
+Teleport selection is an $\arg\min$ over the candidates of \emph{all}
+inter-core front gates, giving $\Omega(n)$ per teleport iteration unless
+scores are maintained incrementally---and a gate retirement changes $E$ and
+so dirties every candidate, which limits what incremental maintenance can
+recover.  The staging SWAPs inside a teleport are output rather than
+overhead, giving $\Omega(D_M)$ per teleport.  And $O(1)$ intra-core
+distance queries require $\Omega(KM^2)$ space.}
+
+\subsection{\rev{Measured validation}}
+
+\rev{Table~\ref{tab:complexity_measured} collects the measurements behind
+the claims above, taken on the 64-qubit suite unless noted.  The profile
+attribution is the clearest: the $O(Mn{+}P)$ scoring that
+Eq.~\ref{eq:complexity}'s teleport term models accounts for $0.2$--$6\%$ of
+runtime, while the $\Theta(N_r)$ lookahead and DAG bookkeeping account for
+$85$--$90\%$, which is why compile time scales as $N^{2.1}$ and not
+linearly.  Removing the artefacts---maintained in-degrees, a maintained
+gate counter, log-based checkpoints, incremental $\Delta_F$ by (F2), the
+$E_\mathrm{c}$ early exit, and the composed $\dphys$ of
+Eq.~\ref{eq:dphys}---leaves the output bit-identical across all $207$
+routing passes compared over the 25-, 36-, 64- and 360-qubit suites, down
+to the individual SWAP and teleport on the smallest, while reducing compile
+time by $3.5$ to $6.7\times$.  The identity holds through deadlock recovery
+as well: on the 360-qubit QFT both routers abandon the same pass at the
+same iteration with the same $4535$ gates outstanding.  The exponent
+survives, as the analysis predicts, because $E_\mathrm{c}$ remains
+$\Theta(N_r)$: what improves is the constant.}
+
+\begin{table}[t]
+\centering
+\caption{\rev{Measurements behind Appendix~\ref{app:complexity}.}}
+\label{tab:complexity_measured}
+\small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lll@{}}
+\toprule
+Claim & Measurement & Value \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Where the time goes (profile, 64q)}} \\
+$\Theta(N_r)$ terms dominate & lookahead $+$ DAG bookkeeping & $85$--$90\%$ \\
+$Mn$ term is small & teleport candidate scoring & $0.2$--$6\%$ \\
+quadratic in gate count & fit of $t$ vs $N$ & $N^{2.04}$--$N^{2.16}$ \\
+iterations linear in $N$ & $T/N$ & $0.67$--$0.68$ \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Structural facts}} \\
+(F2) front disjointness & violations over 4 circuits & $0$ \\
+per-move charge is tight & active cores per iteration & $1.00$--$1.01$ \\
+$E$ is layout-independent & rebuilds returning an identical set & $4$--$55\%$ \\
+$E_\mathrm{c}$ is unbounded & calls reaching the end of the order & $72$--$100\%$ \\
+early exit is worth taking & scan length after the exit & $16.5$--$80.8\%$ \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Hierarchical $\dphys$ (Eq.~\ref{eq:dphys})}} \\
+exactness & disagreeing pairs, 7 architectures & $0$ of $385\,336$ \\
+setup cost & against dense all-pairs & $2.4$--$8.9\times$ faster \\
+resident space & against dense all-pairs & $4.7$--$11.1\times$ smaller \\
+memoised in practice & pairs cached, $P{=}96$ / $P{=}486$ & $41\%$ / $6.3\%$ of $P^2$ \\
+query cost & against a dense lookup & ${\approx}1\%$ of runtime \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Removing the artefacts}} \\
+output identity & routing passes compared & $207$, all identical \\
+compile time & 25q / 36q / 64q / 360q & $3.6$ / $3.5$ / $6.7$ / $4.0\times$ \\
+exponent unchanged & fit of $t$ vs $N$, optimised & $N^{1.93}$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
 %%─────────────────────────────────────────────────────────────────────────────
 \section{Component Ablations}
@@ -1989,8 +2196,8 @@ $77.9$\,s.  The ordering is not uniform and the exceptions are informative.
 \TeleSABRE{} leads overall, as a compiled binary against interpreted Python
 should, but loses to \dSABRE{} by $10\times$ on Graphstate, where its sampling
 needs many iterations to converge; \dSABRE{} is slowest on the two largest
-circuits, paying Eq.~\ref{eq:complexity}'s $Mn$ scoring term in interpreted
-code.  \texttt{pytket-dqc} is an order of magnitude behind both even though its
+circuits, where Eq.~\ref{eq:complexity}'s $N_r$ lookahead term, not its $Mn$
+scoring term, dominates.  \texttt{pytket-dqc} is an order of magnitude behind both even though its
 column already includes its five attempts, and its cost is notably \emph{flat}
 in circuit size---$239$--$479$\,s across a $6.6\times$ range of CX
 count---because hypergraph partitioning and Steiner-tree embedding are

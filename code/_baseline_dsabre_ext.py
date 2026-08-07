@@ -1,31 +1,38 @@
-"""dSABRE_BFSExt — dSABRE with a BFS-layer inter-core extended set ("bfs-ext").
+"""FROZEN pre-optimisation reference (repo state 2026-08-07, commit acc9005).
+
+Kept so the optimised default in dsabre_ext.py can be differentially tested
+against the implementation that produced every published number.  Do not
+edit: its only job is to stay exactly what it was.  See verify_router.py.
+
+
+Original docstring follows.
+
+"""
+"""
+dSABRE_BurstExt — dSABRE with a BFS-layer extended lookahead set.
 
 Motivation
 ----------
-`General_dSABRE_Router._top_ext` fills the inter-core extended set E in pure
-topological order, which interleaves gates from all wires arbitrarily.  For
-circuits with a "burst" structure — a run of gates on the same qubit wire
-that becomes inter-core after one teleportation — many of those follow-on
-gates are pushed past the E window by unrelated gates on other wires, so the
+Vanilla dSABRE builds its extended-set E in pure topological order, which
+interleaves gates from all wires arbitrarily.  For circuits with a "burst"
+structure — a sequence of gates on the same qubit wire that becomes
+inter-core after one teleportation — many of those follow-on gates are
+pushed past the E window by unrelated gates on other wires, so dSABRE's
 lookahead underestimates the benefit of teleporting there.
 
 Algorithm
 ---------
-Instead of topological order, E is expanded layer by layer by BFS over the
-remaining DAG:
+Instead of topological order, we expand E layer by layer using a BFS over
+the remaining DAG:
 
-  1. Take each node's remaining in-degree (the number of unexecuted op
-     predecessors) from the router's maintained table.
+  1. Pre-compute the total op in-degree of every node (number of 2q/1q
+     predecessors that have not yet been executed).
   2. Commit the front layer: decrement in-degrees of their successors.
   3. Collect the next BFS layer: nodes whose remaining in-degree hits zero.
   4. Within each layer, gates that share a qubit with the front layer
      ("burst-relevant" gates) are placed first; the rest follow in
      arrival order.
   5. Repeat until E reaches the requested size.
-
-This is the production construction: every headline number in the paper is
-`dSABRE_BFSExt` (called "dSE" in benchmark columns and "\\dSABRE{}" in the
-paper).  `_top_ext` is run only where the two constructions are compared.
 
 Design notes
 ------------
@@ -39,44 +46,32 @@ Design notes
   the same wires twice (e.g. wstate's descending then ascending CX chain).
   The BFS approach only admits a gate once all its predecessors are committed,
   so second-pass gates never appear before first-pass gates complete.
-
-* Cost: O(|F| + L) per call, because the front layer seeds the BFS, every
-  layer but the last is emitted in full (so their widths sum to at most L),
-  and a layer is a matching on qubits so the truncated last one is O(n).
-  This holds only because in-degrees are *carried* between calls by the
-  router; rebuilding them here, as this file used to, made every call
-  Theta(N) and the router quadratic in gate count.
 """
 
-from router import General_dSABRE_Router
+from _baseline_router import General_dSABRE_Router
 
 
-class dSABRE_BFSExt(General_dSABRE_Router):
+class dSABRE_BurstExt(General_dSABRE_Router):
     """dSABRE with BFS-layer extended set and burst-qubit priority."""
 
-    def _inter_ext(self, dag, front, size):
-        return self._bfs_ext(dag, front, size)
-
-    def _bfs_ext(self, dag, front, size):
-        """BFS-layer fill of the inter-core extended set.
-
-        `self._indeg` is the router's maintained in-degree table and must not
-        be mutated: this call's decrements go into the local `dec` overlay, so
-        the effective in-degree of a node is `_indeg[nid] - dec[nid]`.
-        """
+    def _extended_2q(self, dag, front, size):
         front_nids   = {n._node_id for n in front}
         front_qubits = {q for n in front for q in n.qargs}
 
-        indeg = self._indeg
-        dec = {}
-        done = set()
+        # Total op in-degree for every node (counts only op-node predecessors).
+        remaining = {
+            n._node_id: sum(1 for p in dag.predecessors(n) if getattr(p, 'qargs', None))
+            for n in dag.topological_op_nodes()
+        }
+
+        done = set()  # _node_ids already committed
 
         def commit(node):
             done.add(node._node_id)
             for succ in dag.successors(node):
                 sid = getattr(succ, '_node_id', None)
                 if sid is not None and getattr(succ, 'qargs', None) and sid not in done:
-                    dec[sid] = dec.get(sid, 0) + 1
+                    remaining[sid] -= 1
 
         for fn in front:
             commit(fn)
@@ -95,7 +90,7 @@ class dSABRE_BFSExt(General_dSABRE_Router):
                             and getattr(succ, 'qargs', None)
                             and sid not in done
                             and sid not in nxt_map
-                            and indeg[sid] - dec.get(sid, 0) == 0):
+                            and remaining[sid] == 0):
                         nxt_map[sid] = succ
 
             if not nxt_map:
@@ -121,8 +116,3 @@ class dSABRE_BFSExt(General_dSABRE_Router):
             layer_depth += 1
 
         return ext
-
-
-# Back-compatible alias: the class was called dSABRE_BurstExt until 2026-08-07.
-# Benchmark drivers and ablation scripts across the repo import that name.
-dSABRE_BurstExt = dSABRE_BFSExt
