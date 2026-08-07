@@ -824,26 +824,49 @@ and starts being an optimisation.
 re-running under all conditions. `vqe_su2`, `wstate` and `qnn_200`
 (79 798 CX) are not yet measured.
 
-### 10.6 The trend across suites
+**360q suite** (`K=6`, `M=81`, `P=486`, `n=360`, `F=126`), six circuits, all
+under the shipped default and the post-fix code:
+
+| circuit | base | strict | **split** |
+|---|---|---|---|
+| bv / dj / vqe_su2 / wstate | 6 / 6 / 18 / 12 | unchanged | unchanged |
+| **qft** | **559** | 676 | **559 (0.0 %)** |
+| qpeexact | 678 | 715 | 804 (+18.6 %) |
+| **total** | **1 279** | 1 433 | 1 405 |
+| **gmean** | — | +4.1 % | **+2.9 %** |
+
+**`qft_360` — the circuit whose abort motivated this entire mode — now routes
+at 559 EPR, identical to the default router and to the published value.** The
+guarantee is free on it. `qpeexact_360` is the one real regression in the
+suite (+18.6 %) and carries the whole gmean.
+
+This also corrects the earlier "+20.9 % at 360q": that figure was the *strict*
+floor on `qft` alone, under the pre-fix code. Under the shipped default the
+same circuit costs nothing.
+
+### 10.6 Across suites
 
 `safe_split` against the default router, geometric mean EPR:
 
-| suite | cores | `P` | circuits | **Δ EPR** |
-|---|---|---|---|---|
-| 64q | 6 | 96 | 9 | **+4.2 %** |
-| 100q | 6 | 150 | 6 | **−0.6 %** |
-| 200q | 12 | 300 | 4 (of 8) | **−7.4 %** |
-| 360q | 6 | 486 | 1 (`qft`) | +20.9 %¹ |
+| suite | cores | `P` | fill | circuits | **Δ EPR** | base `force_make_room` |
+|---|---|---|---|---|---|---|
+| 64q | 6 | 96 | 67 % | 9 | **+4.2 %** | 21 |
+| 100q | 6 | 150 | 67 % | 6 | **−0.6 %** | 18 |
+| 200q | **12** | 300 | 67 % | 4 (of 8) | **−7.4 %** | 206 |
+| 360q | 6 | 486 | 74 % | 6 | **+2.9 %** | 107 |
 
-¹ measured under the *strict* floor before `tier1_floor=2` became the default;
-not yet re-run.
+**The guarantee is roughly free on average, ±5 % per suite, and a clear win on
+the one 12-core architecture.** An earlier draft of this section claimed the
+cost falls monotonically with chip width; 360q breaks that — it is the largest
+chip and costs +2.9 %, while the smaller 200q chip saves 7.4 %. Three points
+were not enough to support the claim.
 
-**The wider the chip, the more the invariant pays for itself.** That tracks the
-mechanism rather than being a coincidence: capacity drift is what safe mode
-prevents, and drift has more room to develop across 12 cores than 6. The
-`force_make_room` column is the direct evidence — the default router makes 93
-and 113 reactive room-making calls on the 200q pair, and 0 at ghz/graphstate
-scale, while both safe arms are at 0 everywhere.
+What does separate them is **core count, not capacity**: 200q is the only
+12-core suite and the only clear win. That is consistent with the mechanism —
+capacity drift is a redistribution phenomenon, so it has more room to develop
+across twelve cores than six — but with one 12-core suite it remains a
+hypothesis, not a result. `force_make_room` does not settle it either: 360q's
+107 calls are second-highest and its outcome is a small loss.
 
 **On the circuits the paper actually reports at 100q and 200q** — the
 published suites contain only `qft` and `qpeexact` at each size — safe mode is
@@ -1080,6 +1103,13 @@ where the same instance finishes inside the iteration budget at +0.4 % EPR.
 Aborts are, in other words, now entirely a default-router phenomenon, and they
 concentrate where capacity drift is worst: the 12-core 200q architecture and
 the 486-slot 360q one.
+
+One caveat on reading the `aborts` column of the suite runs: it counts
+`run_sabre_passes` returning nothing, i.e. **pass-1 aborts only**. `qft_360`
+shows `aborts=0` for the default router in the 360q suite table even though its
+pass 2 aborts on seed 0 — the protocol falls back to pass 1 and reports a
+number. That is the masking effect of §10.1 visible in the harness itself, and
+it is why the isolated pass-2 test exists.
 
 ### 13.3 A real abort, and the implementation bug behind it
 
