@@ -1008,9 +1008,34 @@ Two things worth taking from it:
   transaction was exonerated immediately and only the control flow around it
   was left to inspect.
 
+**After the fix** (`random_100`, pass 1, same layout in all three arms):
+
+| | EPR | aborted | iterations | safe routes | exit free | outcome |
+|---|---|---|---|---|---|---|
+| base | 13 649 | False | 48 185 / 50 000 | 0 | `[22,2,1,22,1,2]` | — |
+| safe_strict | 17 855 (+30.8 %) | **False** | 50 000 (limit) | 5 855 | `[14,10,6,13,4,3]` | `ITERATION_LIMIT_SAFE_DRAIN` |
+| **safe_split** (default) | **13 698 (+0.4 %)** | **False** | 49 346 / 50 000 | 13 | `[22,1,3,21,2,1]` | — |
+
+Three readings:
+
+- **The drain works, and it is expensive.** Under the strict floor the budget
+  runs out with 23 111 operations outstanding, the drain retires all of them,
+  and the pass completes — at +30.8 % EPR. That is the escape hatch behaving
+  as designed: it abandons the heuristic entirely, and its `2·diam` per-gate
+  bound is a worst case, not a target. It was also *faster* in wall time
+  (432 s vs base's 486 s), because one transaction per gate beats thrashing.
+- **The default setting never gets there.** With `tier1_floor = 2` the pass
+  costs **+0.4 %** over the default router, uses 13 guaranteed transactions
+  instead of 5 855, and finishes inside the budget. The instance that exposed
+  the bug is, under the shipped configuration, almost free.
+- **`safe_split`'s exit vector has min 1, not 2** — correct by design, and
+  worth not misreading: Tier 1 maintains `free ≥ 1`, and the reserve of 2 is
+  re-established by `_safe_route_gate` when it runs, not held continuously.
+
 `random_100` also shows the default router is at 48 185 of its 50 000
 iterations on this instance, so the budget is genuinely tight for both
-routers — safe mode's extra iterations are what push it over into the drain.
+routers — safe mode's extra iterations are what push the strict floor over
+into the drain.
 
 ### 13.3 What the guarantee still does not cover
 
