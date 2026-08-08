@@ -751,7 +751,41 @@ also still never fires, because Tier 1's floor of 2 keeps every core at ≥ 1.
 
 ### 10.5 Measured: split vs strict
 
-**64q suite** (9 circuits, 3 layouts, fwd→bwd→fwd, best-of-3):
+> **Re-measured 2026-08-08 against `89c088a`.** That commit made `E_c` the
+> inter-core extended set restricted to the core, which changes routing output
+> and against which every suite was regenerated. All numbers below carrying a
+> **(current)** marker were taken after it; the rest predate it and are marked
+> **(taint-era)** — both arms of those used the old construction, so the
+> comparison is internally consistent, but neither arm describes the router as
+> it now ships. §10.7 gives the before/after.
+
+**64q suite (current)** — 9 circuits, 3 layouts, fwd→bwd→fwd, best-of-3:
+
+| circuit | base | strict | **split** |
+|---|---|---|---|
+| ae | 200 | 227 | **165 (−17.5 %)** |
+| ghz | 6 | 10 | **6** |
+| graphstate | 15 | 15 | **15** |
+| qft | 176 | 232 | 180 (+2.3 %) |
+| qnn | 495 | 540 | 539 (+8.9 %) |
+| random | 718 | 751 | 732 (+2.0 %) |
+| qpeexact | 184 | 236 | 187 (+1.6 %) |
+| qaoa | 538 | 568 | 555 (+3.2 %) |
+| multiplier | 1 285 | 1 273 | **1 285** |
+| **total** | **3 617** | 3 852 | **3 664 (+1.3 %)** |
+| **gmean** | — | +16.0 % | **−0.2 %** |
+
+Tier-2 calls 4 (from 9); `force_make_room` 26 → **0**; iterations 66 958 →
+64 074, again below the default router. **The split floor is now EPR-neutral at
+64q** — the suite that used to be safe mode's worst case.
+
+**25q and 36q (current):** 25q **+1.1 %** gmean (base 285, split 287 — only
+`ae` 22→23 and `qnn` 46→47 move); 36q **+0.0 %** (base 215, split 215 —
+identical on every circuit). Zero Tier-2 calls in both, as before.
+
+<details><summary>Taint-era 64q table, superseded — kept for the §10.7 comparison</summary>
+
+**64q suite (taint-era)** — 9 circuits, 3 layouts, fwd→bwd→fwd, best-of-3:
 
 | circuit | base | strict | Δ | **split** | **Δ** |
 |---|---|---|---|---|---|
@@ -785,6 +819,8 @@ Per-circuit variance stays large in both directions (`multiplier` −6.7 %,
 through fwd→bwd→fwd and best-of-3, the same mechanism that swung `ae`
 202 → 141 when only `_backup_plan` changed. The gmean over nine circuits is
 the number that means something.
+
+</details>
 
 **100q suite** (`K=6`, `M=25`, `P=150`, `n=100`, `F=50`), six circuits
 (`random` measured separately in §13.3; `qnn` not run):
@@ -1233,7 +1269,7 @@ iterations on this instance, so the budget is genuinely tight for both
 routers — safe mode's extra iterations are what push the strict floor over
 into the drain.
 
-### 13.4 What the guarantee still does not cover
+### 13.5 What the guarantee still does not cover
 
 - **It is a guarantee about routing, not about cost.** `_safe_drain` bounds
   EPR at `2·diam(G_C)` per remote gate; nothing bounds how bad that is
@@ -1247,6 +1283,39 @@ into the drain.
   strand it. A reserve-1 guarantee needs a relay before *every* hop — a
   different procedure, not a parameter of this one — so the config raises
   rather than silently offering a broken guarantee.
+
+### 13.4 Robustness to a concurrent change in the scoring function
+
+`89c088a` (2026-08-08, another session) redefined `E_c` as the inter-core
+extended set restricted to the core, changing routing output across every
+suite. It is a useful accident: an independent perturbation of the heuristic,
+against which safe mode's conclusions can be checked.
+
+| | taint-era | **current** |
+|---|---|---|
+| 25q | −0.7 % | +1.1 % |
+| 36q | +1.6 % | +0.0 % |
+| 64q | **+4.2 %** | **−0.2 %** |
+| 64q, strict floor | +20.8 % | +16.0 % |
+| 64q Tier-2 calls | 9 | 4 |
+| `force_make_room`, base → safe | 21 → 0 | 26 → 0 |
+
+**The conclusion survives and 64q improves**: the split floor is now
+EPR-neutral on the suite that was previously its worst case. Individual
+circuits move a lot (`ae` +8.5 % → −17.5 %, `qft` +21.4 % → +2.3 %), which is
+further evidence that per-circuit deltas are protocol noise rather than
+mechanism.
+
+**Nothing structural moved.** `force_make_room` is 0 in every safe run under
+both scoring functions, no transaction has failed under either, `verify_router`
+and `test_safe_drain` pass at `89c088a`, and the guarantee never touches the
+lookahead sets — `_safe_route_gate` reads neither `E` nor `E_c`. The EPR
+column is the only part of this document sensitive to that commit.
+
+The 100q, 200q and 360q figures below are still taint-era and are being
+re-measured; `random_200` (3–8 h per condition) is not, so its
+"default aborts, safe mode routes it" result stands on the older scoring
+function.
 
 ## 14. Should safe mode replace the default router?
 
