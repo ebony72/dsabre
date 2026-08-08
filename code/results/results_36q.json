@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-08-05",
+    "date": "2026-08-08",
     "suite": "36q",
     "arch": "B-grid 2x2 4x4 (64 qubits)",
     "layout": "SabreLayout corners-removed, best of 3 seeds",
@@ -24,15 +24,15 @@
         "telegate": 0,
         "ls": 39,
         "seed": 0,
-        "time_seed_s": 0.02,
-        "time_s": 0.06
+        "time_seed_s": 0.01,
+        "time_s": 0.03
       },
       "routers": {
         "dS": {
           "eprs": 1,
-          "ls": 12,
-          "time_s": 0.034,
-          "time_seed_s": 0.011,
+          "ls": 13,
+          "time_s": 0.014,
+          "time_seed_s": 0.005,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -41,9 +41,9 @@
         },
         "dSE": {
           "eprs": 1,
-          "ls": 12,
-          "time_s": 0.033,
-          "time_seed_s": 0.012,
+          "ls": 13,
+          "time_s": 0.014,
+          "time_seed_s": 0.005,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -63,15 +63,15 @@
         "telegate": 0,
         "ls": 63,
         "seed": 0,
-        "time_seed_s": 0.03,
-        "time_s": 0.08
+        "time_seed_s": 0.01,
+        "time_s": 0.04
       },
       "routers": {
         "dS": {
           "eprs": 3,
           "ls": 23,
-          "time_s": 0.065,
-          "time_seed_s": 0.023,
+          "time_s": 0.026,
+          "time_seed_s": 0.009,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -81,8 +81,8 @@
         "dSE": {
           "eprs": 3,
           "ls": 23,
-          "time_s": 0.068,
-          "time_seed_s": 0.021,
+          "time_s": 0.029,
+          "time_seed_s": 0.01,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -102,15 +102,15 @@
         "telegate": 8,
         "ls": 1165,
         "seed": 0,
-        "time_seed_s": 1.48,
-        "time_s": 4.35
+        "time_seed_s": 0.69,
+        "time_s": 2.18
       },
       "routers": {
         "dS": {
-          "eprs": 159,
-          "ls": 1113,
-          "time_s": 14.74,
-          "time_seed_s": 4.919,
+          "eprs": 154,
+          "ls": 1203,
+          "time_s": 1.51,
+          "time_seed_s": 0.509,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -118,10 +118,10 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 133,
-          "ls": 1008,
-          "time_s": 15.851,
-          "time_seed_s": 5.266,
+          "eprs": 134,
+          "ls": 994,
+          "time_s": 1.046,
+          "time_seed_s": 0.309,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -141,15 +141,15 @@
         "telegate": 0,
         "ls": 883,
         "seed": 0,
-        "time_seed_s": 0.86,
-        "time_s": 2.55
+        "time_seed_s": 0.4,
+        "time_s": 1.31
       },
       "routers": {
         "dS": {
-          "eprs": 60,
-          "ls": 612,
-          "time_s": 8.625,
-          "time_seed_s": 2.794,
+          "eprs": 61,
+          "ls": 673,
+          "time_s": 1.026,
+          "time_seed_s": 0.338,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -157,10 +157,10 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 60,
-          "ls": 626,
-          "time_s": 10.062,
-          "time_seed_s": 3.404,
+          "eprs": 62,
+          "ls": 574,
+          "time_s": 0.58,
+          "time_seed_s": 0.195,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -180,15 +180,15 @@
         "telegate": 0,
         "ls": 134,
         "seed": 0,
-        "time_seed_s": 0.07,
-        "time_s": 0.18
+        "time_seed_s": 0.03,
+        "time_s": 0.08
       },
       "routers": {
         "dS": {
           "eprs": 14,
-          "ls": 80,
-          "time_s": 0.385,
-          "time_seed_s": 0.109,
+          "ls": 72,
+          "time_s": 0.106,
+          "time_seed_s": 0.031,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -196,10 +196,10 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 10,
-          "ls": 56,
-          "time_s": 0.328,
-          "time_seed_s": 0.093,
+          "eprs": 9,
+          "ls": 45,
+          "time_s": 0.091,
+          "time_seed_s": 0.027,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -219,15 +219,15 @@
         "telegate": 0,
         "ls": 79,
         "seed": 0,
-        "time_seed_s": 0.03,
-        "time_s": 0.08
+        "time_seed_s": 0.01,
+        "time_s": 0.04
       },
       "routers": {
         "dS": {
           "eprs": 6,
-          "ls": 43,
-          "time_s": 0.128,
-          "time_seed_s": 0.044,
+          "ls": 44,
+          "time_s": 0.044,
+          "time_seed_s": 0.014,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -236,9 +236,9 @@
         },
         "dSE": {
           "eprs": 6,
-          "ls": 25,
-          "time_s": 0.137,
-          "time_seed_s": 0.045,
+          "ls": 40,
+          "time_s": 0.045,
+          "time_seed_s": 0.016,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,

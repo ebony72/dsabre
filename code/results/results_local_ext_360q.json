@@ -1,0 +1,163 @@
+{
+ "meta": {
+  "date": "2026-08-08",
+  "suite": "360q",
+  "layout": "SabreLayout corners-removed, best of 3 seeds",
+  "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+  "arms": {
+   "default": "dSABRE_BurstExt -- the shipped router verbatim",
+   "sweep": "dSABRE_LocalScanCounted -- shipped topological sweep",
+   "fifo": "dSABRE_LocalBFS -- seeded closure, FIFO order",
+   "dag": "dSABRE_LocalKahnLex -- seeded closure, host DAG order",
+   "shared": "dSABRE_SharedExt -- E_c is the inter-core BFS set restricted to core c, |E| = L",
+   "sharedk": "dSABRE_SharedExtK -- the same, |E| = K*L",
+   "shared2q": "dSABRE_SharedExt2Q -- the same, dep counts two-qubit layers only"
+  }
+ },
+ "results": [
+  {
+   "circuit": "qft",
+   "cx": 13300,
+   "qubits": 360,
+   "sweep": {
+    "eprs": 559,
+    "ls": 12924,
+    "cost": 44362.0,
+    "teles": 559,
+    "time_seed_s": 124.167,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 80350,
+    "le_visits": 461174592,
+    "seed_aborts": 0,
+    "time_s": 369.748
+   },
+   "fifo": {
+    "eprs": 572,
+    "ls": 12605,
+    "cost": 43535.0,
+    "teles": 572,
+    "time_seed_s": 11.194,
+    "aborted": false,
+    "backup_activations": 8,
+    "le_calls": 76701,
+    "le_visits": 2229771,
+    "seed_aborts": 0,
+    "time_s": 33.109
+   },
+   "dag": {
+    "eprs": 559,
+    "ls": 12924,
+    "cost": 44362.0,
+    "teles": 559,
+    "time_seed_s": 9.312,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 80350,
+    "le_visits": 2419737,
+    "seed_aborts": 0,
+    "time_s": 33.494
+   },
+   "shared": {
+    "eprs": 643,
+    "ls": 13085,
+    "cost": 45685.0,
+    "teles": 643,
+    "time_seed_s": 11.943,
+    "aborted": false,
+    "backup_activations": 17,
+    "le_calls": 51447,
+    "le_visits": 1028534,
+    "seed_aborts": 1,
+    "time_s": 27.811
+   },
+   "shared2q": {
+    "eprs": 426,
+    "ls": 11294,
+    "cost": 38142.0,
+    "teles": 426,
+    "time_seed_s": 8.817,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 74027,
+    "le_visits": 1479849,
+    "seed_aborts": 0,
+    "time_s": 30.297,
+    "ext_builds": 38957,
+    "ext_reuses": 40148
+   }
+  },
+  {
+   "circuit": "qpeexact",
+   "cx": 13979,
+   "qubits": 360,
+   "sweep": {
+    "eprs": 678,
+    "ls": 14247,
+    "cost": 49521.0,
+    "teles": 678,
+    "time_seed_s": 154.491,
+    "aborted": false,
+    "backup_activations": 16,
+    "le_calls": 87578,
+    "le_visits": 571186284,
+    "seed_aborts": 0,
+    "time_s": 455.921
+   },
+   "fifo": {
+    "eprs": 802,
+    "ls": 14868,
+    "cost": 52624.0,
+    "teles": 802,
+    "time_seed_s": 18.404,
+    "aborted": false,
+    "backup_activations": 16,
+    "le_calls": 85083,
+    "le_visits": 2441653,
+    "seed_aborts": 0,
+    "time_s": 60.378
+   },
+   "dag": {
+    "eprs": 678,
+    "ls": 14247,
+    "cost": 49521.0,
+    "teles": 678,
+    "time_seed_s": 19.302,
+    "aborted": false,
+    "backup_activations": 16,
+    "le_calls": 87578,
+    "le_visits": 2354917,
+    "seed_aborts": 0,
+    "time_s": 56.815
+   },
+   "shared": {
+    "eprs": 730,
+    "ls": 13741,
+    "cost": 48523.0,
+    "teles": 730,
+    "time_seed_s": 20.11,
+    "aborted": false,
+    "backup_activations": 9,
+    "le_calls": 79536,
+    "le_visits": 1589373,
+    "seed_aborts": 0,
+    "time_s": 65.95
+   },
+   "shared2q": {
+    "eprs": 889,
+    "ls": 16225,
+    "cost": 57565.0,
+    "teles": 889,
+    "time_seed_s": 25.127,
+    "aborted": false,
+    "backup_activations": 48,
+    "le_calls": 61126,
+    "le_visits": 1221472,
+    "seed_aborts": 1,
+    "time_s": 50.867,
+    "ext_builds": 30257,
+    "ext_reuses": 35703
+   }
+  }
+ ]
+}

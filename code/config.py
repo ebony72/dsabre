@@ -30,6 +30,17 @@ class HardwareConfig:
     lookahead_size: int = 20
     # Per-gate exponential decay applied to extended-layer gates (1.0 = flat).
     lookahead_decay: float = 0.9
+    # How the per-core intra-core lookahead set E_c is built.
+    #   "shared" (default, 2026-08-08) -- E_c is the inter-core extended set E
+    #       restricted to core c, which is what Table I of the paper defines it
+    #       to be.  One construction feeds both scorers.
+    #   "taint" -- the pre-2026-08-08 construction: a separate sweep of the
+    #       whole topological order with taint propagation and a per-core quota
+    #       of `lookahead_size`.  Theta(N_r) per call, which is what made
+    #       compile time quadratic in gate count.  Kept because every number
+    #       published before 2026-08-08 was produced with it, and because
+    #       verify_router.py diffs against a baseline that uses it.
+    local_ext_mode: str = "shared"
     # Soft score discount for candidates that continue teleporting the gate the
     # PREVIOUS iteration chose to advance (0.0 = off, matches all prior results).
     # 2026-08-03 trace of the 64q suite found the router re-scores every

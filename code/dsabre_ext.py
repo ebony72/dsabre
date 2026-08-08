@@ -54,7 +54,9 @@ from router import General_dSABRE_Router
 class dSABRE_BFSExt(General_dSABRE_Router):
     """dSABRE with BFS-layer extended set and burst-qubit priority."""
 
-    def _inter_ext(self, dag, front, size):
+    def _build_inter_ext(self, dag, front, size):
+        # `_inter_ext` memoises this on the working DAG's generation; override
+        # the builder, not the memo.
         return self._bfs_ext(dag, front, size)
 
     def _bfs_ext(self, dag, front, size):

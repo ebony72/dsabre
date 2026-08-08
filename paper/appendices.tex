@@ -193,8 +193,9 @@ core) pairs is exactly $A$; every iteration applies at least one move, so
 $T=O(A{+}B)$; and a gate needs $O(D_M)$ SWAPs and $O(D_K)$ teleports---one
 teleport crosses a whole core, which is also why the relevant scale is
 $D_M{+}D_K$ and not the chip diameter $O(D_MD_K)$.  Hence $A=O(ND_M)$ and
-$B=O(ND_K)$.  Substituting $E=O(N_r)$, $S_c=O(|F_\mathrm{c}|{+}L)$ by (F2),
-and $W=O(Mn{+}P)$ into Eq.~\ref{eq:charge} gives
+$B=O(ND_K)$.  Substituting $E=O(n{+}L{+}M)$ (next subsection),
+$S_c=O(|F_\mathrm{c}|{+}L)$ by (F2), and $W=O(Mn{+}P)$ into
+Eq.~\ref{eq:charge} gives
 Eq.~\ref{eq:complexity}.  Empirically the parallel branch is almost never
 taken---$1.00$ to $1.01$ active cores per intra-core iteration across the
 64-qubit suite---so the per-move charge is the tight one and the
@@ -203,8 +204,8 @@ per-iteration product was loose by close to a factor $M$.}
 \subsection{\rev{The two lookahead sets}}
 
 \rev{The two sets have genuinely different complexities, and the
-distinction is what makes Eq.~\ref{eq:complexity} quadratic rather than
-linear in $N$.}
+distinction is what separates Eq.~\ref{eq:complexity}, which is linear in
+$N$, from the router we measure, which is quadratic.}
 
 \rev{The inter-core set $E$ costs $O(n{+}L)$ per call by (F1) and (F3),
 provided remaining in-degrees are carried between calls rather than
@@ -215,19 +216,76 @@ Section~\ref{sec:bfsext} must classify the truncated final layer, which
 the layout, so it needs recomputation only when a gate retires---never
 after a teleport, which removes no gate.}
 
-\rev{The intra-core set $E_\mathrm{c}$ admits no bound better than
-$O(N_r)$, and this is a property of the construction rather than of any
-implementation.  A gate enters $E_\mathrm{c}$ only if both operands are
-untainted and in the core, and taint, once acquired, propagates along the
-wire forever; a single cross-core gate therefore removes both its qubits
-permanently.  A core's size-$L$ quota is consequently often unreachable,
-and the scan then runs to the end of the topological order.  One exact
-early exit is available---once every still-requested core holds fewer than
-two untainted qubits, no later node can be admitted, since $\ell$ is fixed
-for the duration of the scan and taint only grows---but it shortens the
-scan without removing the term.  Bounding $E_\mathrm{c}$ explicitly would
-leave $O(Mn{+}P)$ per iteration and a total linear in $N$, at the cost of
-changing the heuristic's output.}
+\rev{The intra-core set $E_\mathrm{c}$ is where the router's quadratic
+behaviour originates, and it is an artefact of how the set is built rather
+than of what it contains.  A gate enters $E_\mathrm{c}$ only if both
+operands are untainted and in the core, and taint, once acquired,
+propagates along the wire forever.  Unfolding that recursion, the admitted
+set is exactly $G=\{g:\text{$g$ and every 2-qubit ancestor of $g$ are
+intra-core}\}$, the maximal ancestor-closed set of local gates, of which
+$E_\mathrm{c}$ takes the first $L$ elements lying in core $c$.  A single
+cross-core gate removes both its qubits from $G$ permanently, so a core's
+size-$L$ quota is often unreachable, and a scan of the global topological
+order then runs to the end: this is the $\Theta(N_r)$.  One exact early
+exit is available---once every still-requested core holds fewer than two
+untainted qubits, no later node can be admitted, since $\ell$ is fixed for
+the duration of the scan and taint only grows---but it shortens the scan
+without removing the term.}
+
+\rev{$G$ is nonetheless far cheaper than the scan that finds it, by two
+consequences of $\ell$ being frozen for the call.  First, \emph{$G$ does
+not cross cores}: a directed path leaves a wire only at a gate, and every
+gate of $G$ has both wires in one core, so $G=\bigsqcup_c G_\mathrm{c}$
+with each $G_\mathrm{c}$ confined to core $c$'s wires---taint need never be
+shared between cores.  Second, \emph{$G_\mathrm{c}$ is seeded by
+$F_\mathrm{c}$}: walking back from any $g\in G_\mathrm{c}$ along a wire
+stays inside $G_\mathrm{c}$ and ends at that wire's earliest unexecuted
+gate, which lies in $F$ by definition, so $G_\mathrm{c}$ is the forward
+closure of $F_\mathrm{c}$ through local gates.  Kahn's algorithm seeded at
+$F_\mathrm{c}$, expanding along core-$c$ wires and refusing non-local
+gates, therefore emits $G_\mathrm{c}$ in topological order in $O(L{+}M)$:
+$|F_\mathrm{c}|\le M/2$ to seed, $L$ emitted, a final layer of width at
+most $M/2$ by the intra-core form of (F3), and $O(1)$ blocked successors
+per emitted node by (F1).  An empty frontier is an exact exhaustion
+certificate---what the live-qubit exit above approximates---and the bound
+is tight, since a from-scratch construction must at least read
+$F_\mathrm{c}$.}
+
+\rev{The two constructions moreover agree exactly in the regime that makes
+the scan expensive.  When $|G_\mathrm{c}|\le L$---the unreachable-quota
+case---neither truncates, so both return all of $G_\mathrm{c}$ with the
+same depths, the recursion $\max(d_{q_1},d_{q_2}){+}1$ being
+longest-path-from-front and hence invariant across topological orders of
+$G_\mathrm{c}$; since Eq.~\ref{eq:intra} reads $E_\mathrm{c}$ only as a
+depth-weighted sum indexed by qubit, the scores are unchanged.  Over
+$4854$ calls on the 25-qubit suite the two sets are identical except on
+truncated calls, with no counterexample.  They can therefore differ only
+when $|G_\mathrm{c}|>L$, and only in \emph{which} $L$ gates survive, which
+the emission order decides.  A further factor is free: $G_\mathrm{c}$
+depends on $\ell$ only through which core each qubit occupies, so an
+intra-core SWAP cannot change it and $E_\mathrm{c}$ needs rebuilding only
+on a retirement or a teleport.  Together these leave the lookahead term
+$O(N(D_M{+}D_K)(n{+}L{+}M))$ of Eq.~\ref{eq:complexity} and the total
+linear in $N$, the residual $n$ coming from the inter-core set's seeding.}
+
+\rev{Substituting the seeded closure for the sweep on the 64-qubit suite,
+under the protocol of Section~\ref{sec:setup} and with every other part of
+the router untouched, confirms both halves of that account.  The work per
+call stops growing with the circuit: the sweep examines $28$ to $5328$ DAG
+nodes a call, rising with gate count, and the closure a flat $7.5$ to
+$25.3$ regardless---$375$ against $3.2$ million nodes over the suite, a
+factor of $118$---and suite compile time falls from $361$\,s to $34.5$\,s,
+$10.5\times$.  Routing is \emph{not} preserved outright.  Emitted
+first-in-first-out the closure reproduces the sweep's EPR count on two of
+the nine circuits and moves the rest by $-11.3\%$ to $+17.0\%$, for
+$-4.1\%$ over the suite; emitted in the host DAG library's own topological
+order it reproduces the sweep's EPR \emph{and} SWAP counts exactly on six
+of nine, at $-3.8\%$ and $9.7\times$, the residual three differing through
+a tie-break in that library's order that a closure over $G_\mathrm{c}$
+alone does not see.  So the quadratic is removable, at no aggregate cost in
+EPR pairs and none at all on two thirds of the suite---but not by a change
+that provably leaves every output untouched, which is why the numbers
+reported in this paper remain the sweep's.}
 
 \subsection{\rev{What is inherent}}
 
@@ -259,7 +317,9 @@ time by $3.5$ to $6.7\times$.  The identity holds through deadlock recovery
 as well: on the 360-qubit QFT both routers abandon the same pass at the
 same iteration with the same $4535$ gates outstanding.  The exponent
 survives, as the analysis predicts, because $E_\mathrm{c}$ remains
-$\Theta(N_r)$: what improves is the constant.}
+$\Theta(N_r)$: what improves is the constant.  The seeded closure of the
+previous subsection is what removes the exponent, and the last block of the
+table is its cost.}
 
 \begin{table}[t]
 \centering
@@ -296,6 +356,15 @@ query cost & against a dense lookup & ${\approx}1\%$ of runtime \\
 output identity & routing passes compared & $207$, all identical \\
 compile time & 25q / 36q / 64q / 360q & $3.6$ / $3.5$ / $6.7$ / $4.0\times$ \\
 exponent unchanged & fit of $t$ vs $N$, optimised & $N^{1.93}$ \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Replacing the $E_\mathrm{c}$ sweep by the seeded closure (64q)}} \\
+same set unless truncated & counterexamples, $4854$ calls (25q) & $0$ \\
+sweep grows with $N$ & DAG nodes examined per call & $28$--$5328$ \\
+closure does not & DAG nodes examined per call & $7.5$--$25.3$ \\
+work over the suite & nodes, sweep vs closure & $118\times$ fewer \\
+compile time & suite total, $361$\,s $\to$ $34.5$\,s & $10.5\times$ \\
+EPR cost & suite total, FIFO / DAG order & $-4.1\%$ / $-3.8\%$ \\
+output identity & circuits reproduced exactly & $2$ / $6$ of $9$ \\
 \bottomrule
 \end{tabular}%
 }
@@ -2376,8 +2445,8 @@ $77.9$\,s.  The ordering is not uniform and the exceptions are informative.
 \TeleSABRE{} leads overall, as a compiled binary against interpreted Python
 should, but loses to \dSABRE{} by $10\times$ on Graphstate, where its sampling
 needs many iterations to converge; \dSABRE{} is slowest on the two largest
-circuits, where Eq.~\ref{eq:complexity}'s $N_r$ lookahead term, not its $Mn$
-scoring term, dominates.  \texttt{pytket-dqc} is an order of magnitude behind both even though its
+circuits, where the $E_\mathrm{c}$ sweep, not Eq.~\ref{eq:complexity}'s
+$Mn$ scoring term, dominates.  \texttt{pytket-dqc} is an order of magnitude behind both even though its
 column already includes its five attempts, and its cost is notably \emph{flat}
 in circuit size---$239$--$479$\,s across a $6.6\times$ range of CX
 count---because hypergraph partitioning and Steiner-tree embedding are

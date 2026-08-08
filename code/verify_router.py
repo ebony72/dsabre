@@ -46,11 +46,20 @@ from _baseline_architecture import (
 from _baseline_dsabre_ext import dSABRE_BurstExt as _BaselineRouter
 from layout import sabre_locked_boundary_layout
 
-_HW_SMALL = HardwareConfig()
+# `local_ext_mode="taint"` throughout.  The baseline is the pre-optimisation
+# router, which builds E_c by the taint-propagated sweep; the default router
+# switched to the shared set on 2026-08-08, which changes routing *by design*
+# (-4.8% EPR over 38 circuits).  Running the verifier in taint mode keeps it
+# doing the job it exists for -- proving the incremental rewrite is
+# output-identical to the code that produced the published numbers -- rather
+# than reporting the deliberate change as a regression.  The shared set has its
+# own check: `verify_shared_ext.py`.
+_TAINT = dict(local_ext_mode="taint")
+_HW_SMALL = HardwareConfig(**_TAINT)
 _HW_LARGE = HardwareConfig(deadlock_limit=100, max_backup_attempts=100,
-                           max_iterations=20000)
+                           max_iterations=20000, **_TAINT)
 _HW_XL = HardwareConfig(deadlock_limit=200, max_backup_attempts=200,
-                        max_iterations=50000)          # bench_large.py's config
+                        max_iterations=50000, **_TAINT)  # bench_large.py's config
 
 # The builder is kept rather than a built instance so the fast side can be
 # given a HierarchicalArchitecture (item 4) while the baseline keeps the dense

@@ -1,0 +1,376 @@
+{
+ "meta": {
+  "date": "2026-08-08",
+  "suite": "64q",
+  "arch": "H-grid 2x3 4x4 (96 qubits)",
+  "layout": "SabreLayout corners-removed, best of 3 seeds",
+  "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+  "variants": {
+   "scan": "dSABRE_LocalScanCounted -- shipped topological sweep with taint propagation",
+   "bfs": "dSABRE_LocalBFS -- seeded Kahn closure over core-local wires, FIFO order",
+   "lex": "dSABRE_LocalKahnLex -- the same closure, emitted in Qiskit's lexicographic topological order"
+  }
+ },
+ "results": [
+  {
+   "circuit": "ae",
+   "cx": 1962,
+   "scan": {
+    "eprs": 141,
+    "ls": 1456,
+    "cost": 5778.0,
+    "teles": 141,
+    "time_s": 6.29,
+    "time_seed_s": 2.066,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 8073,
+    "le_visits": 5514034
+   },
+   "bfs": {
+    "eprs": 165,
+    "ls": 1425,
+    "cost": 5925.0,
+    "teles": 165,
+    "time_s": 2.323,
+    "time_seed_s": 0.716,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 7962,
+    "le_visits": 198754
+   },
+   "lex": {
+    "eprs": 141,
+    "ls": 1456,
+    "cost": 5778.0,
+    "teles": 141,
+    "time_s": 3.855,
+    "time_seed_s": 1.322,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 8073,
+    "le_visits": 204363
+   }
+  },
+  {
+   "circuit": "ghz",
+   "cx": 63,
+   "scan": {
+    "eprs": 6,
+    "ls": 39,
+    "cost": 177.0,
+    "teles": 6,
+    "time_s": 0.044,
+    "time_seed_s": 0.015,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 240,
+    "le_visits": 6733
+   },
+   "bfs": {
+    "eprs": 6,
+    "ls": 39,
+    "cost": 177.0,
+    "teles": 6,
+    "time_s": 0.036,
+    "time_seed_s": 0.012,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 240,
+    "le_visits": 1804
+   },
+   "lex": {
+    "eprs": 6,
+    "ls": 39,
+    "cost": 177.0,
+    "teles": 6,
+    "time_s": 0.071,
+    "time_seed_s": 0.022,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 240,
+    "le_visits": 1804
+   }
+  },
+  {
+   "circuit": "graphstate",
+   "cx": 64,
+   "scan": {
+    "eprs": 16,
+    "ls": 89,
+    "cost": 427.0,
+    "teles": 16,
+    "time_s": 0.151,
+    "time_seed_s": 0.053,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 331,
+    "le_visits": 21069
+   },
+   "bfs": {
+    "eprs": 16,
+    "ls": 89,
+    "cost": 427.0,
+    "teles": 16,
+    "time_s": 0.128,
+    "time_seed_s": 0.04,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 331,
+    "le_visits": 5288
+   },
+   "lex": {
+    "eprs": 16,
+    "ls": 89,
+    "cost": 427.0,
+    "teles": 16,
+    "time_s": 0.227,
+    "time_seed_s": 0.07,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 331,
+    "le_visits": 5288
+   }
+  },
+  {
+   "circuit": "multiplier",
+   "cx": 13040,
+   "scan": {
+    "eprs": 1523,
+    "ls": 9694,
+    "cost": 44312.0,
+    "teles": 1523,
+    "time_s": 462.028,
+    "time_seed_s": 142.253,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 58649,
+    "le_visits": 312506471
+   },
+   "bfs": {
+    "eprs": 1351,
+    "ls": 9155,
+    "cost": 40975.0,
+    "teles": 1351,
+    "time_s": 19.892,
+    "time_seed_s": 6.541,
+    "aborted": false,
+    "backup_activations": 1,
+    "le_calls": 58386,
+    "le_visits": 1462509
+   },
+   "lex": {
+    "eprs": 1351,
+    "ls": 9421,
+    "cost": 41773.0,
+    "teles": 1351,
+    "time_s": 24.646,
+    "time_seed_s": 7.101,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 59674,
+    "le_visits": 1387359
+   }
+  },
+  {
+   "circuit": "qaoa",
+   "cx": 3920,
+   "scan": {
+    "eprs": 517,
+    "ls": 3634,
+    "cost": 16072.0,
+    "teles": 517,
+    "time_s": 29.431,
+    "time_seed_s": 9.963,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 18472,
+    "le_visits": 9607713
+   },
+   "bfs": {
+    "eprs": 548,
+    "ls": 3752,
+    "cost": 16736.0,
+    "teles": 548,
+    "time_s": 6.564,
+    "time_seed_s": 2.104,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 18197,
+    "le_visits": 314911
+   },
+   "lex": {
+    "eprs": 542,
+    "ls": 3775,
+    "cost": 16745.0,
+    "teles": 542,
+    "time_s": 7.823,
+    "time_seed_s": 2.26,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 18532,
+    "le_visits": 309423
+   }
+  },
+  {
+   "circuit": "qft",
+   "cx": 1966,
+   "scan": {
+    "eprs": 192,
+    "ls": 1567,
+    "cost": 6621.0,
+    "teles": 192,
+    "time_s": 13.352,
+    "time_seed_s": 4.277,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 7717,
+    "le_visits": 8005850
+   },
+   "bfs": {
+    "eprs": 175,
+    "ls": 1477,
+    "cost": 6181.0,
+    "teles": 175,
+    "time_s": 4.78,
+    "time_seed_s": 1.321,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 7666,
+    "le_visits": 178068
+   },
+   "lex": {
+    "eprs": 192,
+    "ls": 1567,
+    "cost": 6621.0,
+    "teles": 192,
+    "time_s": 5.332,
+    "time_seed_s": 1.631,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 7717,
+    "le_visits": 172090
+   }
+  },
+  {
+   "circuit": "qnn",
+   "cx": 8126,
+   "scan": {
+    "eprs": 497,
+    "ls": 5163,
+    "cost": 20459.0,
+    "teles": 497,
+    "time_s": 117.332,
+    "time_seed_s": 34.609,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 32107,
+    "le_visits": 24898515
+   },
+   "bfs": {
+    "eprs": 509,
+    "ls": 5321,
+    "cost": 21053.0,
+    "teles": 509,
+    "time_s": 12.488,
+    "time_seed_s": 3.871,
+    "aborted": false,
+    "backup_activations": 1,
+    "le_calls": 31265,
+    "le_visits": 642727
+   },
+   "lex": {
+    "eprs": 500,
+    "ls": 5203,
+    "cost": 20609.0,
+    "teles": 500,
+    "time_s": 12.315,
+    "time_seed_s": 4.094,
+    "aborted": false,
+    "backup_activations": 2,
+    "le_calls": 31823,
+    "le_visits": 643666
+   }
+  },
+  {
+   "circuit": "qpeexact",
+   "cx": 2139,
+   "scan": {
+    "eprs": 204,
+    "ls": 1566,
+    "cost": 6738.0,
+    "teles": 204,
+    "time_s": 12.719,
+    "time_seed_s": 3.979,
+    "aborted": false,
+    "backup_activations": 1,
+    "le_calls": 8527,
+    "le_visits": 8899965
+   },
+   "bfs": {
+    "eprs": 195,
+    "ls": 1687,
+    "cost": 7011.0,
+    "teles": 195,
+    "time_s": 3.947,
+    "time_seed_s": 1.084,
+    "aborted": false,
+    "backup_activations": 1,
+    "le_calls": 8562,
+    "le_visits": 193382
+   },
+   "lex": {
+    "eprs": 204,
+    "ls": 1566,
+    "cost": 6738.0,
+    "teles": 204,
+    "time_s": 3.823,
+    "time_seed_s": 1.116,
+    "aborted": false,
+    "backup_activations": 1,
+    "le_calls": 8527,
+    "le_visits": 185676
+   }
+  },
+  {
+   "circuit": "random",
+   "cx": 1627,
+   "scan": {
+    "eprs": 712,
+    "ls": 3635,
+    "cost": 18025.0,
+    "teles": 712,
+    "time_s": 19.684,
+    "time_seed_s": 6.652,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 10050,
+    "le_visits": 5787671
+   },
+   "bfs": {
+    "eprs": 685,
+    "ls": 3453,
+    "cost": 17209.0,
+    "teles": 685,
+    "time_s": 8.017,
+    "time_seed_s": 2.446,
+    "aborted": false,
+    "backup_activations": 2,
+    "le_calls": 9999,
+    "le_visits": 185526
+   },
+   "lex": {
+    "eprs": 712,
+    "ls": 3635,
+    "cost": 18025.0,
+    "teles": 712,
+    "time_s": 7.992,
+    "time_seed_s": 2.694,
+    "aborted": false,
+    "backup_activations": 0,
+    "le_calls": 10050,
+    "le_visits": 185643
+   }
+  }
+ ]
+}

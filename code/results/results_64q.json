@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-08-05",
+    "date": "2026-08-08",
     "suite": "64q",
     "arch": "H-grid 2x3 4x4 (96 qubits)",
     "layout": "SabreLayout corners-removed, best of 3 seeds",
@@ -24,31 +24,31 @@
         "telegate": 94,
         "ls": 1494,
         "seed": 0,
-        "time_seed_s": 2.77,
-        "time_s": 8.39
+        "time_seed_s": 1.25,
+        "time_s": 3.77
       },
       "routers": {
         "dS": {
           "eprs": 186,
-          "ls": 1468,
-          "time_s": 58.383,
-          "time_seed_s": 21.516,
+          "ls": 1472,
+          "time_s": 4.773,
+          "time_seed_s": 1.675,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 1,
-          "force_make_room": 1
+          "backup_activations": 2,
+          "force_make_room": 2
         },
         "dSE": {
-          "eprs": 141,
-          "ls": 1456,
-          "time_s": 56.542,
-          "time_seed_s": 19.764,
+          "eprs": 200,
+          "ls": 1547,
+          "time_s": 2.307,
+          "time_seed_s": 0.727,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 0,
-          "force_make_room": 0
+          "backup_activations": 3,
+          "force_make_room": 4
         }
       }
     },
@@ -63,15 +63,15 @@
         "telegate": 0,
         "ls": 132,
         "seed": 0,
-        "time_seed_s": 0.04,
-        "time_s": 0.12
+        "time_seed_s": 0.02,
+        "time_s": 0.07
       },
       "routers": {
         "dS": {
           "eprs": 6,
           "ls": 39,
-          "time_s": 0.104,
-          "time_seed_s": 0.036,
+          "time_s": 0.04,
+          "time_seed_s": 0.014,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -81,8 +81,8 @@
         "dSE": {
           "eprs": 6,
           "ls": 39,
-          "time_s": 0.098,
-          "time_seed_s": 0.032,
+          "time_s": 0.039,
+          "time_seed_s": 0.013,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -102,15 +102,15 @@
         "telegate": 2,
         "ls": 281,
         "seed": 0,
-        "time_seed_s": 3.65,
-        "time_s": 11.21
+        "time_seed_s": 1.89,
+        "time_s": 5.65
       },
       "routers": {
         "dS": {
-          "eprs": 17,
-          "ls": 96,
-          "time_s": 0.346,
-          "time_seed_s": 0.109,
+          "eprs": 18,
+          "ls": 115,
+          "time_s": 0.139,
+          "time_seed_s": 0.041,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -118,10 +118,10 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 16,
-          "ls": 89,
-          "time_s": 0.358,
-          "time_seed_s": 0.112,
+          "eprs": 15,
+          "ls": 88,
+          "time_s": 0.125,
+          "time_seed_s": 0.039,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -141,26 +141,26 @@
         "telegate": 43,
         "ls": 9654,
         "seed": 0,
-        "time_seed_s": 220.31,
-        "time_s": 611.59
+        "time_seed_s": 102.26,
+        "time_s": 298.2
       },
       "routers": {
         "dS": {
-          "eprs": 1663,
-          "ls": 10212,
-          "time_s": 1279.467,
-          "time_seed_s": 430.824,
+          "eprs": 1139,
+          "ls": 8330,
+          "time_s": 167.588,
+          "time_seed_s": 55.375,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 2,
-          "force_make_room": 1
+          "backup_activations": 0,
+          "force_make_room": 0
         },
         "dSE": {
-          "eprs": 1523,
-          "ls": 9694,
-          "time_s": 1443.336,
-          "time_seed_s": 479.529,
+          "eprs": 1285,
+          "ls": 8969,
+          "time_s": 13.061,
+          "time_seed_s": 4.1,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -180,31 +180,31 @@
         "telegate": 132,
         "ls": 4189,
         "seed": 0,
-        "time_seed_s": 38.5,
-        "time_s": 114.83
+        "time_seed_s": 36.11,
+        "time_s": 108.29
       },
       "routers": {
         "dS": {
-          "eprs": 775,
-          "ls": 4355,
-          "time_s": 77.156,
-          "time_seed_s": 25.065,
-          "aborted": false,
-          "relief_candidates": 0,
-          "relief_picks": 0,
-          "backup_activations": 1,
-          "force_make_room": 1
-        },
-        "dSE": {
-          "eprs": 517,
-          "ls": 3634,
-          "time_s": 83.931,
-          "time_seed_s": 29.707,
+          "eprs": 736,
+          "ls": 4604,
+          "time_s": 11.044,
+          "time_seed_s": 3.696,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
           "backup_activations": 0,
           "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 538,
+          "ls": 3759,
+          "time_s": 3.806,
+          "time_seed_s": 1.255,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 2,
+          "force_make_room": 2
         }
       }
     },
@@ -219,26 +219,26 @@
         "telegate": 4,
         "ls": 1711,
         "seed": 0,
-        "time_seed_s": 6.65,
-        "time_s": 19.94
+        "time_seed_s": 6.32,
+        "time_s": 18.97
       },
       "routers": {
         "dS": {
-          "eprs": 224,
-          "ls": 1673,
-          "time_s": 22.135,
-          "time_seed_s": 6.681,
+          "eprs": 239,
+          "ls": 1869,
+          "time_s": 4.822,
+          "time_seed_s": 1.678,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
           "backup_activations": 3,
-          "force_make_room": 6
+          "force_make_room": 2
         },
         "dSE": {
-          "eprs": 192,
-          "ls": 1567,
-          "time_s": 29.984,
-          "time_seed_s": 8.839,
+          "eprs": 176,
+          "ls": 1397,
+          "time_s": 2.515,
+          "time_seed_s": 0.727,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -258,26 +258,26 @@
         "telegate": 6,
         "ls": 5471,
         "seed": 0,
-        "time_seed_s": 8.58,
-        "time_s": 24.88
+        "time_seed_s": 8.01,
+        "time_s": 23.37
       },
       "routers": {
         "dS": {
-          "eprs": 519,
-          "ls": 5706,
-          "time_s": 279.516,
-          "time_seed_s": 80.735,
+          "eprs": 786,
+          "ls": 7236,
+          "time_s": 43.893,
+          "time_seed_s": 14.743,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 0,
-          "force_make_room": 0
+          "backup_activations": 10,
+          "force_make_room": 18
         },
         "dSE": {
-          "eprs": 497,
-          "ls": 5163,
-          "time_s": 261.179,
-          "time_seed_s": 85.74,
+          "eprs": 495,
+          "ls": 5344,
+          "time_s": 6.65,
+          "time_seed_s": 2.189,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -297,31 +297,31 @@
         "telegate": 8,
         "ls": 1706,
         "seed": 0,
-        "time_seed_s": 1.14,
-        "time_s": 3.44
+        "time_seed_s": 1.09,
+        "time_s": 3.26
       },
       "routers": {
         "dS": {
-          "eprs": 236,
-          "ls": 1671,
-          "time_s": 22.446,
-          "time_seed_s": 7.155,
+          "eprs": 273,
+          "ls": 1822,
+          "time_s": 4.648,
+          "time_seed_s": 1.383,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 4,
-          "force_make_room": 7
+          "backup_activations": 3,
+          "force_make_room": 4
         },
         "dSE": {
-          "eprs": 204,
-          "ls": 1566,
-          "time_s": 28.401,
-          "time_seed_s": 7.754,
+          "eprs": 184,
+          "ls": 1565,
+          "time_s": 2.005,
+          "time_seed_s": 0.644,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
           "backup_activations": 1,
-          "force_make_room": 2
+          "force_make_room": 1
         }
       }
     },
@@ -333,10 +333,10 @@
       "ts": null,
       "routers": {
         "dS": {
-          "eprs": 800,
-          "ls": 3987,
-          "time_s": 39.381,
-          "time_seed_s": 13.666,
+          "eprs": 775,
+          "ls": 3856,
+          "time_s": 7.875,
+          "time_seed_s": 2.641,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -344,10 +344,10 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 712,
-          "ls": 3635,
-          "time_s": 47.167,
-          "time_seed_s": 15.566,
+          "eprs": 718,
+          "ls": 3621,
+          "time_s": 4.392,
+          "time_seed_s": 1.399,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,

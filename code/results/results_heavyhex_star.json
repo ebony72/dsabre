@@ -1,155 +1,187 @@
 {
-  "meta": {
-    "date": "2026-08-05",
-    "suite": "heavyhex_star",
-    "arch": "star of 4 IBM 27q heavy-hex cores (108 physical, 3 links)",
-    "core_graph": [
-      [
-        0,
-        1
-      ],
-      [
-        0,
-        2
-      ],
-      [
-        0,
-        3
-      ]
-    ],
-    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
-    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
-  },
-  "results": [
-    {
-      "suite": "heavyhex_star",
-      "circuit": "ae",
-      "qubits": 64,
-      "cx": 1962,
-      "ts": {
-        "eprs": 132,
-        "teledata": 132,
-        "telegate": 0,
-        "ls": 2856,
-        "seed": 0,
-        "time_seed_s": 5.34,
-        "time_s": 16.91
-      },
-      "routers": {
-        "dSE": {
-          "eprs": 144,
-          "ls": 2407,
-          "time_s": 32.079,
-          "aborted": false
-        }
-      }
-    },
-    {
-      "suite": "heavyhex_star",
-      "circuit": "ghz",
-      "qubits": 64,
-      "cx": 63,
-      "ts": {
-        "eprs": 5,
-        "teledata": 5,
-        "telegate": 0,
-        "ls": 223,
-        "seed": 0,
-        "time_seed_s": 0.03,
-        "time_s": 0.09
-      },
-      "routers": {
-        "dSE": {
-          "eprs": 4,
-          "ls": 85,
-          "time_s": 0.074,
-          "aborted": false
-        }
-      }
-    },
-    {
-      "suite": "heavyhex_star",
-      "circuit": "graphstate",
-      "qubits": 64,
-      "cx": 64,
-      "ts": {
-        "eprs": 37,
-        "teledata": 36,
-        "telegate": 1,
-        "ls": 578,
-        "seed": 0,
-        "time_seed_s": 0.39,
-        "time_s": 1.28
-      },
-      "routers": {
-        "dSE": {
-          "eprs": 10,
-          "ls": 120,
-          "time_s": 0.055,
-          "aborted": false
-        }
-      }
-    },
-    {
-      "suite": "heavyhex_star",
-      "circuit": "qft",
-      "qubits": 64,
-      "cx": 1966,
-      "ts": {
-        "eprs": 195,
-        "teledata": 158,
-        "telegate": 37,
-        "ls": 3319,
-        "seed": 0,
-        "time_seed_s": 18.18,
-        "time_s": 57.57
-      },
-      "routers": {
-        "dSE": {
-          "eprs": 155,
-          "ls": 2894,
-          "time_s": 23.976,
-          "aborted": false
-        }
-      }
-    },
-    {
-      "suite": "heavyhex_star",
-      "circuit": "qnn",
-      "qubits": 64,
-      "cx": 8126,
-      "ts": {
-        "eprs": 373,
-        "teledata": 363,
-        "telegate": 10,
-        "ls": 8779,
-        "seed": 0,
-        "time_seed_s": 15.63,
-        "time_s": 46.47
-      },
-      "routers": {
-        "dSE": {
-          "eprs": 250,
-          "ls": 9366,
-          "time_s": 305.241,
-          "aborted": false
-        }
-      }
-    },
-    {
-      "suite": "heavyhex_star",
-      "circuit": "random",
-      "qubits": 64,
-      "cx": 1627,
-      "ts": null,
-      "routers": {
-        "dSE": {
-          "eprs": 481,
-          "ls": 5506,
-          "time_s": 36.061,
-          "aborted": false
-        }
-      }
+ "meta": {
+  "date": "2026-08-05",
+  "suite": "heavyhex_star",
+  "arch": "star of 4 IBM 27q heavy-hex cores (108 physical, 3 links)",
+  "core_graph": [
+   [
+    0,
+    1
+   ],
+   [
+    0,
+    2
+   ],
+   [
+    0,
+    3
+   ]
+  ],
+  "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+  "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+  "routers_regenerated": "2026-08-08",
+  "routers_note": "dSABRE columns rerun after the shared intra-core extended set became the default (2026-08-08); ts is unchanged from the previous run; dS not reported for this architecture, as in the original run"
+ },
+ "results": [
+  {
+   "suite": "heavyhex_star",
+   "circuit": "ae",
+   "qubits": 64,
+   "cx": 1962,
+   "ts": {
+    "eprs": 132,
+    "teledata": 132,
+    "telegate": 0,
+    "ls": 2856,
+    "seed": 0,
+    "time_seed_s": 5.34,
+    "time_s": 16.91
+   },
+   "routers": {
+    "dSE": {
+     "eprs": 87,
+     "ls": 2396,
+     "layout": "sl_seed1",
+     "time_s": 0.83,
+     "aborted": false,
+     "backup_activations": 0,
+     "force_make_room": 0,
+     "relief_candidates": 0,
+     "relief_picks": 0
     }
-  ]
+   }
+  },
+  {
+   "suite": "heavyhex_star",
+   "circuit": "ghz",
+   "qubits": 64,
+   "cx": 63,
+   "ts": {
+    "eprs": 5,
+    "teledata": 5,
+    "telegate": 0,
+    "ls": 223,
+    "seed": 0,
+    "time_seed_s": 0.03,
+    "time_s": 0.09
+   },
+   "routers": {
+    "dSE": {
+     "eprs": 4,
+     "ls": 85,
+     "layout": "sl_seed0",
+     "time_s": 0.03,
+     "aborted": false,
+     "backup_activations": 0,
+     "force_make_room": 0,
+     "relief_candidates": 0,
+     "relief_picks": 0
+    }
+   }
+  },
+  {
+   "suite": "heavyhex_star",
+   "circuit": "graphstate",
+   "qubits": 64,
+   "cx": 64,
+   "ts": {
+    "eprs": 37,
+    "teledata": 36,
+    "telegate": 1,
+    "ls": 578,
+    "seed": 0,
+    "time_seed_s": 0.39,
+    "time_s": 1.28
+   },
+   "routers": {
+    "dSE": {
+     "eprs": 10,
+     "ls": 124,
+     "layout": "sl_seed1",
+     "time_s": 0.04,
+     "aborted": false,
+     "backup_activations": 0,
+     "force_make_room": 0,
+     "relief_candidates": 0,
+     "relief_picks": 0
+    }
+   }
+  },
+  {
+   "suite": "heavyhex_star",
+   "circuit": "qft",
+   "qubits": 64,
+   "cx": 1966,
+   "ts": {
+    "eprs": 195,
+    "teledata": 158,
+    "telegate": 37,
+    "ls": 3319,
+    "seed": 0,
+    "time_seed_s": 18.18,
+    "time_s": 57.57
+   },
+   "routers": {
+    "dSE": {
+     "eprs": 143,
+     "ls": 2113,
+     "layout": "sl_seed2",
+     "time_s": 0.84,
+     "aborted": false,
+     "backup_activations": 0,
+     "force_make_room": 1,
+     "relief_candidates": 0,
+     "relief_picks": 0
+    }
+   }
+  },
+  {
+   "suite": "heavyhex_star",
+   "circuit": "qnn",
+   "qubits": 64,
+   "cx": 8126,
+   "ts": {
+    "eprs": 373,
+    "teledata": 363,
+    "telegate": 10,
+    "ls": 8779,
+    "seed": 0,
+    "time_seed_s": 15.63,
+    "time_s": 46.47
+   },
+   "routers": {
+    "dSE": {
+     "eprs": 294,
+     "ls": 8310,
+     "layout": "sl_seed0",
+     "time_s": 2.4,
+     "aborted": false,
+     "backup_activations": 1,
+     "force_make_room": 3,
+     "relief_candidates": 0,
+     "relief_picks": 0
+    }
+   }
+  },
+  {
+   "suite": "heavyhex_star",
+   "circuit": "random",
+   "qubits": 64,
+   "cx": 1627,
+   "ts": null,
+   "routers": {
+    "dSE": {
+     "eprs": 412,
+     "ls": 4961,
+     "layout": "sl_seed0",
+     "time_s": 1.46,
+     "aborted": false,
+     "backup_activations": 0,
+     "force_make_room": 0,
+     "relief_candidates": 0,
+     "relief_picks": 0
+    }
+   }
+  }
+ ]
 }

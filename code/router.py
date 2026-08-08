@@ -139,12 +139,29 @@ class General_dSABRE_Router:
     # ── Candidate generation ───────────────────────────────────────────────────
 
     def _inter_ext(self, dag, front, size):
-        """Inter-core extended set: the hook route() calls.
+        """Inter-core extended set, memoised on the working DAG's generation.
 
-        Subclasses select a construction by overriding this.  The default is
-        the topological fill of `_top_ext`; `dSABRE_BFSExt` swaps in the
-        BFS-layer fill of `_bfs_ext`.
+        Subclasses select a construction by overriding `_build_inter_ext`.
+        The default is the topological fill of `_top_ext`; `dSABRE_BFSExt`
+        swaps in the BFS-layer fill of `_bfs_ext`.
+
+        `E` depends on the DAG alone, never on the layout, so it survives
+        every SWAP and every teleport and needs rebuilding only when a gate
+        leaves the working DAG.  `_dag_gen` counts those events; keying on it
+        rather than on the retirement count matters because a rollback can
+        return the log to a length it already held with different contents.
+        Since 2026-08-08 the intra-core scorer reads this set too
+        (`_get_local_extended`), so both scorers share one construction and
+        one memo.  Callers must treat the returned list as read-only.
         """
+        key = (self._dag_gen, size)
+        if key != self._ext_key:
+            self._ext_val = self._build_inter_ext(dag, front, size)
+            self._ext_key = key
+        return self._ext_val
+
+    def _build_inter_ext(self, dag, front, size):
+        """The construction `_inter_ext` memoises. Override this, not it."""
         return self._top_ext(dag, front, size)
 
     def _top_ext(self, dag, front, size):
@@ -277,6 +294,13 @@ class General_dSABRE_Router:
 
     # ── Incremental DAG state ──────────────────────────────────────────────────
     #
+    # `_dag_gen` counts working-DAG mutations; `_ext_key`/`_ext_val` are the
+    # `_inter_ext` memo keyed on it.  Declared here so an instance is valid
+    # before `route()` seeds them.
+    _dag_gen = 0
+    _ext_key = None
+    _ext_val = None
+    #
     # Three quantities that used to be recomputed from the whole DAG on every
     # iteration.  All are seeded in route() and maintained by `_on_retire`,
     # which `_RetiringDAG` calls on every removal.  Correctness rests on gates
@@ -289,6 +313,7 @@ class General_dSABRE_Router:
 
     def _init_dag_state(self, real_dag):
         """Seed maintained in-degrees, the unrouted-gate count, and the log."""
+        self._bump_dag_gen()
         self._indeg = {
             n._node_id: sum(1 for p in real_dag.predecessors(n)
                             if getattr(p, 'qargs', None))
@@ -297,8 +322,15 @@ class General_dSABRE_Router:
         self._remaining = len(real_dag.op_nodes())
         self._retired_log = []
 
+    def _bump_dag_gen(self):
+        """Invalidate the `_inter_ext` memo: the working DAG changed."""
+        self._dag_gen = getattr(self, "_dag_gen", 0) + 1
+        self._ext_key = None
+        self._ext_val = None
+
     def _on_retire(self, real_dag, node):
         """Called by the proxy just before `node` leaves the DAG."""
+        self._bump_dag_gen()
         self._remaining -= 1
         self._retired_log.append(node._node_id)
         for succ in real_dag.successors(node):
@@ -315,6 +347,7 @@ class General_dSABRE_Router:
         trade, since checkpoints outnumber rollbacks by orders of magnitude.
         """
         self._n_wdag_rebuilds += 1
+        self._bump_dag_gen()
         _t0 = time.perf_counter()
         fresh = deepcopy(dag)
         by_id = {n._node_id: n for n in fresh.op_nodes()}
@@ -592,7 +625,44 @@ class General_dSABRE_Router:
         return [n for n in dag.front_layer() if len(n.qargs) == 2]
 
     def _get_local_extended(self, wdag, front, core_ids, l2p):
+        """Per-core intra-core lookahead set `E_c`.
+
+        `E_c` is the inter-core extended set `E` restricted to core `c`: the
+        gates of `E` with both operands resident in that core, carrying `E`'s
+        own depths.  One construction therefore feeds both scorers, and
+        `dep(g)` means the same thing in each.
+
+        This replaced a separate taint-propagated sweep on 2026-08-08 (kept as
+        `_taint_local_extended`, and still selectable with
+        `HardwareConfig(local_ext_mode="taint")`).  Measured over the 25/36/64,
+        heavy-hex ring/star and 100/200/360-qubit suites -- 38 circuits where
+        both complete -- the shared set costs $4.8\\%$ fewer EPR pairs, runs
+        $7.1\\times$ faster, and aborts less often than the sweep it replaces.
+
+        Cost is `O(L)` given `E`, which `_inter_ext` memoises on the working
+        DAG's generation, so a run of iterations that retires nothing builds
+        it once.  The sweep it replaces was `Theta(N_r)` per call.
+        """
+        if self.config.local_ext_mode == "taint":
+            return self._taint_local_extended(wdag, front, core_ids, l2p)
+
+        arch = self.arch
+        shared = self._inter_ext(wdag, front, self.config.lookahead_size)
+        ext = {ci: [] for ci in core_ids}
+        for g, dep in shared:
+            c1 = arch.core_of(l2p[g.qargs[0]])
+            if c1 in ext and c1 == arch.core_of(l2p[g.qargs[1]]):
+                ext[c1].append((g, dep))
+        return ext
+
+    def _taint_local_extended(self, wdag, front, core_ids, l2p):
         """Single-pass intra-core lookahead for a collection of cores.
+
+        The pre-2026-08-08 construction, superseded as the default by
+        `_get_local_extended` above but reachable through
+        `HardwareConfig(local_ext_mode="taint")`.  Every number published
+        before that date was produced with it, and `verify_router.py` runs in
+        this mode so its diff against `_baseline_router.py` stays meaningful.
 
         Returns dict mapping core_id -> list of (gate, depth) pairs
         (up to lookahead_size each).  depth is the gate's DAG distance from
