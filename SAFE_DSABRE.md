@@ -844,29 +844,54 @@ This also corrects the earlier "+20.9 % at 360q": that figure was the *strict*
 floor on `qft` alone, under the pre-fix code. Under the shipped default the
 same circuit costs nothing.
 
-### 10.6 Across suites
+**25q and 36q suites** (B-grid `2×2`, `M=16`, `P=64`, `K=4`), both complete:
+
+| 25q | base | strict | **split** | | 36q | base | strict | **split** |
+|---|---|---|---|---|---|---|---|---|
+| ae | 23 | 23 | **22** | | bv | 1 | 1 | 1 |
+| ghz | 1 | 1 | 1 | | dj | 3 | 3 | 3 |
+| graphstate | 2 | 2 | 2 | | qaoa | 133 | 145 | 146 |
+| qft | 33 | 33 | 33 | | qpeexact | 60 | 65 | **60** |
+| qnn | 48 | 48 | 48 | | vqe_su2 | 10 | 10 | 10 |
+| random | 178 | 178 | 178 | | wstate | 6 | 6 | 6 |
+| **gmean** | — | +0.0 % | **−0.7 %** | | **gmean** | — | +2.8 % | **+1.6 %** |
+
+Safe mode is **very nearly a no-op** at these sizes: the guaranteed transaction
+fires **0 times** at 25q and 0 times at 36q under the split floor (once under
+strict), and the default router's `force_make_room` count is already 0. With
+`F = 39` and `F = 28` over four cores — 39 % and 56 % fill — capacity never
+gets tight enough for the invariant to have anything to prevent. The one
+mover is `qaoa_36` (133 → 146), and notably it moves with *zero* Tier-2
+activations: the Tier-1 legality floor changed a single choice and the
+three-pass protocol amplified it.
+
+### 10.6 Across all six suites
 
 `safe_split` against the default router, geometric mean EPR:
 
-| suite | cores | `P` | fill | circuits | **Δ EPR** | base `force_make_room` |
-|---|---|---|---|---|---|---|
-| 64q | 6 | 96 | 67 % | 9 | **+4.2 %** | 21 |
-| 100q | 6 | 150 | 67 % | 6 | **−0.6 %** | 18 |
-| 200q | **12** | 300 | 67 % | 4 (of 8) | **−7.4 %** | 206 |
-| 360q | 6 | 486 | 74 % | 6 | **+2.9 %** | 107 |
+| suite | cores | `P` | fill | circuits | **Δ EPR** | Tier-2 calls | base `force_make_room` |
+|---|---|---|---|---|---|---|---|
+| 25q | 4 | 64 | 39 % | 6 | **−0.7 %** | 0 | 0 |
+| 36q | 4 | 64 | 56 % | 6 | **+1.6 %** | 0 | 0 |
+| 64q | 6 | 96 | 67 % | 9 | **+4.2 %** | 9 | 21 |
+| 100q | 6 | 150 | 67 % | 6 | **−0.6 %** | 13 | 18 |
+| 200q | **12** | 300 | 67 % | 4 (of 8) | **−7.4 %** | 69 | 206 |
+| 360q | 6 | 486 | 74 % | 6 | **+2.9 %** | 94 | 107 |
 
-**The guarantee is roughly free on average, ±5 % per suite, and a clear win on
-the one 12-core architecture.** An earlier draft of this section claimed the
-cost falls monotonically with chip width; 360q breaks that — it is the largest
-chip and costs +2.9 %, while the smaller 200q chip saves 7.4 %. Three points
-were not enough to support the claim.
+**The guarantee is free on average, within ±5 % on every suite, and a clear win
+on the one 12-core architecture.** An earlier draft claimed the cost falls
+monotonically with chip width; 360q breaks that — it is the largest chip and
+costs +2.9 %, while the smaller 200q chip saves 7.4 %. Six points now say there
+is no monotone trend in size at all.
 
-What does separate them is **core count, not capacity**: 200q is the only
-12-core suite and the only clear win. That is consistent with the mechanism —
-capacity drift is a redistribution phenomenon, so it has more room to develop
-across twelve cores than six — but with one 12-core suite it remains a
-hypothesis, not a result. `force_make_room` does not settle it either: 360q's
-107 calls are second-highest and its outcome is a small loss.
+What the table does show cleanly is **where safe mode is even relevant**. On
+the two small suites it does nothing, because nothing goes wrong: zero Tier-2
+calls, zero reactive room-making in the baseline. The mechanism only starts
+mattering once the default router begins making `force_make_room` calls, and
+the one suite where it clearly pays — 200q — is the one where the baseline
+makes the most of them (206). That is the right correlation to expect if
+capacity drift is what the invariant prevents, but with a single 12-core suite
+it stays a hypothesis rather than a result.
 
 **On the circuits the paper actually reports at 100q and 200q** — the
 published suites contain only `qft` and `qpeexact` at each size — safe mode is
@@ -1217,9 +1242,9 @@ the 2026-08-05 `KeyError`). On the merits of the mechanism the case is strong.
    default invalidates 25q, 36q, 64q, 100q, 200q, 360q, every ablation, and
    both external comparisons, and they would all need regenerating mid-revision
    against a page budget with no slack. The review report did not ask for this.
-2. **Coverage is incomplete.** 25q and 36q have never been run in safe mode at
-   all. `qnn_100` and `qnn_200` are unrun. 200q has 4 of 8 circuits.
-   `random_200` is still in flight.
+2. **Coverage is incomplete.** 25q and 36q are now done (§10.5, both
+   essentially no-ops). Still missing: `qnn_100`, `qnn_200`, four of eight 200q
+   circuits, and `random_200`, which is still in flight.
 3. **Three regressions are unexplained.** `qft_64` +21.4 %, `qpeexact_64`
    +12.3 %, `qpeexact_360` +18.6 %. The per-circuit variance of the three-pass
    protocol is a plausible cause but nobody has diagnosed one of them. A
@@ -1235,7 +1260,8 @@ the 2026-08-05 `KeyError`). On the merits of the mechanism the case is strong.
 
 ### 14.3 What would make it ready
 
-- 25q and 36q measured; 200q completed; `qnn` at 100q and 200q measured.
+- ~~25q and 36q measured~~ (done). 200q completed; `qnn` at 100q and
+  200q measured.
 - One of the three regressions diagnosed to the point of a mechanism.
 - A fallback policy for infeasible architectures (degrade to the default
   router with a warning, rather than raise).
