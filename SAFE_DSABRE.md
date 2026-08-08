@@ -865,7 +865,7 @@ one itself.
 | | result | wall | Tier-2 calls | failed | `force_make_room` |
 |---|---|---|---|---|---|
 | **default** | **aborted, 3 of 3 layouts** — no result at all | 3.3 h | — | — | 0 |
-| **safe (strict)** | **176 439 EPR, routed** | 4.7 h | 283 543 | **0** | **0** |
+| **safe (strict)** | **176 439 EPR, routed**¹ | 4.7 h | 283 543 | **0** | **0** |
 | **safe (split)** | **168 594 EPR, routed** | 8.4 h¹ | 258 473 | **0** | **0** |
 
 Every pass exhausted its 50 000-iteration budget and handed over to
@@ -1291,20 +1291,35 @@ extended set restricted to the core, changing routing output across every
 suite. It is a useful accident: an independent perturbation of the heuristic,
 against which safe mode's conclusions can be checked.
 
-| | taint-era | **current** |
-|---|---|---|
-| 25q | −0.7 % | +1.1 % |
-| 36q | +1.6 % | +0.0 % |
-| 64q | **+4.2 %** | **−0.2 %** |
-| 64q, strict floor | +20.8 % | +16.0 % |
-| 64q Tier-2 calls | 9 | 4 |
-| `force_make_room`, base → safe | 21 → 0 | 26 → 0 |
+All six suites re-measured. `safe_split` gmean against the default router:
 
-**The conclusion survives and 64q improves**: the split floor is now
-EPR-neutral on the suite that was previously its worst case. Individual
-circuits move a lot (`ae` +8.5 % → −17.5 %, `qft` +21.4 % → +2.3 %), which is
-further evidence that per-circuit deltas are protocol noise rather than
-mechanism.
+| suite | circuits | taint-era | **current** |
+|---|---|---|---|
+| 25q | 6 | −0.7 % | +1.1 % |
+| 36q | 6 | +1.6 % | +0.0 % |
+| 64q | 9 | **+4.2 %** | **−0.2 %** |
+| 100q | 8 | −0.3 % | **−1.5 %** |
+| 200q | 6 | **−5.0 %** | **+2.6 %** |
+| 360q | 6 | +2.9 % | +0.3 % |
+| **all** | **41** | +0.7 % | **+0.2 %** |
+| 64q, strict floor | | +20.8 % | +16.0 % |
+| `force_make_room`, base → safe | | 21 → 0 | 26 → 0 |
+
+**The headline holds and tightens: +0.2 % gmean over 41 circuits, every suite
+within ±2.6 %.** 64q, previously the worst case at +4.2 %, is now neutral.
+
+**One conclusion does not survive: the 200q win.** It was −5.0 % and is now
++2.6 %, because `89c088a` improved the *default* router there by 12 % (2 130 →
+1 869 on the same six circuits) — more than safe mode had been gaining. The
+claim that safe mode "pays best on the 12-core architecture", and the
+supporting story about `force_make_room` counts, no longer hold: the baseline's
+count on 200q actually *rose* to 294 while its EPR fell. **Safe mode is
+EPR-neutral everywhere; it is not an optimisation anywhere.**
+
+Individual circuits still move hard between the two scoring functions (`ae`
++8.5 % → −17.5 %, `qft_64` +21.4 % → +2.3 %, `qft_100` −5.9 % → −14.8 %),
+which is the clearest evidence yet that per-circuit deltas here are protocol
+noise, not mechanism. Only the aggregate should be quoted.
 
 **Nothing structural moved.** `force_make_room` is 0 in every safe run under
 both scoring functions, no transaction has failed under either, `verify_router`
@@ -1312,10 +1327,9 @@ and `test_safe_drain` pass at `89c088a`, and the guarantee never touches the
 lookahead sets — `_safe_route_gate` reads neither `E` nor `E_c`. The EPR
 column is the only part of this document sensitive to that commit.
 
-The 100q, 200q and 360q figures below are still taint-era and are being
-re-measured; `random_200` (3–8 h per condition) is not, so its
-"default aborts, safe mode routes it" result stands on the older scoring
-function.
+`random_200` was not re-measured (3-8 h per condition). Its result degrades
+gracefully: an abort is not a scoring artefact, so "the default router cannot
+route it, safe mode can" stands; only the 168 594 EPR figure is taint-era.
 
 ## 14. Should safe mode replace the default router?
 
