@@ -830,6 +830,7 @@ one itself.
 |---|---|---|---|---|---|
 | **default** | **aborted, 3 of 3 layouts** — no result at all | 3.3 h | — | — | 0 |
 | **safe (strict)** | **176 439 EPR, routed** | 4.7 h | 283 543 | **0** | **0** |
+| **safe (split)** | **168 594 EPR, routed** | 8.4 h¹ | 258 473 | **0** | **0** |
 
 Every pass exhausted its 50 000-iteration budget and handed over to
 `_safe_drain`, which retired the remainder one guaranteed transaction at a
@@ -847,8 +848,9 @@ Two things follow, and they pull in opposite directions:
   `_safe_drain` is a guarantee of *an answer*, not of a good one, and this is
   the first instance that shows the difference at scale.
 
-`vqe_su2`, `wstate` and `qnn_200` (79 798 CX) are not yet measured, and
-`random_200` under the shipped split floor is still running.
+¹ contended with three other jobs; not comparable to the 4.7 h above.
+
+`qnn_200` (79 798 CX) is the one circuit in any suite still unmeasured.
 
 **360q suite** (`K=6`, `M=81`, `P=486`, `n=360`, `F=126`), six circuits, all
 under the shipped default and the post-fix code:
@@ -895,20 +897,27 @@ three-pass protocol amplified it.
 
 `safe_split` against the default router, geometric mean EPR:
 
-| suite | cores | `P` | fill | circuits | **Δ EPR** | Tier-2 calls | base `force_make_room` |
-|---|---|---|---|---|---|---|---|
-| 25q | 4 | 64 | 39 % | 6 | **−0.7 %** | 0 | 0 |
-| 36q | 4 | 64 | 56 % | 6 | **+1.6 %** | 0 | 0 |
-| 64q | 6 | 96 | 67 % | 9 | **+4.2 %** | 9 | 21 |
-| 100q | 6 | 150 | 67 % | 6 | **−0.6 %** | 13 | 18 |
-| 200q | **12** | 300 | 67 % | 4 (of 8) | **−7.4 %** | 69 | 206 |
-| 360q | 6 | 486 | 74 % | 6 | **+2.9 %** | 94 | 107 |
+| suite | cores | `P` | fill | circuits | **gmean Δ** | total Δ | Tier-2 calls | base `force_make_room` |
+|---|---|---|---|---|---|---|---|---|
+| 25q | 4 | 64 | 39 % | 6 | **−0.7 %** | −0.4 % | 0 | 0 |
+| 36q | 4 | 64 | 56 % | 6 | **+1.6 %** | +6.1 % | 0 | 0 |
+| 64q | 6 | 96 | 67 % | 9 | **+4.2 %** | +0.1 % | 9 | 21 |
+| 100q | 6 | 150 | 67 % | 7 | **−0.3 %** | +0.2 % | 13 | 20 |
+| 200q | **12** | 300 | 67 % | 6 (+`random`) | **−5.0 %** | **−14.4 %** | 69 | 206 |
+| 360q | 6 | 486 | 74 % | 6 | **+2.9 %** | +9.9 % | 94 | 107 |
+| **all** | | | | **40** | **+0.7 %** | **−1.8 %** | | |
 
-**The guarantee is free on average, within ±5 % on every suite, and a clear win
-on the one 12-core architecture.** An earlier draft claimed the cost falls
-monotonically with chip width; 360q breaks that — it is the largest chip and
-costs +2.9 %, while the smaller 200q chip saves 7.4 %. Six points now say there
-is no monotone trend in size at all.
+`random_200` is excluded from the 200q row and the total because the default
+router has no number for it — it aborts. Safe mode routes it (§10.5).
+`qnn_200` (79 798 CX) is the one circuit still unmeasured.
+
+**Over all 40 comparable circuits the guarantee costs +0.7 % EPR in geometric
+mean and saves 1.8 % in total** — free, to within the noise of a protocol whose
+per-circuit swings reach ±20 %. Per suite it stays inside ±5 %, and it is a
+clear win on the one 12-core architecture. An earlier draft claimed the cost
+falls monotonically with chip width; 360q breaks that — it is the largest chip
+and costs +2.9 %, while the smaller 200q chip saves 5.0 %. Six points say
+there is no monotone trend in size at all.
 
 What the table does show cleanly is **where safe mode is even relevant**. On
 the two small suites it does nothing, because nothing goes wrong: zero Tier-2
@@ -1268,9 +1277,9 @@ the 2026-08-05 `KeyError`). On the merits of the mechanism the case is strong.
    default invalidates 25q, 36q, 64q, 100q, 200q, 360q, every ablation, and
    both external comparisons, and they would all need regenerating mid-revision
    against a page budget with no slack. The review report did not ask for this.
-2. **Coverage is incomplete.** 25q and 36q are now done (§10.5, both
-   essentially no-ops). Still missing: `qnn_100`, `qnn_200`, four of eight 200q
-   circuits, and `random_200`, which is still in flight.
+2. **Coverage is now nearly complete** — all six suites, 40 comparable
+   circuits, plus `random_200`. Only `qnn_200` (79 798 CX) is unmeasured.
+   This is no longer a strong objection.
 3. **Three regressions are unexplained.** `qft_64` +21.4 %, `qpeexact_64`
    +12.3 %, `qpeexact_360` +18.6 %. The per-circuit variance of the three-pass
    protocol is a plausible cause but nobody has diagnosed one of them. A
@@ -1286,8 +1295,8 @@ the 2026-08-05 `KeyError`). On the merits of the mechanism the case is strong.
 
 ### 14.3 What would make it ready
 
-- ~~25q and 36q measured~~ (done). 200q completed; `qnn` at 100q and
-  200q measured.
+- ~~25q and 36q measured; 200q completed; `qnn` at 100q measured~~ (done).
+  `qnn_200` still outstanding.
 - One of the three regressions diagnosed to the point of a mechanism.
 - A fallback policy for infeasible architectures (degrade to the default
   router with a warning, rather than raise).
