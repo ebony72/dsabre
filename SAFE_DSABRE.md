@@ -820,9 +820,35 @@ is the signature of the capacity drift the invariant removes, and it is
 safe mode routed. On the wider architecture the invariant stops being a tax
 and starts being an optimisation.
 
-`random_200` aborted under the *default* router on all three layouts; it is
-re-running under all conditions. `vqe_su2`, `wstate` and `qnn_200`
-(79 798 CX) are not yet measured.
+#### `random_200`: safe mode routes what the default router cannot
+
+The strongest single result in this work. `random_200` is 146 989 CX on
+402 487 operations — 4× the largest circuit in any published suite, and not in
+one itself.
+
+| | result | wall | Tier-2 calls | failed | `force_make_room` |
+|---|---|---|---|---|---|
+| **default** | **aborted, 3 of 3 layouts** — no result at all | 3.3 h | — | — | 0 |
+| **safe (strict)** | **176 439 EPR, routed** | 4.7 h | 283 543 | **0** | **0** |
+
+Every pass exhausted its 50 000-iteration budget and handed over to
+`_safe_drain`, which retired the remainder one guaranteed transaction at a
+time — 283 543 of them, none of which failed.
+
+Two things follow, and they pull in opposite directions:
+
+- **The guarantee is not theoretical.** On an instance where the default
+  router returns nothing after three and a half hours, safe mode returns a
+  valid routing. There is no percentage to quote here because the baseline has
+  no number.
+- **The drain's output is far from optimal, exactly as its bound says.** At
+  1.20 EPR per two-qubit gate it is well inside the theorem's `2·D_K = 10`
+  worst case, but it is the product of abandoning the heuristic entirely.
+  `_safe_drain` is a guarantee of *an answer*, not of a good one, and this is
+  the first instance that shows the difference at scale.
+
+`vqe_su2`, `wstate` and `qnn_200` (79 798 CX) are not yet measured, and
+`random_200` under the shipped split floor is still running.
 
 **360q suite** (`K=6`, `M=81`, `P=486`, `n=360`, `F=126`), six circuits, all
 under the shipped default and the post-fix code:
@@ -1112,7 +1138,7 @@ Every abort observed in this work, in any configuration:
 |---|---|---|---|
 | `qft_360` pass 2, seed 0 | **default** | iteration 20 124, 4 535 unrouted, budget 50 000 | `DEADLOCK_BACKUP_FAILED` — free slots at `[72,0,0,51,0,3]` |
 | `qft_200`, 1 of 3 layouts | **default** | — | aborted; safe mode routes it |
-| `random_200`, 3 of 3 layouts | **default** | after 3.3 h | aborted outright — no result at all |
+| `random_200`, 3 of 3 layouts | **default** | after 3.3 h | aborted outright — safe mode routes it (§10.5) |
 | `random_100`, 3 of 3 layouts | safe, **strict floor, pre-fix** | `ITERATION_LIMIT` at 50 000, 23 111 unrouted | the `_safe_drain` bug of §13.3, fixed in `dce7bb2` |
 
 So the only safe-mode abort ever seen was an implementation defect in the
