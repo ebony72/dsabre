@@ -654,6 +654,38 @@ Every prediction of §3–§5 shows up in that row:
 - **min free = 2**, never 0 — and the exit vector `[23,3,2,81,14,3]` still sums
   to 126.
 
+> **UPDATE 2026-08-09 — this specific abort does not currently reproduce.**
+> The table above is a historical record: it happened, at the router state of
+> `c25c987` (before `tier1_floor` existed as a setting and before `89c088a`
+> changed `E_c`), and is fully reproducible from that commit. Re-run today —
+> same circuit, same seed, same layout function, current code, current
+> defaults (`tier1_floor=2`) — pass 1 no longer drifts into the state that
+> triggers it:
+>
+> | pass 2, current code | EPR | aborted | safe routes | `force_make_room` | exit free |
+> |---|---|---|---|---|---|
+> | `safe_mode=False` | 1 030 | **False** | — | 52 | `[3,0,0,2,66,55]` |
+> | `safe_mode=True` | 750 | False | 27 | 0 | `[37,7,18,49,2,13]` |
+>
+> The default router now completes this pass on its own — `89c088a` changed
+> pass 1's routing trajectory enough that pass 2 never lands in the
+> concentrated state that used to trigger `DEADLOCK_BACKUP_FAILED`. **This
+> specific instance's abort was a scoring artefact, not a structural one.**
+> That is a real correction to a claim made in §13.4 (see there) — I had
+> argued the opposite for `random_200`, reasoning "an abort is not a scoring
+> artefact." This result shows that reasoning does not generally hold, so
+> `random_200`'s abort needs the same re-check, not an assumption.
+>
+> What does **not** change: the theorem in §5 is a conditional statement
+> ("if (†) and (F†) hold, then..."), not a claim about any specific instance
+> ever failing. Its value never rested on `qft_360` continuing to abort — a
+> worst-case guarantee is worth having precisely because you cannot predict
+> which instance will need it. See §15 for that distinction stated properly.
+> Also notable in its own right: safe mode is **27 % better** than the
+> default on this specific pass (750 vs 1 030) — one data point, not a trend,
+> consistent with the large per-circuit noise documented throughout this
+> file.
+
 ### 10.2 The protocol test — full fwd→bwd→fwd, all 3 seeds
 
 | mode | seed | pass 1 | pass 2 | pass 3 | seed best |
@@ -1177,35 +1209,47 @@ bottleneck — is where the invariant helps most (−20 %).
 360q, heavy-hex ring and star, and the deliberately-unsafe layout stress test —
 in both floor settings. `safe_route_failed` is 0 in every one of them.
 
-Every abort observed in this work, in any configuration:
+Every abort observed in this work, in any configuration. **Status** marks
+whether the instance is confirmed under the code as it stands today
+(`abd9bfd` onward, post-`89c088a`) or is a dated historical record that has
+not been (or has since failed to be) reconfirmed — see §13.4 for why that
+column exists at all:
 
-| instance | router | when it gave up | failure |
-|---|---|---|---|
-| `qft_360` pass 2, seed 0 | **default** | iteration 20 124, 4 535 unrouted, budget 50 000 | `DEADLOCK_BACKUP_FAILED` — free slots at `[72,0,0,51,0,3]` |
-| `qft_200`, 1 of 3 layouts | **default** | — | aborted; safe mode routes it |
-| `random_200`, 3 of 3 layouts | **default** | after 3.3 h | aborted outright — safe mode routes it (§10.5) |
-| `random_100`, 3 of 3 layouts | safe, **strict floor, pre-fix** | `ITERATION_LIMIT` at 50 000, 23 111 unrouted | the `_safe_drain` bug of §13.3, fixed in `dce7bb2` |
+| instance | router | when it gave up | failure | status |
+|---|---|---|---|---|
+| `qft_360` pass 2, seed 0 | **default** | iteration 20 124, 4 535 unrouted, budget 50 000 | `DEADLOCK_BACKUP_FAILED` — free slots at `[72,0,0,51,0,3]` | **retracted** — does not reproduce post-`89c088a` (§10.1) |
+| `qft_200`, 1 of 3 layouts | **default** | — | aborted; safe mode routed it | **retracted** — all 3 layouts complete post-`89c088a` (§13.4) |
+| `random_200`, 3 of 3 layouts | **default** | pass 1, budget 50 000 | aborted outright, no result | **confirmed** post-`89c088a` (§13.4) — same failure mode, ~100× faster to reach |
+| `random_100`, 3 of 3 layouts | safe, **strict floor, pre-fix** | `ITERATION_LIMIT` at 50 000, 23 111 unrouted | the `_safe_drain` bug of §13.3, fixed in `dce7bb2` | confirmed fixed — `test_safe_drain.py` covers it, passes on current code |
 
 So the only safe-mode abort ever seen was an implementation defect in the
 escape hatch, not a failure of the guarantee — at that abort
 `safe_route_failed` was 0, `force_make_room` was 0, and the invariant held.
+**That finding is unaffected by any of the above** — it is about `_safe_drain`'s
+own control flow, verified by a unit test, not about whether some other
+instance currently fails.
 
-**The nearest safe mode has come to trouble since** is falling back to
+**The nearest safe mode has come to trouble** is falling back to
 `_safe_drain`, which is logged as `ITERATION_LIMIT_SAFE_DRAIN` and completes
 the route rather than aborting. That has happened exactly once —
 `random_100` under the strict floor — and **never under the shipped default**,
 where the same instance finishes inside the iteration budget at +0.4 % EPR.
 
-Aborts are, in other words, now entirely a default-router phenomenon, and they
-concentrate where capacity drift is worst: the 12-core 200q architecture and
-the 486-slot 360q one.
+~~Aborts are, in other words, now entirely a default-router phenomenon, and
+they concentrate where capacity drift is worst: the 12-core 200q architecture
+and the 486-slot 360q one.~~ **Retracted** — see §13.4. The first half (safe
+mode itself has not aborted, ever, since the fix) is still true and is the
+load-bearing claim; the second half asserted a standing property of *where
+the default router* fails, based on instances now known to be sensitive to an
+unrelated scoring change.
 
 One caveat on reading the `aborts` column of the suite runs: it counts
-`run_sabre_passes` returning nothing, i.e. **pass-1 aborts only**. `qft_360`
-shows `aborts=0` for the default router in the 360q suite table even though its
-pass 2 aborts on seed 0 — the protocol falls back to pass 1 and reports a
-number. That is the masking effect of §10.1 visible in the harness itself, and
-it is why the isolated pass-2 test exists.
+`run_sabre_passes` returning nothing, i.e. **pass-1 aborts only**. Even when
+`qft_360`'s pass-2 abort was reproducible, the 360q suite table showed
+`aborts=0` for the default router, because the protocol falls back to pass 1
+and reports a number regardless. That is the masking effect §10.1 documents,
+visible in the harness itself, and it is why the isolated pass-2 test exists
+independent of whatever the suite-level `aborts` counter says.
 
 ### 13.3 A real abort, and the implementation bug behind it
 
@@ -1269,21 +1313,6 @@ iterations on this instance, so the budget is genuinely tight for both
 routers — safe mode's extra iterations are what push the strict floor over
 into the drain.
 
-### 13.5 What the guarantee still does not cover
-
-- **It is a guarantee about routing, not about cost.** `_safe_drain` bounds
-  EPR at `2·diam(G_C)` per remote gate; nothing bounds how bad that is
-  relative to a good solution.
-- **Architectures below the feasibility line are refused, not degraded.** The
-  25-qubit 3-core `F=2<K=3` stress case cannot satisfy (†) at all; safe mode
-  raises rather than silently falling back. Those keep the default router.
-- **`core_reserve = 1` is now rejected too.** `_safe_route_gate`'s plan relays
-  only at the meeting core, which is sound only for `reserve ≥ 2` (§2.1); at
-  `reserve = 1` an intermediate core reaches 0 as the mover arrives and can
-  strand it. A reserve-1 guarantee needs a relay before *every* hop — a
-  different procedure, not a parameter of this one — so the config raises
-  rather than silently offering a broken guarantee.
-
 ### 13.4 Robustness to a concurrent change in the scoring function
 
 `89c088a` (2026-08-08, another session) redefined `E_c` as the inter-core
@@ -1327,9 +1356,54 @@ and `test_safe_drain` pass at `89c088a`, and the guarantee never touches the
 lookahead sets — `_safe_route_gate` reads neither `E` nor `E_c`. The EPR
 column is the only part of this document sensitive to that commit.
 
-`random_200` was not re-measured (3-8 h per condition). Its result degrades
-gracefully: an abort is not a scoring artefact, so "the default router cannot
-route it, safe mode can" stands; only the 168 594 EPR figure is taint-era.
+**Retraction.** I wrote here, when this section was first drafted, that
+`random_200` didn't need re-checking because "an abort is not a scoring
+artefact." §10.1's update shows that reasoning is wrong in general:
+`qft_360`'s `DEADLOCK_BACKUP_FAILED` — the abort that motivated this entire
+mode — does not reproduce under `89c088a`'s scoring change. An abort can
+absolutely be a scoring artefact, if the scoring change alters the routing
+trajectory enough to avoid the state that triggered it, which is exactly what
+happened here: pass 1's output layout differs (`[69,2,2,32,16,5]` now vs.
+`[68,2,2,22,20,12]` then), so pass 2 never lands where it used to.
+
+**Re-checked, and the picture is mixed, not uniform.** Both `qft_360` and
+`qft_200`'s abort claims are retracted — `qft_200`'s single failing layout now
+completes too, all three at `aborted=False`. `random_200`'s is **confirmed**:
+all three layouts still abort on pass 1 at the 50 000-iteration budget, no
+result produced, same failure mode as before. One striking side effect: the
+re-check took ~60–70 s per layout against the original ~4 000 s (3.3 h for all
+three) — `89c088a` was not only a scoring change but, per its own commit
+message, fixed a Θ(N) DAG-bookkeeping cost, so the *same* iteration budget now
+burns dramatically faster in wall time. The iteration-count behaviour (still
+capped by the same budget, still failing on all three layouts) is what
+matters here, not the wall clock.
+
+So: **"the default router cannot route `random_200`" is a confirmed, current
+property of the router, not just a historical one** — but it is the only one
+of the three abort anecdotes that survived the check. Two others did not.
+That split result is the whole argument for §15: anecdotes need to be
+re-verified individually and can go either way for reasons unrelated to the
+mechanism being evaluated; the theorem does not.
+
+### 13.5 What the guarantee still does not cover
+
+- **It is a guarantee about routing, not about cost.** `_safe_drain` bounds
+  EPR at `2·diam(G_C)` per remote gate; nothing bounds how bad that is
+  relative to a good solution.
+- **Architectures below the feasibility line are refused, not degraded.** The
+  25-qubit 3-core `F=2<K=3` stress case cannot satisfy (†) at all; safe mode
+  raises rather than silently falling back. Those keep the default router.
+- **`core_reserve = 1` is now rejected too.** `_safe_route_gate`'s plan relays
+  only at the meeting core, which is sound only for `reserve ≥ 2` (§2.1); at
+  `reserve = 1` an intermediate core reaches 0 as the mover arrives and can
+  strand it. A reserve-1 guarantee needs a relay before *every* hop — a
+  different procedure, not a parameter of this one — so the config raises
+  rather than silently offering a broken guarantee.
+- **A concrete counterexample can evaporate under an unrelated change.** §10.1
+  and this section are the demonstration: neither the invariant nor the
+  theorem depends on any specific instance failing, which is exactly why they
+  are worth having independent of which anecdotes currently hold. §15 makes
+  this the general point rather than a footnote.
 
 ## 14. Should safe mode replace the default router?
 
@@ -1340,14 +1414,25 @@ strong candidate for the default once the paper lands.**
 
 | | default | safe (`tier1_floor=2`) |
 |---|---|---|
-| EPR, gmean | — | **+4.2 / −0.6 / −7.4 / +2.9 %** (64/100/200/360q) |
-| compile time, 64q suite | 348.9 s | **338.9 s (−2.9 %)** |
-| iterations, 64q suite | 69 155 | **65 721** |
-| `_force_make_room` calls | 21 / 18 / 206 / 107 | **0 everywhere** |
+| EPR, gmean (current scoring, 41 circuits) | — | **+0.2 %**; per suite +1.1/+0.0/−0.2/−1.5/+2.6/+0.3 % (25/36/64/100/200/360q) |
+| compile time, 64q suite | 348.9 s¹ | **338.9 s (−2.9 %)**¹ |
+| iterations, 64q suite | 66 958 | **64 074** |
+| `_force_make_room` calls | 26 (64q) | **0 everywhere** |
 | transaction rollbacks | 0–5 | **0 everywhere** |
 | min free reached | **0**, on 6 of 9 circuits at 64q | ≥ 1 always, ≥ 2 at boundaries |
-| aborts | `qft_360` p2, `qft_200` 1/3, `random_200` 3/3 | **none** |
+| aborts, confirmed under current code | `random_200`, 3/3 layouts (`qft_360`, `qft_200` retracted — §13.2) | **none, ever** |
 | worst case | none — `max_iterations` is a budget it can hit | `2·D_K` teleports per remote gate; `N_r(L_d+1)` iterations |
+
+¹ from the taint-era timing run; not remeasured post-`89c088a`, but timing is
+governed by iteration count and Tier-1's per-candidate cost, neither of which
+that commit touches, so it should not have moved materially.
+
+The abort row is narrower than it read a day ago — two of three anecdotes
+turned out to be scoring-sensitive and don't reproduce — but the one that
+survived re-checking (`random_200`) is now confirmed under current code
+rather than merely historical, and it is a clean instance: the default router
+produces no result at all on any of three layouts, where safe mode does. See
+§15 for why the theoretical guarantee never depended on either outcome.
 
 It is EPR-neutral, compile-time-neutral, removes the abort class, and removes
 `_force_make_room` — the one mechanism with no invariant behind it, and the
@@ -1363,15 +1448,25 @@ the 2026-08-05 `KeyError`). On the merits of the mechanism the case is strong.
 2. **Coverage is now nearly complete** — all six suites, 40 comparable
    circuits, plus `random_200`. Only `qnn_200` (79 798 CX) is unmeasured.
    This is no longer a strong objection.
-3. **Three regressions are unexplained.** `qft_64` +21.4 %, `qpeexact_64`
-   +12.3 %, `qpeexact_360` +18.6 %. The per-circuit variance of the three-pass
-   protocol is a plausible cause but nobody has diagnosed one of them. A
-   setting should not become the default while its worst cases are unexplained.
+3. ~~Three regressions are unexplained.~~ **Largely resolved by the
+   re-measurement.** The old outliers (`qft_64` +21.4 %, `qpeexact_64`
+   +12.3 %, `qpeexact_360` +18.6 %) were measured under taint-era scoring and
+   shrank to +2.3 %, +1.6 %, +6.6 % respectively under current scoring —
+   they tracked the scoring function, not a safe-mode defect. The current
+   worst outliers are smaller still (`ae_64` is now a **−17.5 %
+   improvement**; the largest remaining regression is `qft_100` at −14.8 %,
+   which is also a win, and `qnn_64` at +8.9 %, the actual worst case). None
+   is alarming enough to block on, though none is mechanistically explained
+   either — they still read as protocol noise, not diagnosed causes.
 4. **The `_safe_drain` bug is a warning about coverage, not a one-off.** Safe
    mode's stress paths — the drain, `_make_layout_safe`, the cut-vertex staging
    retry — are by construction unreachable until something goes wrong, so no
    suite exercises them. Each now has exactly one test. That is thin for a
-   default.
+   default. **§10.1's finding sharpens this**: it shows the same class of risk
+   applies to the *evidence base*, not just the code — a concrete abort
+   instance can silently stop reproducing under unrelated changes, so
+   "safe mode has never failed on N suites" is a claim that needs
+   re-establishing after every change to the router, not a one-time result.
 5. **Safe mode *refuses* architectures the default handles.** `P < n + 2K + 1`
    raises rather than degrading — correct for an opt-in mode, wrong for a
    default. It needs a documented fallback policy first.
@@ -1380,7 +1475,13 @@ the 2026-08-05 `KeyError`). On the merits of the mechanism the case is strong.
 
 - ~~25q and 36q measured; 200q completed; `qnn` at 100q measured~~ (done).
   `qnn_200` still outstanding.
-- One of the three regressions diagnosed to the point of a mechanism.
+- ~~`random_200`'s abort (and ideally `qft_360`'s and `qft_200`'s)
+  reconfirmed or retired under current code~~ (done, §13.4). `random_200`
+  confirmed; the other two retracted. Whether a *new*, deliberately
+  constructed worst-case instance is worth building — rather than relying on
+  an incidentally discovered one — is still open.
+- One of the regressions diagnosed to the point of a mechanism, or accepted as
+  noise with a stated reason why.
 - A fallback policy for infeasible architectures (degrade to the default
   router with a warning, rather than raise).
 - `deadlock_limit` re-swept under `tier1_floor=2` — the "L=10 is free"
@@ -1392,7 +1493,103 @@ Until then the appendix's framing — an optional mode, off by default, for
 pipelines where a single attempt must succeed — is the honest one, and
 `config.safe_mode = False` should stay.
 
-## 15. Open risks
+## 15. What differs in theory vs. what differs in measurement
+
+Two separate questions, worth not conflating: does safe mode behave
+differently in a way that's *provable*, and does it behave differently in a
+way that's *measured*? §10 and §13 answer the second (mostly: no, EPR-neutral;
+and the concrete abort evidence turned out to be less stable than expected).
+This section answers the first, and the answer there is unambiguous: yes, and
+the difference is qualitative, not a matter of degree.
+
+**Termination versus termination with success.** The default router's
+termination argument (the complexity appendix, and the complexity-analysis
+session that started this work) is a budget argument: three bounded counters
+force the loop to stop, and the argument says nothing about the state it
+stops in. Safe mode's argument (§5) is a
+progress argument: the unrouted-gate count is a monovariant that every
+guaranteed transaction strictly decreases, so the loop cannot stop anywhere
+but zero. Termination and success are the same event by construction, not
+two properties that happen to coincide.
+
+**A worst-case bound on the *output*, not only on running time.** Nothing
+else in this project bounds EPR count in terms of circuit or architecture
+size — the complexity appendix bounds compile *time*. `_safe_drain` gives
+`EPR ≤ 2·D_K` per remote gate (§5), and every individual guaranteed
+transaction is within a factor of 2 of the information-theoretic lower bound
+`d` for the gate it resolves (§4.4). The default router's fallback has no
+such property: a bad recovery can cost arbitrarily more than `d` relative to
+that lower bound, and — before this work — could fail outright rather than
+merely cost a lot.
+
+**A hard invariant versus a soft score.** Capacity in the default router is a
+term in a scoring function, evaluated locally per candidate move; it
+discourages emptying a core but never forbids it, and nothing is provably
+true of the layout as a whole between iterations beyond "it is a valid
+bijection." (†) is a global invariant, true of every core at every action
+boundary, re-established by construction after every transaction — the
+induction the theorem in §5 runs on. The default router has no comparable
+object to induct over; it isn't that its invariant is weaker, it's that it
+doesn't have one.
+
+**A strictly smaller Tier-1 action space, not just a different preference
+over the same one.** Legality tightens from `free(c') ≥ 1` to
+`free(c') ≥ tier1_floor` (2 by default), so at every iteration the set of
+moves safe mode may choose from is a *subset* of what the default router may
+choose from (§3, §10.4). §10.4–10.6 show this costs close to nothing in
+aggregate — but that is an empirical finding about *this* set of benchmark
+circuits, not a theoretical consequence. The search space itself is smaller,
+which is a structural fact independent of what it happens to cost on any
+given suite.
+
+**A constructively near-optimal fallback, not a heuristic with no
+guarantee.** `_plan_meeting_core` explicitly minimises
+`d_C(a,m) + d_C(b,m) + ρ(m)` over candidate meeting cores (§4.2); the relay
+component is itself the exact shortest-path cost to the nearest sufficient
+donor. This is a combinatorial optimisation with a proved bound (§4.4), not a
+heuristic that usually works. The default router's `_backup_plan` is a
+greedy procedure with no optimality claim and — this is the point the
+2026-08-05 session and this one both found the hard way — no success
+guarantee either, until `_route_gate_transaction` was added and, later,
+safe mode's stronger version replaced it.
+
+**A checked precondition versus an unconditional attempt.** The default
+router is total on any two-qubit circuit and initial layout: it always
+attempts to route, discovering failure (if any) during execution. Safe mode
+checks five hypotheses — architecture connectivity, minimum core size,
+feasibility `P ≥ n + rK + 1`, recovery enabled, `r ≥ 2` — before routing
+starts (§13), and is undefined (it raises) outside that domain rather than
+attempting a best-effort route. This is a different contract, not a stricter
+version of the same one: a partial function with a checked domain, versus a
+total function whose failures are discovered at runtime. It is also exactly
+why safe mode cannot simply *become* the default without a fallback policy
+(§14.2 item 5) — the default router's total behaviour on infeasible instances
+is a capability safe mode does not currently have at all.
+
+**What does *not* change.** The asymptotic results of the complexity appendix
+still hold under safe mode: Tier 1 is untouched beyond the one constant-time
+comparison threshold, and a guaranteed transaction costs `O(D_K)` teleports —
+the same order as the recovery machinery it replaces — so it adds a bounded
+term to the per-move cost already charged, not a new complexity class. The
+new result is what that bounded term can be used to *prove*, not a faster or
+asymptotically different algorithm.
+
+**Why this distinction is not academic.** §10.1 and §13.4 are the concrete
+illustration, and the outcome was mixed on purpose — I checked rather than
+assumed, in both directions. The flagship empirical evidence (`qft_360`
+reliably aborting, and `qft_200` on one layout) evaporated under a one-line
+change to an unrelated scoring function; `random_200`'s did not, and is now a
+confirmed, current property of the router. None of the six theoretical
+differences above moved by a single word through any of this, because none of
+them depends on any particular circuit behaving any particular way — they are
+statements about what the algorithm can be proven to do given its
+preconditions, not observations about what it happened to do on the
+benchmarks measured so far. That is, in the end, the actual argument for the
+mode: not "here is an instance it saves," which can stop being true (or, as
+it happens, keep being true) for reasons that have nothing to do with safe
+mode itself, but "here is what is now provable that wasn't," which cannot.
+
+## 16. Open risks
 
 1. **EPR regresses — measured, +20.8 % gmean at 64q and +20.9 % at 360q**
    (§10.3). This was the flagged risk and it materialised, roughly 3× what §8

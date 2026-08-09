@@ -1,5 +1,88 @@
 # TODO
 
+## Safe mode (2026-08-07→09) — shipped, not the default, one open re-verification
+
+`config.safe_mode` (default `False`) landed on `tcad-revision`
+(`c25c987`…`abd9bfd`): a capacity invariant (`free(c) >= core_reserve`,
+`core_reserve=2`) promoted from a soft scoring penalty to a legality
+condition, plus a guaranteed gate-execution transaction and a
+termination-with-success theorem. Full derivation, measurements, and the
+"should this be the default" analysis are in `SAFE_DSABRE.md`; the paper
+side is `paper/appendices.tex`'s `app:safemode` (six subsections, including
+`app:safemode_theory` on what's provably different from the default router,
+independent of any benchmark).
+
+**Where it stands, 2026-08-09:**
+- Measured EPR-neutral: **+0.2% geometric mean over 41 circuits**, all six
+  suites (25q/36q/64q/100q/200q/360q), each within ±2.6%. Re-measured once
+  already against an unrelated concurrent change (`89c088a`, which redefined
+  `E_c`) — the conclusion survived and tightened.
+- `tier1_floor=2` (the "split" setting — Tier 1 only prevents a core hitting
+  zero; the transaction re-establishes the fuller reserve itself when it
+  runs) is now the shipped default. The alternative (`tier1_floor=None`,
+  strict) costs 5-80x more for no additional guarantee — never use it.
+- `safe_route_failed` is 0 in every run ever made, including a deliberately
+  broken entry layout and heavy-hex architectures whose comm ports are
+  articulation points (grid cores have none).
+- One real bug found and fixed: `_safe_drain` gave up while the front layer
+  was transiently all-1q, aborting `random_100` under the (now non-default)
+  strict floor. Fixed in `dce7bb2`; `code/test_safe_drain.py` regression-tests
+  it directly (fails on the parent commit).
+
+**Re-verified 2026-08-09, mixed result — not just measurement, the abort
+*claims themselves* needed re-checking.** Two of the three historical abort
+anecdotes retracted, one confirmed:
+
+| instance | historical claim | current code (2026-08-09) |
+|---|---|---|
+| `qft_360` pass 2, seed 0 | `DEADLOCK_BACKUP_FAILED` @ iter 20124 | **retracted** — completes, no abort |
+| `qft_200`, 1 of 3 layouts | aborted | **retracted** — all 3 layouts complete |
+| `random_200`, 3 of 3 layouts | aborted, no result | **confirmed** — still aborts on all 3, same failure mode (pass 1 hits the 50000-iteration budget), just ~100x faster to reach it, presumably from `89c088a`'s own Θ(N) DAG-bookkeeping fix rather than anything about safe mode |
+
+`89c088a` (an unrelated, concurrent change to `E_c`'s construction) altered
+pass 1's routing trajectory enough that `qft`-family circuits stopped landing
+in the states that used to trigger a `DEADLOCK_BACKUP_FAILED`. That is a real
+lesson, not just a footnote: **the flagship motivating example for this whole
+mode stopped reproducing under a change that had nothing to do with it.**
+`random_200` survived the same check, so "the default router cannot route
+this circuit, safe mode can" is a confirmed, current fact for at least one
+instance — but it needed re-checking, not assuming, and the theoretical
+guarantee (`SAFE_DSABRE.md` §15) is deliberately built to not depend on
+either outcome. See `SAFE_DSABRE.md` §10.1, §13.2, §13.4 for the full
+derivation.
+
+**Not yet done, in priority order:**
+1. Decide whether the concrete-abort evidence should be supplemented with a
+   synthetic worst-case instance built to violate the *default* router's
+   free-slot invariant on purpose, rather than relying solely on an
+   incidentally discovered one (`random_200`) that could in principle stop
+   reproducing under some future unrelated change, the same way two of its
+   siblings just did.
+2. `qnn_200` (79,798 CX) — the one circuit in any suite still unmeasured
+   under safe mode.
+3. Re-sweep `deadlock_limit` under the `tier1_floor=2` split default — the
+   "L=10 is free" measurement was taken under the strict floor, where the
+   guaranteed transaction fired far more often.
+4. A fallback policy for architectures below the feasibility line
+   (`P < n + core_reserve*K + 1`): currently `route()` raises; a production
+   default would need to degrade to the default router with a warning
+   instead.
+5. `code/layout.py`'s `adaptive_corner_count(reserve=)` parameter is
+   implemented but **not committed** — that file carries ~240 lines of
+   unrelated uncommitted work and committing it would sweep that in. Safe
+   mode doesn't depend on it (`_make_layout_safe` repairs an unsafe entry
+   layout at `route()` time regardless), so this is cleanup, not a blocker.
+6. Full regeneration of every published table under `safe_mode=True`, if and
+   when the default switches — not before, and not mid-revision (see
+   `SAFE_DSABRE.md` §14 for the reasoning).
+
+**Recommendation (`SAFE_DSABRE.md` §14): not the default during this
+revision.** Coverage and EPR-neutrality are no longer objections; the
+remaining ones are the page-budget cost of regenerating every table
+mid-revision, thin test coverage on the escape-hatch code paths (of which the
+`_safe_drain` bug is a concrete instance), and no fallback for infeasible
+architectures. Revisit post-acceptance.
+
 ## Router review 2026-08-06 — 2 of 7 suggested fixes applied, 5 open
 
 An external review of `code/router.py` (`_apply_teleport` focus) proposed seven

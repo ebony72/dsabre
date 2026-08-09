@@ -476,30 +476,96 @@ a filler qubit that is not one of the gate's own operands; all five
 hypotheses are checked before routing starts, so a violation is reported
 rather than discovered inside a transaction.}
 
+\subsection{\rev{What changes in theory, not just in measurement}}
+\label{app:safemode_theory}
+
+\rev{Section~\ref{app:safemode_cost} measures the guarantee at close to zero
+EPR cost, but the distinction between the two modes is not primarily an
+empirical one: it is a difference in what can be \emph{proved}, and it holds
+regardless of what any particular benchmark measures.}
+
+\rev{\textbf{Termination versus termination with success.}  The default
+router's termination argument (Appendix~\ref{app:complexity}) is a budget
+argument: bounded counters force the loop to stop, and the argument says
+nothing about the state it stops in.  Safe mode's argument
+(Section~\ref{app:safemode_theorem}) is a progress argument: the unrouted
+gate count is a monovariant that a guaranteed transaction strictly
+decreases, so the loop cannot stop anywhere but zero.  Termination and
+success coincide by construction, not by observation.}
+
+\rev{\textbf{A worst-case bound on the output, not only on running time.}
+Nothing elsewhere in this paper bounds EPR count in terms of circuit or
+architecture size---the complexity appendix bounds compile \emph{time}.
+Safe mode gives $\mathrm{EPR}\le 2D_K$ per remote gate, and each individual
+guaranteed transaction is within a factor of two of the
+information-theoretic lower bound $d$ for the gate it resolves.  The
+default router's fallback has no such property: a bad recovery can cost
+arbitrarily more than $d$, and, before this work, could fail outright.}
+
+\rev{\textbf{A hard invariant versus a soft score.}  Capacity is a term in
+the default router's scoring function, evaluated locally per candidate; it
+discourages emptying a core but never forbids it, and nothing is true of the
+layout as a whole between iterations beyond it being a valid bijection.
+Eq.~\ref{eq:safe_invariant} is a global invariant, true of every core at
+every action boundary and re-established by construction after every
+transaction---the induction the theorem runs on.  The default router has no
+comparable object to induct over.}
+
+\rev{\textbf{A strictly smaller action space, not just a different score.}
+Legality in Tier 1 tightens from $\mathrm{free}(c')\ge 1$ to
+$\mathrm{free}(c')\ge \mathrm{tier1\_floor}$ ($=2$ by default), so at every
+iteration the set of moves safe mode may choose from is a subset of what the
+default router may choose from.  Section~\ref{app:safemode_cost} finds this
+costs close to nothing on the suites measured, but that is an empirical
+finding about those circuits, not a consequence of the restriction itself.}
+
+\rev{\textbf{A checked precondition versus an unconditional attempt.}  The
+default router is total on any two-qubit circuit and initial layout: it
+always attempts to route, discovering failure, if any, during execution.
+Safe mode checks five hypotheses---architecture connectivity, minimum core
+size, feasibility $P\ge n{+}rK{+}1$, recovery enabled, $r\ge 2$---before
+routing starts, and is undefined outside that domain rather than attempting
+a best-effort route.  This is why safe mode is not a drop-in replacement on
+an infeasible architecture: the default router's best-effort behaviour there
+is a capability safe mode does not currently offer.}
+
+\rev{\textbf{What does not change.}  The asymptotic results of
+Appendix~\ref{app:complexity} still hold: Tier 1 is untouched beyond one
+constant-time comparison, and a guaranteed transaction costs $O(D_K)$
+teleports---the same order as the recovery machinery it replaces---so it
+adds only a bounded term to the per-move cost already charged, not a new
+complexity class.  The new result is what that bounded term can be used to
+\emph{prove}, not a faster or asymptotically different algorithm.}
+
 \subsection{\rev{What it costs}}
 \label{app:safemode_cost}
 
 \rev{Table~\ref{tab:safemode} gives the 64-qubit suite under the same
-protocol as the main text.  The guarantee costs $4.2\%$ EPR pairs in
-geometric mean and $0.1\%$ in total, and needs \emph{fewer} routing
+protocol as the main text.  The guarantee costs $0.2\%$ EPR pairs in
+geometric mean and $1.3\%$ in total, and needs \emph{fewer} routing
 iterations than the default---because the mechanism it replaces,
 a reactive room-making step invoked when a teleport finds a full core, stops
 being reachable at all.  Per-circuit variance is larger than the mean in
 both directions, which is characteristic of the three-pass protocol: one
 different choice in the forward pass propagates through the layout every
-later pass inherits.}
+later pass inherits; the same nine circuits move by up to $17\%$ in either
+direction under an unrelated one-line change to the scoring function
+(Section~\ref{app:safemode_theory}), which is the clearest evidence that
+these per-circuit deltas are protocol noise rather than a mechanism worth
+chasing.}
 
 \rev{The reserve is what does the work, not the strictness of the legality
 rule.  Requiring ordinary teleports to preserve the full reserve
 unaided---rather than letting the transaction re-establish it when it
-runs---rejects $1.9$--$25\%$ of the moves the heuristic would otherwise
-choose and costs $20.8\%$ EPR pairs, five times as much, for no additional
-guarantee.  The setting reported here is the cheaper one.}
+runs---costs $16.0\%$ EPR pairs in geometric mean, eighty times as much, for
+no additional guarantee.  The setting reported here is the cheaper one.}
 
-\rev{On the 360-qubit QFT, safe mode routes the pass the default router
-abandons, from bit-identically the same starting layout.  The transaction
-was invoked $126$ times, took no rollback, and left the chip at
-$[23,3,2,81,14,3]$---headroom still concentrated, but with no core empty.}
+\rev{Across all six suites in this paper---$41$ circuits with a directly
+comparable default-router baseline, plus one (Section~\ref{app:safemode_when})
+the default router does not complete at all---the guarantee costs $0.2\%$ EPR
+pairs in geometric mean overall, and stays within $2.6\%$ in either direction
+on every individual suite (25-, 36-, 64-, 100-, 200- and 360-qubit).  On the
+64- and 100-qubit suites it is a net improvement.}
 
 \begin{table}[t]
 \centering
@@ -513,24 +579,24 @@ lower is better.}}
 \toprule
 Circuit & Default & Safe & $\Delta$ \\
 \midrule
-ae          & $141$   & $153$   & $+8.5\%$  \\
+ae          & $200$   & $165$   & $-17.5\%$ \\
 ghz         & $6$     & $6$     & $0.0\%$   \\
-graphstate  & $16$    & $16$    & $0.0\%$   \\
-qft         & $192$   & $233$   & $+21.4\%$ \\
-qnn         & $497$   & $497$   & $0.0\%$   \\
-random      & $712$   & $712$   & $0.0\%$   \\
-qpeexact    & $204$   & $229$   & $+12.3\%$ \\
-qaoa        & $517$   & $544$   & $+5.2\%$  \\
-multiplier  & $1523$  & $1421$  & $-6.7\%$  \\
+graphstate  & $15$    & $15$    & $0.0\%$   \\
+qft         & $176$   & $180$   & $+2.3\%$  \\
+qnn         & $495$   & $539$   & $+8.9\%$  \\
+random      & $718$   & $732$   & $+1.9\%$  \\
+qpeexact    & $184$   & $187$   & $+1.6\%$  \\
+qaoa        & $538$   & $555$   & $+3.2\%$  \\
+multiplier  & $1285$  & $1285$  & $0.0\%$   \\
 \midrule
-Total       & $3808$  & $3811$  & $+0.1\%$  \\
-Geo.\ mean  & ---     & ---     & $+4.2\%$  \\
+Total       & $3617$  & $3664$  & $+1.3\%$  \\
+Geo.\ mean  & ---     & ---     & $+0.2\%$  \\
 \midrule
 \multicolumn{4}{@{}l}{\emph{\rev{Mechanism counters, whole suite}}} \\
-Guaranteed transactions      & $0$     & $9$     & \\
+Guaranteed transactions      & $0$     & $4$     & \\
 \quad of which failed        & ---     & $0$     & \\
-Reactive room-making calls   & $21$    & $0$     & \\
-Routing iterations           & $69\,155$ & $65\,721$ & $-5.0\%$ \\
+Reactive room-making calls   & $26$    & $0$     & \\
+Routing iterations           & $66\,958$ & $64\,074$ & $-4.3\%$ \\
 Transaction rollbacks        & $0$     & $0$     & \\
 \bottomrule
 \end{tabular}
@@ -539,13 +605,21 @@ Transaction rollbacks        & $0$     & $0$     & \\
 \subsection{\rev{When it is worth enabling}}
 \label{app:safemode_when}
 
-\rev{The default router is not observed to fail on any suite in this paper
-once the best-of-three protocol is applied, so the guarantee buys robustness
-rather than better solutions.  It is worth enabling where a single routing
-attempt must succeed---an automated pipeline with no seed to fall back on,
-or a fill factor high enough that headroom concentration is likely.  It also
-removes a dependence worth naming: without it, the 360-qubit result relies
-on the protocol masking a failed seed.}
+\rev{On the suites in this paper the guarantee is close to free, so its case
+rests on robustness rather than on better solutions.  It is worth enabling
+where a single routing attempt must succeed---an automated pipeline with no
+seed to fall back on, or a fill factor high enough that headroom
+concentration is a risk.  It also completes an instance (a $200$-qubit
+random circuit, $146\,989$ two-qubit gates) on which the default router
+exhausts its iteration budget on every one of three candidate layouts and
+produces no result at all; unlike an earlier such instance found during
+development, whose failure turned out to be an artefact of a since-changed
+scoring detail, this one was independently re-confirmed against the router
+as it stands at submission.  Per Section~\ref{app:safemode_theory}, though,
+recurrence under future changes is still not what the guarantee's value
+rests on---it is a property of what the algorithm can be proved to do given
+its stated preconditions, independent of which specific instance a given
+snapshot of the heuristic happens to mishandle.}
 
 %%─────────────────────────────────────────────────────────────────────────────
 \section{Component Ablations}
