@@ -1,19 +1,27 @@
 """
 bench_heavyhex.py — architecture-independence check on a non-grid topology.
 
-Runs the 64-qubit suite on a ring of four IBM 27-qubit heavy-hex cores
-(108 physical qubits, 4 inter-core links) instead of the H-grid of 4x4 grid
-cores used in the main evaluation.  Same circuits, same protocol, same
-hyperparameters as benchmark.py — only the architecture changes.
+Runs the 64-qubit suite on four IBM 27-qubit heavy-hex cores (108 physical
+qubits) instead of the H-grid of 4x4 grid cores used in the main evaluation.
+Same circuits, same protocol, same hyperparameters as benchmark.py — only the
+architecture changes.
 
-The heavy-hex tile is irregular (degree 1-3, diameter 12 vs 6 for a 4x4 grid),
-so this isolates how much of dSABRE's advantage depends on grid-shaped cores.
-TeleSABRE runs on the same architecture via a generated device JSON.
+Two axes vary independently of the main evaluation.  The core itself: a
+heavy-hex tile is irregular (degree 1-3, diameter 12 vs 6 for a 4x4 grid).  And
+the core graph, selected with --topology:
 
-Output: code/results/results_heavyhex.json
+  ring  a 4-cycle, one link per adjacent pair (4 links, every core degree 2)
+  star  core 0 a hub, the rest degree-1 leaves (3 links, hub is a bottleneck)
+
+Together these isolate how much of dSABRE's advantage depends on grid-shaped
+cores wired in a grid.  TeleSABRE runs on the same architecture via a generated
+device JSON.
+
+Output: code/results/results_heavyhex.json          (ring, the default)
+        code/results/results_heavyhex_star.json     (star)
 """
 
-import sys, os, json, glob, time
+import sys, os, json, glob, time, argparse
 from math import prod
 
 sys.setrecursionlimit(50000)
@@ -34,17 +42,17 @@ os.makedirs(_RESULTS_DIR, exist_ok=True)
 
 CIRCUIT_DIR = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64")
 SUFFIX      = "_nativegates_ibm_qiskit_opt3_64.qasm"
-DEVICE_JSON = os.path.expanduser(
-    "~/Documents/telesabre/devices/HeavyHex_ring4_27.json")
+DEVICE_DIR  = os.path.expanduser("~/Documents/telesabre/devices")
 
 NUM_CORES = 4
 HW = HardwareConfig(deadlock_limit=100, max_backup_attempts=100,
                     max_iterations=20000)
 
-# The six circuits common to every suite, spanning dense (QNN, Random),
-# structured (AE, QFT) and sparse (GHZ, Graphstate) interaction graphs.  This
-# is a topology-sensitivity check, not a headline suite; the 13k-CX multiplier
-# would dominate wall time on a diameter-12 core without adding evidence.
+# Default: the six circuits common to every suite, spanning dense (QNN,
+# Random), structured (AE, QFT) and sparse (GHZ, Graphstate) interaction
+# graphs.  The 64q suite of the main table is nine circuits; pass --circuits
+# to run the three class-completion additions so this experiment shares the
+# main table's basis rather than a subset of it.
 CIRCUITS = ["ae", "ghz", "graphstate", "qft", "qnn", "random"]
 
 # CX counts the main-text 64q table reports, used as a preflight check.  The
@@ -52,7 +60,8 @@ CIRCUITS = ["ae", "ghz", "graphstate", "qft", "qnn", "random"]
 # .bak on 2026-07-27; the check stays so a future regeneration cannot silently
 # swap a circuit under us again.
 EXPECTED_CX = {"ae": 1962, "ghz": 63, "graphstate": 64, "qft": 1966,
-               "qnn": 8126, "random": 1627}
+               "qnn": 8126, "random": 1627,
+               "qpeexact": 2139, "qaoa": 3920, "multiplier": 13040}
 OVERRIDES = {}   # circuit directory is canonical again
 
 
@@ -98,31 +107,63 @@ def gmean(lst):
 
 
 def main():
-    arch = build_heavy_hex_architecture(NUM_CORES)
-    export_device_json(arch, DEVICE_JSON, "HeavyHex_ring4_27")
-    print(f"device → {DEVICE_JSON}", flush=True)
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--topology", choices=("ring", "star"), default="ring",
+                    help="core graph wiring the four heavy-hex cores")
+    ap.add_argument("--circuits", default=",".join(CIRCUITS),
+                    help="comma-separated circuit names (default: the six "
+                         "common circuits; add qpeexact,qaoa,multiplier for "
+                         "the full nine-circuit 64q suite)")
+    ap.add_argument("--out-tag", default="",
+                    help="suffix for the results filename; use it so a partial "
+                         "run cannot overwrite a completed one")
+    ap.add_argument("--routers", default="dS,dSE",
+                    help="which routers to run; the reported tables use dSE "
+                         "only, so --routers dSE halves the work")
+    args = ap.parse_args()
+    topo = args.topology
+    circuits = [c.strip() for c in args.circuits.split(",") if c.strip()]
+    want_routers = [r.strip() for r in args.routers.split(",") if r.strip()]
+    unknown = set(circuits) - set(EXPECTED_CX)
+    if unknown:
+        raise SystemExit(f"no published CX count for {sorted(unknown)}; add it "
+                         f"to EXPECTED_CX before benchmarking.")
+
+    arch = build_heavy_hex_architecture(NUM_CORES, topo)
+    dev_name = f"HeavyHex_{topo}{NUM_CORES}_27"
+    device_json = os.path.join(DEVICE_DIR, f"{dev_name}.json")
+    export_device_json(arch, device_json, dev_name)
+    print(f"device → {device_json}", flush=True)
     print(f"cores={arch.num_cores} physical={len(arch.data_qubits)} "
           f"links={len(arch.inter_core_links)} "
           f"core_graph={sorted(arch.core_graph.edges())}", flush=True)
 
-    routers = {"dS": General_dSABRE_Router(arch, HW),
-               "dSE": dSABRE_BurstExt(arch, HW)}
+    _all_routers = {"dS": General_dSABRE_Router(arch, HW),
+                    "dSE": dSABRE_BurstExt(arch, HW)}
+    routers = {k: v for k, v in _all_routers.items() if k in want_routers}
 
     hdr = (f"{'circuit':<12}  {'q':>3}  {'cx':>5}  {'TS_epr':>7}  {'TS_t':>6}"
            f"  {'dS_epr':>7}  {'dS_ls':>7}  {'dSE_epr':>8}  {'dSE_ls':>7}"
            f"  {'dS/TS%':>8}  {'dSE/TS%':>8}")
     print("\n" + "=" * len(hdr), flush=True)
-    print("  64q circuits on heavy-hex ring (4 x 27q, 108 physical)", flush=True)
+    print(f"  64q circuits on heavy-hex {topo} (4 x 27q, 108 physical, "
+          f"{len(arch.inter_core_links)} links)", flush=True)
     print("=" * len(hdr), flush=True)
     print(hdr, flush=True)
     print("-" * len(hdr), flush=True)
 
     records = []
-    out_path = os.path.join(_RESULTS_DIR, "results_heavyhex.json")
+    suffix = "" if topo == "ring" else f"_{topo}"
+    if args.out_tag:
+        suffix += f"_{args.out_tag}"
+    out_path = os.path.join(_RESULTS_DIR, f"results_heavyhex{suffix}.json")
+    if os.path.exists(out_path) and not args.out_tag:
+        raise SystemExit(f"ABORT: {out_path} exists. Pass --out-tag to write a "
+                         f"separate file rather than overwrite a completed run.")
 
     for qf in sorted(glob.glob(os.path.join(CIRCUIT_DIR, "*.qasm"))):
         cname = os.path.basename(qf).replace(SUFFIX, "")
-        if cname not in CIRCUITS:
+        if cname not in circuits:
             continue
         t0 = time.time()
         if cname in OVERRIDES:
@@ -139,7 +180,7 @@ def main():
                 f"reports {EXPECTED_CX[cname]}. Refusing to benchmark a "
                 f"different circuit under the same name.")
 
-        ts = run_telesabre(qf, DEVICE_JSON)
+        ts = run_telesabre(qf, device_json)
         layouts = sabre_locked_boundary_layout(qc, dag, arch, seed=0)
 
         rr = {}
@@ -163,24 +204,25 @@ def main():
         ts_t = f"{ts['time_s']:.2f}" if ts else "---"
         row = (f"{cname:<12}  {qc.num_qubits:>3}  {n_cx:>5}  {_i(ts_epr):>7}"
                f"  {ts_t:>6}")
-        for k in ("dS", "dSE"):
+        for k in [x for x in ("dS","dSE") if x in rr]:
             r = rr[k]
             row += (f"  {_i(r.get('eprs')):>7}  {_i(r.get('ls')):>7}" if k == "dS"
                     else f"  {_i(r.get('eprs')):>8}  {_i(r.get('ls')):>7}")
-        for k in ("dS", "dSE"):
+        for k in [x for x in ("dS", "dSE") if x in rr]:
             row += f"  {_p(rr[k].get('eprs'), ts_epr):>8}"
         print(row + f"  ({time.time()-t0:.0f}s)", flush=True)
 
-        records.append(dict(suite="heavyhex", circuit=cname,
+        records.append(dict(suite=f"heavyhex_{topo}", circuit=cname,
                             qubits=qc.num_qubits, cx=n_cx, ts=ts, routers=rr))
 
         with open(out_path, "w") as f:                 # save early and often
             json.dump(dict(meta=dict(
                 date=time.strftime("%Y-%m-%d"),
-                suite="heavyhex",
-                arch=f"ring of {NUM_CORES} IBM 27q heavy-hex cores "
+                suite=f"heavyhex_{topo}",
+                arch=f"{topo} of {NUM_CORES} IBM 27q heavy-hex cores "
                      f"({len(arch.data_qubits)} physical, "
                      f"{len(arch.inter_core_links)} links)",
+                core_graph=sorted(map(list, arch.core_graph.edges())),
                 layout="SabreLayout per-core adaptive corner reservation, best of 3",
                 pass_strategy="fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
             ), results=records), f, indent=2)
@@ -188,8 +230,8 @@ def main():
     print("-" * len(hdr), flush=True)
     ts_e = [r["ts"]["eprs"] for r in records if r["ts"]]
     line = f"{'gmean':<12}  {'':>3}  {'':>5}  {gmean(ts_e):>7.1f}  {'':>6}"
-    for k in ("dS", "dSE"):
-        e = [r["routers"][k].get("eprs") for r in records
+    for k in [x for x in ("dS", "dSE") if any(x in r["routers"] for r in records)]:
+        e = [r["routers"][k].get("eprs") for r in records if k in r["routers"]
              if not r["routers"][k].get("aborted")]
         l = [r["routers"][k].get("ls") for r in records
              if not r["routers"][k].get("aborted")]

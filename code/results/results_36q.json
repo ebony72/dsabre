@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-08-08",
+    "date": "2026-08-10",
     "suite": "36q",
     "arch": "B-grid 2x2 4x4 (64 qubits)",
     "layout": "SabreLayout corners-removed, best of 3 seeds",
@@ -81,7 +81,7 @@
         "dSE": {
           "eprs": 3,
           "ls": 23,
-          "time_s": 0.029,
+          "time_s": 0.03,
           "time_seed_s": 0.01,
           "aborted": false,
           "relief_candidates": 0,
@@ -102,15 +102,15 @@
         "telegate": 8,
         "ls": 1165,
         "seed": 0,
-        "time_seed_s": 0.69,
-        "time_s": 2.18
+        "time_seed_s": 0.68,
+        "time_s": 2.03
       },
       "routers": {
         "dS": {
-          "eprs": 154,
-          "ls": 1203,
-          "time_s": 1.51,
-          "time_seed_s": 0.509,
+          "eprs": 157,
+          "ls": 1157,
+          "time_s": 1.423,
+          "time_seed_s": 0.462,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -119,9 +119,9 @@
         },
         "dSE": {
           "eprs": 134,
-          "ls": 994,
-          "time_s": 1.046,
-          "time_seed_s": 0.309,
+          "ls": 1017,
+          "time_s": 0.859,
+          "time_seed_s": 0.28,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -142,14 +142,14 @@
         "ls": 883,
         "seed": 0,
         "time_seed_s": 0.4,
-        "time_s": 1.31
+        "time_s": 1.21
       },
       "routers": {
         "dS": {
-          "eprs": 61,
-          "ls": 673,
-          "time_s": 1.026,
-          "time_seed_s": 0.338,
+          "eprs": 60,
+          "ls": 610,
+          "time_s": 1.013,
+          "time_seed_s": 0.337,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -158,9 +158,9 @@
         },
         "dSE": {
           "eprs": 62,
-          "ls": 574,
-          "time_s": 0.58,
-          "time_seed_s": 0.195,
+          "ls": 612,
+          "time_s": 0.576,
+          "time_seed_s": 0.19,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -187,8 +187,8 @@
         "dS": {
           "eprs": 14,
           "ls": 72,
-          "time_s": 0.106,
-          "time_seed_s": 0.031,
+          "time_s": 0.11,
+          "time_seed_s": 0.032,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -198,7 +198,7 @@
         "dSE": {
           "eprs": 9,
           "ls": 45,
-          "time_s": 0.091,
+          "time_s": 0.092,
           "time_seed_s": 0.027,
           "aborted": false,
           "relief_candidates": 0,
@@ -226,7 +226,7 @@
         "dS": {
           "eprs": 6,
           "ls": 44,
-          "time_s": 0.044,
+          "time_s": 0.045,
           "time_seed_s": 0.014,
           "aborted": false,
           "relief_candidates": 0,

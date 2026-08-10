@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "date": "2026-08-10",
+    "note": "dSABRE total (3-seed) compile time, matching probe_compile_time.py's convention"
+  },
+  "results": {
+    "100q_qft": {
+      "per_seed_s": [
+        1.07,
+        1.13,
+        1.24
+      ],
+      "total_s": 3.44,
+      "best_seed_s": 1.07,
+      "eprs": [
+        201,
+        264,
+        262
+      ],
+      "best_epr": 201
+    },
+    "200q_qft": {
+      "per_seed_s": [
+        4.96,
+        5.07,
+        4.12
+      ],
+      "total_s": 14.15,
+      "best_seed_s": 4.12,
+      "eprs": [
+        913,
+        820,
+        766
+      ],
+      "best_epr": 766
+    },
+    "360q_qft": {
+      "per_seed_s": [
+        15.53,
+        16.09,
+        16.84
+      ],
+      "total_s": 48.46,
+      "best_seed_s": 15.53,
+      "eprs": [
+        2229,
+        1890,
+        2096
+      ],
+      "best_epr": 1890
+    }
+  }
+}

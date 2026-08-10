@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-08-05",
+    "date": "2026-08-10",
     "config": "topo_ext",
     "arch": "H-grid 2x3 of 4x4 (96 physical)",
     "family": "regular-graph CZ ansatz, gen_regular_cz.py",
@@ -14,9 +14,9 @@
       "degree": 2,
       "seed": 0,
       "cx": 1984,
-      "eprs": 354,
-      "ls": 1676,
-      "time_s": 24.998,
+      "eprs": 355,
+      "ls": 2024,
+      "time_s": 5.661,
       "aborted": false
     },
     {
@@ -25,9 +25,9 @@
       "degree": 2,
       "seed": 1,
       "cx": 1984,
-      "eprs": 247,
-      "ls": 1461,
-      "time_s": 21.462,
+      "eprs": 243,
+      "ls": 1976,
+      "time_s": 4.554,
       "aborted": false
     },
     {
@@ -36,9 +36,9 @@
       "degree": 2,
       "seed": 2,
       "cx": 1984,
-      "eprs": 233,
-      "ls": 1564,
-      "time_s": 14.311,
+      "eprs": 234,
+      "ls": 1642,
+      "time_s": 3.25,
       "aborted": false
     },
     {
@@ -47,9 +47,9 @@
       "degree": 3,
       "seed": 0,
       "cx": 2016,
-      "eprs": 1569,
-      "ls": 7196,
-      "time_s": 65.964,
+      "eprs": 1542,
+      "ls": 7292,
+      "time_s": 7.748,
       "aborted": false
     },
     {
@@ -58,9 +58,9 @@
       "degree": 3,
       "seed": 1,
       "cx": 2016,
-      "eprs": 1513,
-      "ls": 7085,
-      "time_s": 63.422,
+      "eprs": 1555,
+      "ls": 7173,
+      "time_s": 7.411,
       "aborted": false
     },
     {
@@ -69,9 +69,9 @@
       "degree": 3,
       "seed": 2,
       "cx": 2016,
-      "eprs": 1536,
-      "ls": 7075,
-      "time_s": 62.043,
+      "eprs": 1497,
+      "ls": 7227,
+      "time_s": 7.566,
       "aborted": false
     },
     {
@@ -80,9 +80,9 @@
       "degree": 4,
       "seed": 0,
       "cx": 2048,
-      "eprs": 1840,
-      "ls": 8865,
-      "time_s": 60.375,
+      "eprs": 1911,
+      "ls": 9074,
+      "time_s": 6.45,
       "aborted": false
     },
     {
@@ -91,9 +91,9 @@
       "degree": 4,
       "seed": 1,
       "cx": 2048,
-      "eprs": 2076,
-      "ls": 9815,
-      "time_s": 64.011,
+      "eprs": 2073,
+      "ls": 9835,
+      "time_s": 6.611,
       "aborted": false
     },
     {
@@ -102,9 +102,9 @@
       "degree": 4,
       "seed": 2,
       "cx": 2048,
-      "eprs": 2077,
-      "ls": 9583,
-      "time_s": 64.605,
+      "eprs": 2111,
+      "ls": 10082,
+      "time_s": 6.666,
       "aborted": false
     },
     {
@@ -113,9 +113,9 @@
       "degree": 6,
       "seed": 0,
       "cx": 1920,
-      "eprs": 1998,
-      "ls": 9948,
-      "time_s": 40.458,
+      "eprs": 2096,
+      "ls": 10052,
+      "time_s": 5.049,
       "aborted": false
     },
     {
@@ -124,9 +124,9 @@
       "degree": 6,
       "seed": 1,
       "cx": 1920,
-      "eprs": 2058,
-      "ls": 9833,
-      "time_s": 40.461,
+      "eprs": 2064,
+      "ls": 9933,
+      "time_s": 5.002,
       "aborted": false
     },
     {
@@ -135,9 +135,9 @@
       "degree": 6,
       "seed": 2,
       "cx": 1920,
-      "eprs": 1978,
-      "ls": 9580,
-      "time_s": 39.342,
+      "eprs": 1990,
+      "ls": 9560,
+      "time_s": 4.876,
       "aborted": false
     },
     {
@@ -146,9 +146,9 @@
       "degree": 8,
       "seed": 0,
       "cx": 2048,
-      "eprs": 2034,
-      "ls": 9876,
-      "time_s": 41.194,
+      "eprs": 2108,
+      "ls": 10187,
+      "time_s": 4.89,
       "aborted": false
     },
     {
@@ -157,9 +157,9 @@
       "degree": 8,
       "seed": 1,
       "cx": 2048,
-      "eprs": 2081,
-      "ls": 10117,
-      "time_s": 38.552,
+      "eprs": 2016,
+      "ls": 10166,
+      "time_s": 4.983,
       "aborted": false
     },
     {
@@ -168,9 +168,9 @@
       "degree": 8,
       "seed": 2,
       "cx": 2048,
-      "eprs": 2022,
-      "ls": 9566,
-      "time_s": 38.74,
+      "eprs": 2046,
+      "ls": 9918,
+      "time_s": 4.751,
       "aborted": false
     }
   ]

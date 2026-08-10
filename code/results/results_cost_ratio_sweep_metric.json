@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "date": "2026-08-10",
+    "note": "Cost-ratio sweep: EPR/SWAP counts are the fixed routing decisions already in results_{suite}q.json (cost_teleport cancels out of the routing arg-min itself per Eq. principle, verified by a direct re-route sweep that reproduced identical EPR/SWAP at c_tele=10 and c_tele=100 -- see probe_cost_ratio_sweep.py). What varies here is the weighted total cost metric EPR*c_tele + SWAP*c_swap used to compare dSABRE against TeleSABRE under different relative EPR/SWAP pricing."
+  },
+  "results": {
+    "25q": {
+      "10": {
+        "dSABRE_cost": 549.9,
+        "TS_cost": 1036.5,
+        "delta_pct": -46.9
+      },
+      "25": {
+        "dSABRE_cost": 786.7,
+        "TS_cost": 1518.1,
+        "delta_pct": -48.2
+      },
+      "50": {
+        "dSABRE_cost": 1174.9,
+        "TS_cost": 2306.9,
+        "delta_pct": -49.1
+      },
+      "75": {
+        "dSABRE_cost": 1560.5,
+        "TS_cost": 3090.2,
+        "delta_pct": -49.5
+      },
+      "100": {
+        "dSABRE_cost": 1945.1,
+        "TS_cost": 3871.4,
+        "delta_pct": -49.8
+      }
+    },
+    "36q": {
+      "10": {
+        "dSABRE_cost": 358.4,
+        "TS_cost": 811.2,
+        "delta_pct": -55.8
+      },
+      "25": {
+        "dSABRE_cost": 518.4,
+        "TS_cost": 1238.3,
+        "delta_pct": -58.1
+      },
+      "50": {
+        "dSABRE_cost": 783.0,
+        "TS_cost": 1939.4,
+        "delta_pct": -59.6
+      },
+      "75": {
+        "dSABRE_cost": 1046.7,
+        "TS_cost": 2635.7,
+        "delta_pct": -60.3
+      },
+      "100": {
+        "dSABRE_cost": 1310.0,
+        "TS_cost": 3329.8,
+        "delta_pct": -60.7
+      }
+    },
+    "64q": {
+      "10": {
+        "dSABRE_cost": 4702.9,
+        "TS_cost": 7575.4,
+        "delta_pct": -37.9
+      },
+      "25": {
+        "dSABRE_cost": 6881.9,
+        "TS_cost": 11867.0,
+        "delta_pct": -42.0
+      },
+      "50": {
+        "dSABRE_cost": 10505.7,
+        "TS_cost": 18996.6,
+        "delta_pct": -44.7
+      },
+      "75": {
+        "dSABRE_cost": 14126.3,
+        "TS_cost": 26117.6,
+        "delta_pct": -45.9
+      },
+      "100": {
+        "dSABRE_cost": 17745.6,
+        "TS_cost": 33235.3,
+        "delta_pct": -46.6
+      }
+    }
+  }
+}

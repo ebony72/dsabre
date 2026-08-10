@@ -8,7 +8,7 @@ class TeleportAction:
 
     Fields
     ------
-    node        : DAG gate that triggered this candidate (None for proactive moves)
+    node        : DAG gate that triggered this candidate
     virt        : logical qubit being teleported
     p_src       : current physical location of virt
     n_s         : intra-core staging qubit adjacent to the comm port

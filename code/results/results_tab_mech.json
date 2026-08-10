@@ -1,28 +1,28 @@
 {
  "meta": {
-  "date": "2026-08-08",
+  "date": "2026-08-10",
   "note": "scoring-term ablation behind tab:mech; Full and the topological row come from results_{25,36,64}q.json"
  },
  "results": {
   "25q": {
    "full": {
-    "ae": 22,
+    "ae": 23,
     "ghz": 1,
     "graphstate": 2,
     "qft": 33,
-    "qnn": 46,
+    "qnn": 47,
     "random": 181
    },
    "topological": {
     "ae": 22,
     "ghz": 1,
     "graphstate": 2,
-    "qft": 32,
-    "qnn": 46,
+    "qft": 33,
+    "qnn": 48,
     "random": 187
    },
    "no_cap_penalty": {
-    "ae": 75,
+    "ae": 22,
     "_aborts": {
      "ae": 0,
      "ghz": 0,
@@ -33,9 +33,9 @@
     },
     "ghz": 1,
     "graphstate": 2,
-    "qft": 62,
-    "qnn": 107,
-    "random": 289
+    "qft": 32,
+    "qnn": 47,
+    "random": 168
    },
    "no_lookahead": {
     "ae": 27,
@@ -56,48 +56,48 @@
   },
   "64q": {
    "full": {
-    "ae": 200,
+    "ae": 165,
     "ghz": 6,
     "graphstate": 15,
     "multiplier": 1285,
-    "qaoa": 538,
-    "qft": 176,
-    "qnn": 495,
-    "qpeexact": 184,
-    "random": 718
+    "qaoa": 555,
+    "qft": 180,
+    "qnn": 539,
+    "qpeexact": 187,
+    "random": 732
    },
    "topological": {
-    "ae": 186,
+    "ae": 168,
     "ghz": 6,
     "graphstate": 18,
-    "multiplier": 1139,
+    "multiplier": 1351,
     "qaoa": 736,
-    "qft": 239,
-    "qnn": 786,
-    "qpeexact": 273,
-    "random": 775
+    "qft": 203,
+    "qnn": 699,
+    "qpeexact": 203,
+    "random": 777
    },
    "no_cap_penalty": {
-    "ae": 510,
+    "ae": 205,
     "_aborts": {
      "ae": 0,
      "ghz": 0,
      "graphstate": 0,
-     "multiplier": 3,
-     "qaoa": 2,
+     "multiplier": 0,
+     "qaoa": 0,
      "qft": 0,
-     "qnn": 3,
+     "qnn": 0,
      "qpeexact": 0,
      "random": 0
     },
     "ghz": 6,
-    "graphstate": 15,
-    "multiplier": null,
-    "qaoa": 1085,
-    "qft": 567,
-    "qnn": null,
-    "qpeexact": 562,
-    "random": 1056
+    "graphstate": 19,
+    "multiplier": 1230,
+    "qaoa": 537,
+    "qft": 239,
+    "qnn": 518,
+    "qpeexact": 231,
+    "random": 714
    },
    "no_lookahead": {
     "ae": 220,
@@ -112,14 +112,14 @@
      "qpeexact": 0,
      "random": 0
     },
-    "ghz": 4,
+    "ghz": 7,
     "graphstate": 24,
     "multiplier": 2123,
-    "qaoa": 848,
-    "qft": 318,
-    "qnn": 514,
-    "qpeexact": 287,
-    "random": 947
+    "qaoa": 922,
+    "qft": 350,
+    "qnn": 518,
+    "qpeexact": 246,
+    "random": 985
    }
   }
  }

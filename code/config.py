@@ -91,23 +91,31 @@ class HardwareConfig:
     cap_penalty: float = 15.0
     capacity_threshold: int = 3
 
-    # ── Capacity-safe mode (2026-08-07) ───────────────────────────────────────
+    # ── Capacity-safe mode (2026-08-07, promoted to the default 2026-08-09) ────
     # Promotes capacity from the soft `cap_penalty` above to a LEGALITY
     # condition, which turns "every core keeps >= core_reserve free slots" from
     # a starting condition into an invariant, and makes deadlock recovery
-    # provably able to execute any remote gate.  See SAFE_DSABRE.md.
+    # provably able to execute any remote gate -- a termination-WITH-SUCCESS
+    # guarantee the router did not have before.  See SAFE_DSABRE.md.
     #
-    # False (default) matches all prior results bit-for-bit.  With True:
-    #   * a teleport into core c is legal only if free(c) > core_reserve, so the
-    #     post-state is still >= core_reserve;
-    #   * deadlock recovery runs `_safe_route_gate` first -- relay slack to the
-    #     meeting core, walk one operand there hop by hop, execute -- which
-    #     cannot fail while the invariant holds;
-    #   * the iteration limit stops being an abort: routing switches to
-    #     draining the remaining gates with `_safe_route_gate`.
-    # Requires P - n >= core_reserve * num_cores + 1 (checked in route()), so a
-    # donor core with a spare slot always exists by pigeonhole.
-    safe_mode: bool = False
+    # True (default): a teleport into core c is legal only if free(c) >
+    #   core_reserve, so the post-state is still >= core_reserve; deadlock
+    #   recovery runs `_safe_route_gate` first -- relay slack to the meeting
+    #   core, walk one operand there hop by hop, execute -- which cannot fail
+    #   while the invariant holds; the iteration limit stops being an abort:
+    #   routing switches to draining the remaining gates with
+    #   `_safe_route_gate`.  Requires P - n >= core_reserve * num_cores + 1
+    #   (checked in route()), so a donor core with a spare slot always exists
+    #   by pigeonhole -- an architecture below that line raises rather than
+    #   silently falling back; there is no degrade path yet (SAFE_DSABRE.md
+    #   §14.2 item 5).
+    # False restores the pre-2026-08-09 router: capacity as a score penalty
+    #   only, no invariant, no completion guarantee.  Measured EPR-neutral
+    #   against this setting across all six published suites (+0.2% gmean
+    #   over 41 circuits) -- see SAFE_DSABRE.md §10.6 -- so it is kept only
+    #   for that comparison and for architectures that cannot satisfy the
+    #   feasibility line above.
+    safe_mode: bool = True
     core_reserve: int = 2
     # Free slots a destination core must hold for an ORDINARY (Tier-1) teleport
     # to be legal, so the destination ends at tier1_floor - 1.

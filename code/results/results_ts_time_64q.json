@@ -13,12 +13,12 @@
   {
    "circuit": "ghz",
    "per_seed_s": [
-    0.32,
+    0.04,
     0.03,
-    0.02
+    0.03
    ],
-   "total_s": 0.37,
-   "best_seed_s": 0.02,
+   "total_s": 0.1,
+   "best_seed_s": 0.03,
    "eprs": [
     16,
     16,
@@ -29,12 +29,12 @@
   {
    "circuit": "graphstate",
    "per_seed_s": [
-    1.93,
-    1.96,
-    2.02
+    2.74,
+    2.52,
+    2.58
    ],
-   "total_s": 5.91,
-   "best_seed_s": 1.93,
+   "total_s": 7.84,
+   "best_seed_s": 2.52,
    "eprs": [
     62,
     62,
@@ -45,12 +45,12 @@
   {
    "circuit": "qpeexact",
    "per_seed_s": [
-    1.14,
-    1.13,
-    1.11
+    1.48,
+    1.56,
+    1.3
    ],
-   "total_s": 3.38,
-   "best_seed_s": 1.11,
+   "total_s": 4.34,
+   "best_seed_s": 1.3,
    "eprs": [
     289,
     289,
@@ -61,12 +61,12 @@
   {
    "circuit": "ae",
    "per_seed_s": [
-    1.29,
-    1.29,
-    1.3
+    1.78,
+    1.81,
+    1.69
    ],
-   "total_s": 3.88,
-   "best_seed_s": 1.29,
+   "total_s": 5.28,
+   "best_seed_s": 1.69,
    "eprs": [
     353,
     353,
@@ -77,12 +77,12 @@
   {
    "circuit": "qft",
    "per_seed_s": [
-    6.58,
-    6.58,
-    6.54
+    10.95,
+    14.24,
+    10.47
    ],
-   "total_s": 19.7,
-   "best_seed_s": 6.54,
+   "total_s": 35.66,
+   "best_seed_s": 10.47,
    "eprs": [
     312,
     312,
@@ -93,12 +93,12 @@
   {
    "circuit": "random",
    "per_seed_s": [
-    38.74,
-    38.07,
-    38.07
+    63.65,
+    68.25,
+    67.71
    ],
-   "total_s": 114.88,
-   "best_seed_s": 38.07,
+   "total_s": 199.61,
+   "best_seed_s": 63.65,
    "eprs": [
     null,
     null,
@@ -109,12 +109,12 @@
   {
    "circuit": "qaoa",
    "per_seed_s": [
-    37.13,
-    37.49,
-    37.07
+    52.32,
+    43.95,
+    39.36
    ],
-   "total_s": 111.69,
-   "best_seed_s": 37.07,
+   "total_s": 135.63,
+   "best_seed_s": 39.36,
    "eprs": [
     956,
     956,
@@ -125,12 +125,12 @@
   {
    "circuit": "qnn",
    "per_seed_s": [
-    8.08,
-    8.01,
-    7.93
+    9.87,
+    10.25,
+    8.87
    ],
-   "total_s": 24.02,
-   "best_seed_s": 7.93,
+   "total_s": 28.99,
+   "best_seed_s": 8.87,
    "eprs": [
     889,
     889,
@@ -141,12 +141,12 @@
   {
    "circuit": "multiplier",
    "per_seed_s": [
-    109.99,
-    105.75,
-    105.96
+    136.25,
+    137.89,
+    148.32
    ],
-   "total_s": 321.7,
-   "best_seed_s": 105.75,
+   "total_s": 422.46,
+   "best_seed_s": 136.25,
    "eprs": [
     1601,
     1601,

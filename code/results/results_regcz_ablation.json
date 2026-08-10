@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-08-06",
+    "date": "2026-08-10",
     "arch": "H-grid 2x3 of 4x4 (96 physical)",
     "family": "regular-graph CZ ansatz, gen_regular_cz.py",
     "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
@@ -161,8 +161,8 @@
       "seed": 0,
       "cx": 1984,
       "eprs": 357,
-      "ls": 1853,
-      "time_s": 31.512,
+      "ls": 1925,
+      "time_s": 2.498,
       "aborted": false
     },
     {
@@ -171,9 +171,9 @@
       "degree": 2,
       "seed": 1,
       "cx": 1984,
-      "eprs": 298,
-      "ls": 1463,
-      "time_s": 27.572,
+      "eprs": 284,
+      "ls": 1567,
+      "time_s": 2.131,
       "aborted": false
     },
     {
@@ -182,9 +182,9 @@
       "degree": 2,
       "seed": 2,
       "cx": 1984,
-      "eprs": 232,
-      "ls": 1129,
-      "time_s": 16.917,
+      "eprs": 238,
+      "ls": 1366,
+      "time_s": 0.921,
       "aborted": false
     },
     {
@@ -193,9 +193,9 @@
       "degree": 3,
       "seed": 0,
       "cx": 2016,
-      "eprs": 1337,
-      "ls": 6297,
-      "time_s": 79.026,
+      "eprs": 1359,
+      "ls": 6486,
+      "time_s": 5.609,
       "aborted": false
     },
     {
@@ -204,9 +204,9 @@
       "degree": 3,
       "seed": 1,
       "cx": 2016,
-      "eprs": 1355,
-      "ls": 6664,
-      "time_s": 73.967,
+      "eprs": 1356,
+      "ls": 6473,
+      "time_s": 2.898,
       "aborted": false
     },
     {
@@ -215,9 +215,9 @@
       "degree": 3,
       "seed": 2,
       "cx": 2016,
-      "eprs": 1225,
-      "ls": 6126,
-      "time_s": 68.165,
+      "eprs": 1182,
+      "ls": 5576,
+      "time_s": 2.763,
       "aborted": false
     },
     {
@@ -226,9 +226,9 @@
       "degree": 4,
       "seed": 0,
       "cx": 2048,
-      "eprs": 1647,
-      "ls": 8116,
-      "time_s": 68.703,
+      "eprs": 1688,
+      "ls": 7939,
+      "time_s": 3.3,
       "aborted": false
     },
     {
@@ -237,9 +237,9 @@
       "degree": 4,
       "seed": 1,
       "cx": 2048,
-      "eprs": 1819,
-      "ls": 9202,
-      "time_s": 71.287,
+      "eprs": 1865,
+      "ls": 9081,
+      "time_s": 3.697,
       "aborted": false
     },
     {
@@ -248,9 +248,9 @@
       "degree": 4,
       "seed": 2,
       "cx": 2048,
-      "eprs": 1924,
-      "ls": 9719,
-      "time_s": 69.132,
+      "eprs": 1907,
+      "ls": 9433,
+      "time_s": 4.058,
       "aborted": false
     },
     {
@@ -259,9 +259,9 @@
       "degree": 6,
       "seed": 0,
       "cx": 1920,
-      "eprs": 1920,
-      "ls": 9753,
-      "time_s": 54.619,
+      "eprs": 1849,
+      "ls": 9526,
+      "time_s": 3.56,
       "aborted": false
     },
     {
@@ -270,9 +270,9 @@
       "degree": 6,
       "seed": 1,
       "cx": 1920,
-      "eprs": 1866,
-      "ls": 9502,
-      "time_s": 55.798,
+      "eprs": 1894,
+      "ls": 9358,
+      "time_s": 3.575,
       "aborted": false
     },
     {
@@ -281,9 +281,9 @@
       "degree": 6,
       "seed": 2,
       "cx": 1920,
-      "eprs": 1863,
-      "ls": 9163,
-      "time_s": 54.463,
+      "eprs": 1837,
+      "ls": 9169,
+      "time_s": 3.241,
       "aborted": false
     },
     {
@@ -292,9 +292,9 @@
       "degree": 8,
       "seed": 0,
       "cx": 2048,
-      "eprs": 1858,
-      "ls": 9393,
-      "time_s": 47.077,
+      "eprs": 1929,
+      "ls": 9531,
+      "time_s": 3.544,
       "aborted": false
     },
     {
@@ -303,9 +303,9 @@
       "degree": 8,
       "seed": 1,
       "cx": 2048,
-      "eprs": 1835,
-      "ls": 9427,
-      "time_s": 44.339,
+      "eprs": 1862,
+      "ls": 9283,
+      "time_s": 3.112,
       "aborted": false
     },
     {
@@ -314,9 +314,9 @@
       "degree": 8,
       "seed": 2,
       "cx": 2048,
-      "eprs": 1855,
-      "ls": 9209,
-      "time_s": 43.712,
+      "eprs": 1838,
+      "ls": 9412,
+      "time_s": 3.537,
       "aborted": false
     },
     {
@@ -325,9 +325,9 @@
       "degree": 2,
       "seed": 0,
       "cx": 1984,
-      "eprs": 612,
-      "ls": 2946,
-      "time_s": 134.703,
+      "eprs": 364,
+      "ls": 1901,
+      "time_s": 1.979,
       "aborted": false
     },
     {
@@ -336,9 +336,9 @@
       "degree": 2,
       "seed": 1,
       "cx": 1984,
-      "eprs": 866,
-      "ls": 3918,
-      "time_s": 278.176,
+      "eprs": 361,
+      "ls": 1719,
+      "time_s": 2.404,
       "aborted": false
     },
     {
@@ -347,9 +347,9 @@
       "degree": 2,
       "seed": 2,
       "cx": 1984,
-      "eprs": 384,
-      "ls": 1818,
-      "time_s": 71.104,
+      "eprs": 238,
+      "ls": 1075,
+      "time_s": 0.938,
       "aborted": false
     },
     {
@@ -358,7 +358,10 @@
       "degree": 3,
       "seed": 0,
       "cx": 2016,
-      "aborted": true
+      "eprs": 1373,
+      "ls": 7129,
+      "time_s": 3.332,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -366,7 +369,10 @@
       "degree": 3,
       "seed": 1,
       "cx": 2016,
-      "aborted": true
+      "eprs": 1306,
+      "ls": 6740,
+      "time_s": 2.962,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -374,7 +380,10 @@
       "degree": 3,
       "seed": 2,
       "cx": 2016,
-      "aborted": true
+      "eprs": 1216,
+      "ls": 6432,
+      "time_s": 2.688,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -382,7 +391,10 @@
       "degree": 4,
       "seed": 0,
       "cx": 2048,
-      "aborted": true
+      "eprs": 1636,
+      "ls": 8550,
+      "time_s": 3.689,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -390,7 +402,10 @@
       "degree": 4,
       "seed": 1,
       "cx": 2048,
-      "aborted": true
+      "eprs": 1898,
+      "ls": 10091,
+      "time_s": 4.462,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -398,7 +413,10 @@
       "degree": 4,
       "seed": 2,
       "cx": 2048,
-      "aborted": true
+      "eprs": 2046,
+      "ls": 10825,
+      "time_s": 4.801,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -406,7 +424,10 @@
       "degree": 6,
       "seed": 0,
       "cx": 1920,
-      "aborted": true
+      "eprs": 1936,
+      "ls": 10669,
+      "time_s": 4.147,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -414,7 +435,10 @@
       "degree": 6,
       "seed": 1,
       "cx": 1920,
-      "aborted": true
+      "eprs": 1952,
+      "ls": 10714,
+      "time_s": 4.245,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -422,7 +446,10 @@
       "degree": 6,
       "seed": 2,
       "cx": 1920,
-      "aborted": true
+      "eprs": 1868,
+      "ls": 10422,
+      "time_s": 4.174,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -430,7 +457,10 @@
       "degree": 8,
       "seed": 0,
       "cx": 2048,
-      "aborted": true
+      "eprs": 1856,
+      "ls": 10101,
+      "time_s": 3.309,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -438,7 +468,10 @@
       "degree": 8,
       "seed": 1,
       "cx": 2048,
-      "aborted": true
+      "eprs": 1885,
+      "ls": 10506,
+      "time_s": 3.056,
+      "aborted": false
     },
     {
       "config": "no_cap",
@@ -446,7 +479,10 @@
       "degree": 8,
       "seed": 2,
       "cx": 2048,
-      "aborted": true
+      "eprs": 1912,
+      "ls": 10350,
+      "time_s": 3.071,
+      "aborted": false
     },
     {
       "config": "no_lookahead",
@@ -456,7 +492,7 @@
       "cx": 1984,
       "eprs": 365,
       "ls": 2680,
-      "time_s": 48.335,
+      "time_s": 2.918,
       "aborted": false
     },
     {
@@ -465,9 +501,9 @@
       "degree": 2,
       "seed": 1,
       "cx": 1984,
-      "eprs": 241,
-      "ls": 2647,
-      "time_s": 43.731,
+      "eprs": 272,
+      "ls": 2864,
+      "time_s": 1.961,
       "aborted": false
     },
     {
@@ -478,7 +514,7 @@
       "cx": 1984,
       "eprs": 241,
       "ls": 2050,
-      "time_s": 28.812,
+      "time_s": 1.412,
       "aborted": false
     },
     {
@@ -487,9 +523,9 @@
       "degree": 3,
       "seed": 0,
       "cx": 2016,
-      "eprs": 2016,
-      "ls": 9048,
-      "time_s": 108.937,
+      "eprs": 2035,
+      "ls": 9218,
+      "time_s": 4.446,
       "aborted": false
     },
     {
@@ -498,9 +534,9 @@
       "degree": 3,
       "seed": 1,
       "cx": 2016,
-      "eprs": 2039,
-      "ls": 9249,
-      "time_s": 103.22,
+      "eprs": 2080,
+      "ls": 9597,
+      "time_s": 4.147,
       "aborted": false
     },
     {
@@ -511,7 +547,7 @@
       "cx": 2016,
       "eprs": 1857,
       "ls": 8601,
-      "time_s": 89.4,
+      "time_s": 4.395,
       "aborted": false
     },
     {
@@ -520,9 +556,9 @@
       "degree": 4,
       "seed": 0,
       "cx": 2048,
-      "eprs": 2306,
-      "ls": 10768,
-      "time_s": 86.101,
+      "eprs": 2365,
+      "ls": 11066,
+      "time_s": 4.935,
       "aborted": false
     },
     {
@@ -531,9 +567,9 @@
       "degree": 4,
       "seed": 1,
       "cx": 2048,
-      "eprs": 2502,
-      "ls": 11497,
-      "time_s": 94.992,
+      "eprs": 2512,
+      "ls": 11350,
+      "time_s": 5.566,
       "aborted": false
     },
     {
@@ -542,9 +578,9 @@
       "degree": 4,
       "seed": 2,
       "cx": 2048,
-      "eprs": 2530,
-      "ls": 11969,
-      "time_s": 103.479,
+      "eprs": 2564,
+      "ls": 11654,
+      "time_s": 4.857,
       "aborted": false
     },
     {
@@ -553,9 +589,9 @@
       "degree": 6,
       "seed": 0,
       "cx": 1920,
-      "eprs": 2410,
-      "ls": 11236,
-      "time_s": 57.918,
+      "eprs": 2490,
+      "ls": 11010,
+      "time_s": 4.451,
       "aborted": false
     },
     {
@@ -564,9 +600,9 @@
       "degree": 6,
       "seed": 1,
       "cx": 1920,
-      "eprs": 2426,
-      "ls": 11277,
-      "time_s": 51.716,
+      "eprs": 2460,
+      "ls": 11095,
+      "time_s": 4.265,
       "aborted": false
     },
     {
@@ -575,9 +611,9 @@
       "degree": 6,
       "seed": 2,
       "cx": 1920,
-      "eprs": 2410,
-      "ls": 11083,
-      "time_s": 50.142,
+      "eprs": 2406,
+      "ls": 11251,
+      "time_s": 3.824,
       "aborted": false
     },
     {
@@ -586,9 +622,9 @@
       "degree": 8,
       "seed": 0,
       "cx": 2048,
-      "eprs": 2499,
-      "ls": 11714,
-      "time_s": 49.167,
+      "eprs": 2561,
+      "ls": 11376,
+      "time_s": 3.679,
       "aborted": false
     },
     {
@@ -597,9 +633,9 @@
       "degree": 8,
       "seed": 1,
       "cx": 2048,
-      "eprs": 2465,
-      "ls": 11387,
-      "time_s": 46.196,
+      "eprs": 2521,
+      "ls": 11485,
+      "time_s": 3.667,
       "aborted": false
     },
     {
@@ -608,9 +644,9 @@
       "degree": 8,
       "seed": 2,
       "cx": 2048,
-      "eprs": 2490,
-      "ls": 11760,
-      "time_s": 45.862,
+      "eprs": 2537,
+      "ls": 11647,
+      "time_s": 3.831,
       "aborted": false
     },
     {
@@ -619,9 +655,9 @@
       "degree": 2,
       "seed": 0,
       "cx": 1984,
-      "eprs": 354,
-      "ls": 1676,
-      "time_s": 24.998,
+      "eprs": 355,
+      "ls": 2024,
+      "time_s": 5.661,
       "aborted": false
     },
     {
@@ -630,9 +666,9 @@
       "degree": 2,
       "seed": 1,
       "cx": 1984,
-      "eprs": 247,
-      "ls": 1461,
-      "time_s": 21.462,
+      "eprs": 243,
+      "ls": 1976,
+      "time_s": 4.554,
       "aborted": false
     },
     {
@@ -641,9 +677,9 @@
       "degree": 2,
       "seed": 2,
       "cx": 1984,
-      "eprs": 233,
-      "ls": 1564,
-      "time_s": 14.311,
+      "eprs": 234,
+      "ls": 1642,
+      "time_s": 3.25,
       "aborted": false
     },
     {
@@ -652,9 +688,9 @@
       "degree": 3,
       "seed": 0,
       "cx": 2016,
-      "eprs": 1569,
-      "ls": 7196,
-      "time_s": 65.964,
+      "eprs": 1542,
+      "ls": 7292,
+      "time_s": 7.748,
       "aborted": false
     },
     {
@@ -663,9 +699,9 @@
       "degree": 3,
       "seed": 1,
       "cx": 2016,
-      "eprs": 1513,
-      "ls": 7085,
-      "time_s": 63.422,
+      "eprs": 1555,
+      "ls": 7173,
+      "time_s": 7.411,
       "aborted": false
     },
     {
@@ -674,9 +710,9 @@
       "degree": 3,
       "seed": 2,
       "cx": 2016,
-      "eprs": 1536,
-      "ls": 7075,
-      "time_s": 62.043,
+      "eprs": 1497,
+      "ls": 7227,
+      "time_s": 7.566,
       "aborted": false
     },
     {
@@ -685,9 +721,9 @@
       "degree": 4,
       "seed": 0,
       "cx": 2048,
-      "eprs": 1840,
-      "ls": 8865,
-      "time_s": 60.375,
+      "eprs": 1911,
+      "ls": 9074,
+      "time_s": 6.45,
       "aborted": false
     },
     {
@@ -696,9 +732,9 @@
       "degree": 4,
       "seed": 1,
       "cx": 2048,
-      "eprs": 2076,
-      "ls": 9815,
-      "time_s": 64.011,
+      "eprs": 2073,
+      "ls": 9835,
+      "time_s": 6.611,
       "aborted": false
     },
     {
@@ -707,9 +743,9 @@
       "degree": 4,
       "seed": 2,
       "cx": 2048,
-      "eprs": 2077,
-      "ls": 9583,
-      "time_s": 64.605,
+      "eprs": 2111,
+      "ls": 10082,
+      "time_s": 6.666,
       "aborted": false
     },
     {
@@ -718,9 +754,9 @@
       "degree": 6,
       "seed": 0,
       "cx": 1920,
-      "eprs": 1998,
-      "ls": 9948,
-      "time_s": 40.458,
+      "eprs": 2096,
+      "ls": 10052,
+      "time_s": 5.049,
       "aborted": false
     },
     {
@@ -729,9 +765,9 @@
       "degree": 6,
       "seed": 1,
       "cx": 1920,
-      "eprs": 2058,
-      "ls": 9833,
-      "time_s": 40.461,
+      "eprs": 2064,
+      "ls": 9933,
+      "time_s": 5.002,
       "aborted": false
     },
     {
@@ -740,9 +776,9 @@
       "degree": 6,
       "seed": 2,
       "cx": 1920,
-      "eprs": 1978,
-      "ls": 9580,
-      "time_s": 39.342,
+      "eprs": 1990,
+      "ls": 9560,
+      "time_s": 4.876,
       "aborted": false
     },
     {
@@ -751,9 +787,9 @@
       "degree": 8,
       "seed": 0,
       "cx": 2048,
-      "eprs": 2034,
-      "ls": 9876,
-      "time_s": 41.194,
+      "eprs": 2108,
+      "ls": 10187,
+      "time_s": 4.89,
       "aborted": false
     },
     {
@@ -762,9 +798,9 @@
       "degree": 8,
       "seed": 1,
       "cx": 2048,
-      "eprs": 2081,
-      "ls": 10117,
-      "time_s": 38.552,
+      "eprs": 2016,
+      "ls": 10166,
+      "time_s": 4.983,
       "aborted": false
     },
     {
@@ -773,9 +809,9 @@
       "degree": 8,
       "seed": 2,
       "cx": 2048,
-      "eprs": 2022,
-      "ls": 9566,
-      "time_s": 38.74,
+      "eprs": 2046,
+      "ls": 9918,
+      "time_s": 4.751,
       "aborted": false
     }
   ]

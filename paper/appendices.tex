@@ -8,9 +8,11 @@ interested in specific design or empirical questions.
 \rev{Appendix~\ref{app:pseudocode} gives the pseudocode of the routing
 loop of Section~\ref{sec:workflow}, and Appendix~\ref{app:complexity}
 derives its cost equation and validates it against measurement.
-Appendix~\ref{app:safemode} gives an optional capacity-safe mode that
-converts termination into termination \emph{with success}, and measures its
-cost.}
+Appendix~\ref{app:safemode} derives the capacity invariant that, by
+default, converts termination into termination \emph{with success}---the
+mechanism every number in this paper is produced under---and measures
+what it costs against the softer, submitted-manuscript design that
+preceded it.}
 Appendix~\ref{app:ablation} ablates the node-decay scoring component
 in detail \rev{and gives the full parameter-sensitivity sweep}.
 \rev{Appendix~\ref{app:corenet} gives per-circuit counts for the two
@@ -39,7 +41,11 @@ drawn as a flowchart in its Figure~\ref{fig:workflow}.  Phase labels \textup{(P1
 \textup{(P4)} match those used there: drain the front layer, classify
 the remainder into intra- and inter-core gates, apply one SWAP or one
 teleport, and checkpoint on forward progress.  Equation numbers refer
-to the main paper.}
+to the main paper.  It omits, for clarity, the capacity floor that by
+default makes every SWAP and teleport in lines 59--65 additionally
+legality-checked against $\mathrm{free}(c')\ge r$, and the guaranteed
+transaction line 70 falls back to in place of aborting; both are
+Appendix~\ref{app:safemode}'s subject.}
 
 \begin{algorithm}[t]
 \caption{\dSABRE{} \texttt{route}$(C, \ell_0)$}
@@ -65,7 +71,7 @@ to the main paper.}
   \IF{$|W|$ decreased}
     \STATE save checkpoint \hfill\textit{(P4)}
   \ELSIF{$L_\mathrm{deadlock}{=}50$ stalled iterations}
-    \STATE restore checkpoint;\ \texttt{backup\_plan}$(W,\ell,C_\mathrm{out})$ \hfill\textit{// abort after $N_\mathrm{backup}^\mathrm{max}{=}50$}
+    \STATE restore checkpoint;\ \texttt{backup\_plan}$(W,\ell,C_\mathrm{out})$ \hfill\textit{// guaranteed transaction after $N_\mathrm{backup}^\mathrm{max}{=}50$ failed recoveries (default); abort without it}
   \ENDIF
 \ENDWHILE
 \RETURN $(\ell, C_\mathrm{out}, \mathrm{metrics})$
@@ -302,24 +308,36 @@ distance queries require $\Omega(KM^2)$ space.}
 \subsection{\rev{Measured validation}}
 
 \rev{Table~\ref{tab:complexity_measured} collects the measurements behind
-the claims above, taken on the 64-qubit suite unless noted.  The profile
-attribution is the clearest: the $O(Mn{+}P)$ scoring that
-Eq.~\ref{eq:complexity}'s teleport term models accounts for $0.2$--$6\%$ of
-runtime, while the $\Theta(N_r)$ lookahead and DAG bookkeeping account for
-$85$--$90\%$, which is why compile time scales as $N^{2.1}$ and not
-linearly.  Removing the artefacts---maintained in-degrees, a maintained
-gate counter, log-based checkpoints, incremental $\Delta_F$ by (F2), the
-$E_\mathrm{c}$ early exit, and the composed $\dphys$ of
-Eq.~\ref{eq:dphys}---leaves the output bit-identical across all $207$
-routing passes compared over the 25-, 36-, 64- and 360-qubit suites, down
-to the individual SWAP and teleport on the smallest, while reducing compile
-time by $3.5$ to $6.7\times$.  The identity holds through deadlock recovery
-as well: on the 360-qubit QFT both routers abandon the same pass at the
-same iteration with the same $4535$ gates outstanding.  The exponent
-survives, as the analysis predicts, because $E_\mathrm{c}$ remains
-$\Theta(N_r)$: what improves is the constant.  The seeded closure of the
-previous subsection is what removes the exponent, and the last block of the
-table is its cost.}
+the claims above, taken on the 64-qubit suite unless noted, under
+\texttt{local\_ext\_mode="taint"}---the submitted manuscript's
+$\Theta(N_r)$-per-call $E_\mathrm{c}$ sweep---except where a row says
+otherwise.  The profile attribution is the clearest: the $O(Mn{+}P)$
+scoring that Eq.~\ref{eq:complexity}'s teleport term models accounts for
+$0.2$--$6\%$ of runtime, while the $\Theta(N_r)$ lookahead and DAG
+bookkeeping account for $85$--$90\%$, which is why compile time scaled as
+$N^{2.1}$ and not linearly under that construction.  Removing the
+artefacts---maintained in-degrees, a maintained gate counter, log-based
+checkpoints, incremental $\Delta_F$ by (F2), the $E_\mathrm{c}$ early
+exit, and the composed $\dphys$ of Eq.~\ref{eq:dphys}---leaves the output
+bit-identical across all $207$ routing passes compared over the 25-, 36-,
+64- and 360-qubit suites, down to the individual SWAP and teleport on the
+smallest, while reducing compile time by $3.5$ to $6.7\times$.  The
+identity holds through deadlock recovery as well: on the 360-qubit QFT
+both routers abandon the same pass at the same iteration with the same
+$4535$ gates outstanding.  The exponent survives this pass, as the
+analysis predicts, because $E_\mathrm{c}$ remains $\Theta(N_r)$ under
+\texttt{"taint"}: what improves is the constant, not the order.}
+
+\rev{The seeded closure (\texttt{local\_ext\_mode="shared"}) is what
+removes the exponent, and it is now the default---every other number in
+this paper is produced under it.  Refit across $27$ circuits spanning
+this paper's six suites ($17$ to $13\,979$ CX, each already reported
+elsewhere in this paper so no new routing was needed to check it), compile
+time scales as $N^{1.05}$: linear, matching Eq.~\ref{eq:complexity},
+where the row above was quadratic.  The last block of the table is the
+closure's cost measured the original way, on the 64q suite alone; the new
+row above it is the same claim re-measured at the scale this paper
+actually reports.}
 
 \begin{table}[t]
 \centering
@@ -335,7 +353,8 @@ Claim & Measurement & Value \\
 \multicolumn{3}{@{}l}{\emph{Where the time goes (profile, 64q)}} \\
 $\Theta(N_r)$ terms dominate & lookahead $+$ DAG bookkeeping & $85$--$90\%$ \\
 $Mn$ term is small & teleport candidate scoring & $0.2$--$6\%$ \\
-quadratic in gate count & fit of $t$ vs $N$ & $N^{2.04}$--$N^{2.16}$ \\
+quadratic in gate count (\texttt{"taint"}) & fit of $t$ vs $N$ & $N^{2.04}$--$N^{2.16}$ \\
+\textbf{linear in gate count (\texttt{"shared"}, default)} & fit of $t$ vs $N$, 27 circuits, 6 suites & $\mathbf{N^{1.05}}$ \\
 iterations linear in $N$ & $T/N$ & $0.67$--$0.68$ \\
 \midrule
 \multicolumn{3}{@{}l}{\emph{Structural facts}} \\
@@ -355,7 +374,7 @@ query cost & against a dense lookup & ${\approx}1\%$ of runtime \\
 \multicolumn{3}{@{}l}{\emph{Removing the artefacts}} \\
 output identity & routing passes compared & $207$, all identical \\
 compile time & 25q / 36q / 64q / 360q & $3.6$ / $3.5$ / $6.7$ / $4.0\times$ \\
-exponent unchanged & fit of $t$ vs $N$, optimised & $N^{1.93}$ \\
+exponent unchanged (still \texttt{"taint"}) & fit of $t$ vs $N$, optimised & $N^{1.93}$ \\
 \midrule
 \multicolumn{3}{@{}l}{\emph{Replacing the $E_\mathrm{c}$ sweep by the seeded closure (64q)}} \\
 same set unless truncated & counterexamples, $4854$ calls (25q) & $0$ \\
@@ -375,22 +394,28 @@ output identity & circuits reproduced exactly & $2$ / $6$ of $9$ \\
 \label{app:safemode}
 
 \rev{\noindent Appendix~\ref{app:complexity} shows that \dSABRE{}
-terminates, but only by budget exhaustion: bounded counters stop the loop,
-and nothing argues that it stops with every gate routed.  This appendix
-closes that gap with an optional mode, states the conditions under which its
-guarantee is a theorem, and measures what it costs.  It is off by default,
-so every number elsewhere in this paper is unaffected.}
+terminates, but by budget exhaustion alone that argument says nothing
+about whether it stops with every gate routed.  This appendix derives a
+capacity invariant that closes that gap, states the conditions under
+which its guarantee is a theorem, and measures what it costs.  It is
+\textbf{on by default}: every number elsewhere in this paper is produced
+under it.  Section~\ref{app:safemode_cost} isolates its cost by
+comparing against the softer, score-only mechanism of the submitted
+manuscript, kept available as \texttt{safe\_mode=False} for exactly that
+comparison.}
 
-\subsection{\rev{How the default router can fail}}
+\subsection{\rev{How a score-only capacity term can fail}}
 \label{app:safemode_failure}
 
-\rev{Capacity enters the scoring function as a soft penalty, while a
-teleport is \emph{legal} whenever its destination core holds one free slot.
-A legal move may therefore take a core to zero occupancy headroom, and
-nothing pushes back.  Total free capacity $F{=}P{-}n$ is exactly conserved
+\rev{Without the invariant derived below, capacity enters the scoring
+function as a soft penalty only, while a teleport is \emph{legal}
+whenever its destination core holds one free slot.  A legal move may
+therefore take a core to zero occupancy headroom, and nothing pushes
+back.  Total free capacity $F{=}P{-}n$ is exactly conserved
 by both operations---a SWAP moves no qubit between cores and a teleport
 moves one---so routing cannot consume headroom, but it can \emph{concentrate}
-it.}
+it.  This is the submitted manuscript's design, and the failure mode
+that motivates everything else in this appendix.}
 
 \rev{On the 360-qubit QFT the concentration is severe.  The initial layout
 is even, with $[24,16,19,25,15,27]$ free slots across the six cores; the
@@ -402,9 +427,13 @@ $62$ deadlock recoveries, and all $83$ across the three initial layouts,
 ran with at least one core at zero.  A qubit in such a core generally cannot
 be teleported out, because clearing the outgoing communication port requires
 a free slot to displace its occupant into; when both operands of a gate sit
-in full cores, no move exists.  The failure is invisible in
-Table~\ref{tab:scalability} because the best-of-three protocol reports a
-surviving pass.}
+in full cores, no move exists.  \rev{This instance is a six-core,
+81-qubit-per-core H-grid, a wider-core stress configuration distinct
+from the twenty-core, 25-qubit-per-core architecture
+Table~\ref{tab:main}'s 360q row reports (Section~\ref{sec:largecircuits}
+of the main paper); on that architecture the failure is invisible
+because the best-of-three protocol reports a surviving pass, and under
+the invariant below no pass fails at all.}}
 
 \subsection{\rev{The invariant}}
 \label{app:safemode_invariant}
@@ -484,8 +513,8 @@ EPR cost, but the distinction between the two modes is not primarily an
 empirical one: it is a difference in what can be \emph{proved}, and it holds
 regardless of what any particular benchmark measures.}
 
-\rev{\textbf{Termination versus termination with success.}  The default
-router's termination argument (Appendix~\ref{app:complexity}) is a budget
+\rev{\textbf{Termination versus termination with success.}  The
+score-only design's termination argument (Appendix~\ref{app:complexity}) is a budget
 argument: bounded counters force the loop to stop, and the argument says
 nothing about the state it stops in.  Safe mode's argument
 (Section~\ref{app:safemode_theorem}) is a progress argument: the unrouted
@@ -499,34 +528,34 @@ architecture size---the complexity appendix bounds compile \emph{time}.
 Safe mode gives $\mathrm{EPR}\le 2D_K$ per remote gate, and each individual
 guaranteed transaction is within a factor of two of the
 information-theoretic lower bound $d$ for the gate it resolves.  The
-default router's fallback has no such property: a bad recovery can cost
+score-only design's fallback has no such property: a bad recovery can cost
 arbitrarily more than $d$, and, before this work, could fail outright.}
 
 \rev{\textbf{A hard invariant versus a soft score.}  Capacity is a term in
-the default router's scoring function, evaluated locally per candidate; it
+the score-only design's scoring function, evaluated locally per candidate; it
 discourages emptying a core but never forbids it, and nothing is true of the
 layout as a whole between iterations beyond it being a valid bijection.
 Eq.~\ref{eq:safe_invariant} is a global invariant, true of every core at
 every action boundary and re-established by construction after every
-transaction---the induction the theorem runs on.  The default router has no
+transaction---the induction the theorem runs on.  The score-only design has no
 comparable object to induct over.}
 
 \rev{\textbf{A strictly smaller action space, not just a different score.}
 Legality in Tier 1 tightens from $\mathrm{free}(c')\ge 1$ to
 $\mathrm{free}(c')\ge \mathrm{tier1\_floor}$ ($=2$ by default), so at every
 iteration the set of moves safe mode may choose from is a subset of what the
-default router may choose from.  Section~\ref{app:safemode_cost} finds this
+score-only design may choose from.  Section~\ref{app:safemode_cost} finds this
 costs close to nothing on the suites measured, but that is an empirical
 finding about those circuits, not a consequence of the restriction itself.}
 
 \rev{\textbf{A checked precondition versus an unconditional attempt.}  The
-default router is total on any two-qubit circuit and initial layout: it
+score-only design is total on any two-qubit circuit and initial layout: it
 always attempts to route, discovering failure, if any, during execution.
 Safe mode checks five hypotheses---architecture connectivity, minimum core
 size, feasibility $P\ge n{+}rK{+}1$, recovery enabled, $r\ge 2$---before
 routing starts, and is undefined outside that domain rather than attempting
 a best-effort route.  This is why safe mode is not a drop-in replacement on
-an infeasible architecture: the default router's best-effort behaviour there
+an infeasible architecture: the score-only design's best-effort behaviour there
 is a capability safe mode does not currently offer.}
 
 \rev{\textbf{What does not change.}  The asymptotic results of
@@ -543,9 +572,10 @@ complexity class.  The new result is what that bounded term can be used to
 \rev{Table~\ref{tab:safemode} gives the 64-qubit suite under the same
 protocol as the main text.  The guarantee costs $0.2\%$ EPR pairs in
 geometric mean and $1.3\%$ in total, and needs \emph{fewer} routing
-iterations than the default---because the mechanism it replaces,
-a reactive room-making step invoked when a teleport finds a full core, stops
-being reachable at all.  Per-circuit variance is larger than the mean in
+iterations than the score-only design it replaced---because the
+mechanism it replaces, a reactive room-making step invoked when a
+teleport finds a full core, stops being reachable at all.  Per-circuit
+variance is larger than the mean in
 both directions, which is characteristic of the three-pass protocol: one
 different choice in the forward pass propagates through the layout every
 later pass inherits; the same nine circuits move by up to $17\%$ in either
@@ -561,15 +591,16 @@ runs---costs $16.0\%$ EPR pairs in geometric mean, eighty times as much, for
 no additional guarantee.  The setting reported here is the cheaper one.}
 
 \rev{Across all six suites in this paper---$41$ circuits with a directly
-comparable default-router baseline, plus one (Section~\ref{app:safemode_when})
-the default router does not complete at all---the guarantee costs $0.2\%$ EPR
+comparable score-only-design baseline, plus one (Section~\ref{app:safemode_when})
+the score-only design does not complete at all---the guarantee costs $0.2\%$ EPR
 pairs in geometric mean overall, and stays within $2.6\%$ in either direction
 on every individual suite (25-, 36-, 64-, 100-, 200- and 360-qubit).  On the
 64- and 100-qubit suites it is a net improvement.}
 
 \begin{table}[t]
 \centering
-\caption{\rev{Safe mode against the default router, 64-qubit suite,
+\caption{\rev{\dSABRE{} with the capacity invariant (current default)
+against the score-only design it replaced, 64-qubit suite,
 three initial layouts $\times$ forward--backward--forward.  EPR pairs;
 lower is better.}}
 \label{tab:safemode}
@@ -577,7 +608,7 @@ lower is better.}}
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{@{}lrrr@{}}
 \toprule
-Circuit & Default & Safe & $\Delta$ \\
+Circuit & Score-only & Invariant & $\Delta$ \\
 \midrule
 ae          & $200$   & $165$   & $-17.5\%$ \\
 ghz         & $6$     & $6$     & $0.0\%$   \\
@@ -602,24 +633,31 @@ Transaction rollbacks        & $0$     & $0$     & \\
 \end{tabular}
 \end{table}
 
-\subsection{\rev{When it is worth enabling}}
+\subsection{\rev{Why this is the default}}
 \label{app:safemode_when}
 
-\rev{On the suites in this paper the guarantee is close to free, so its case
-rests on robustness rather than on better solutions.  It is worth enabling
-where a single routing attempt must succeed---an automated pipeline with no
-seed to fall back on, or a fill factor high enough that headroom
-concentration is a risk.  It also completes an instance (a $200$-qubit
-random circuit, $146\,989$ two-qubit gates) on which the default router
-exhausts its iteration budget on every one of three candidate layouts and
-produces no result at all; unlike an earlier such instance found during
-development, whose failure turned out to be an artefact of a since-changed
-scoring detail, this one was independently re-confirmed against the router
-as it stands at submission.  Per Section~\ref{app:safemode_theory}, though,
-recurrence under future changes is still not what the guarantee's value
-rests on---it is a property of what the algorithm can be proved to do given
-its stated preconditions, independent of which specific instance a given
-snapshot of the heuristic happens to mishandle.}
+\rev{On the suites in this paper the guarantee is close to free
+(Table~\ref{tab:safemode}), so its case rests on robustness rather than
+on better solutions, and robustness is what a default should optimise
+for.  It matters most where a single routing attempt must succeed---an
+automated pipeline with no seed to fall back on, or a fill factor high
+enough that headroom concentration is a risk---and it completes an
+instance (a $200$-qubit random circuit, $146\,989$ two-qubit gates) on
+which the score-only design exhausts its iteration budget on every one
+of three candidate layouts and produces no result at all; unlike an
+earlier such instance found during development, whose failure turned
+out to be an artefact of a since-changed scoring detail, this one was
+independently re-confirmed against the score-only design as it stood at
+submission.  Per Section~\ref{app:safemode_theory}, though, recurrence
+under future changes is still not what the guarantee's value rests
+on---it is a property of what the algorithm can be proved to do given
+its stated preconditions, independent of which specific instance a
+given snapshot of the heuristic happens to mishandle.  The one caveat a
+default inherits and an opt-in mode did not: on an architecture below
+the feasibility line $P<n+rK+1$, \dSABRE{} raises rather than
+degrading, so an infeasible configuration is reported at start-up
+instead of discovered mid-route; every architecture in this paper
+satisfies the bound.}
 
 %%─────────────────────────────────────────────────────────────────────────────
 \section{Component Ablations}
@@ -753,12 +791,16 @@ flat region of their respective curves (within ${\sim}2\%$ of the
 local minimum), so performance is robust to small perturbations.  The
 only sharp regressions occur when a control is pushed far from its
 default: e.g.\ $w_e{\ge}1.0$ inflates 25q gmEPR by $3$--$5\times$ as
-the lookahead dominates immediate preparation costs,
-$c_{\mathrm{pen}}{=}0$ doubles gmEPR by inviting deadlocks in
-saturated cores, and $\gamma{=}1.0$ (flat weighting) costs $7\%$ on
-64q.  These observations confirm that the defaults are well-calibrated
-and that no single hyperparameter is a hidden lever; tuning beyond the
-defaults yields diminishing returns.}
+the lookahead dominates immediate preparation costs, $w_e{=}0$ costs
+$41.4\%$ at 64q, and $\gamma{=}1.0$ (flat weighting) costs $7\%$ on
+64q.  $c_{\mathrm{pen}}{=}0$ is the one control whose effect changed
+qualitatively since the submitted design: it no longer produces a sharp
+regression once the capacity invariant of Appendix~\ref{app:safemode}
+enforces feasibility on its own---$9.4\%$ at 64q and a slightly
+negative $-2.5\%$ at 25q (Table~\ref{tab:mech}).  These observations
+confirm that the defaults are well-calibrated and that no single
+hyperparameter is a hidden lever; tuning beyond the defaults yields
+diminishing returns.}
 
 %%─────────────────────────────────────────────────────────────────────────────
 
@@ -768,12 +810,12 @@ defaults yields diminishing returns.}
 \rev{Per-circuit counts for the heavy-hex ring and star architectures of
 Section~\ref{sec:scalability}.  Against the H-grid of Table~\ref{tab:main}, EPR
 counts \emph{fall} on the ring for both routers (\dSABRE{}: AE
-$242\!\to\!87$, Random $721\!\to\!462$) while intra-core SWAPs \emph{rise} by
+$165\!\to\!86$, Random $732\!\to\!465$) while intra-core SWAPs \emph{rise} by
 half to four-fifths on every circuit but the trivially small GHZ: spreading
 the same 64 logical qubits over four 27-qubit cores instead of six 16-qubit
 ones leaves fewer gates crossing a boundary but makes each core twice as wide.
 Moving from the ring to the star then charges for the lost link and the hub,
-most visibly on AE ($87\!\to\!141$).  \dSABRE{} follows both trades without
+most visibly on AE ($86\!\to\!118$).  \dSABRE{} follows both trades without
 retuning.}
 
 \begin{table}[h]
@@ -801,26 +843,26 @@ Circuit & CX & EPR & SWAP & EPR & SWAP & (\%) \\
 % BODY GENERATED BY code/gen_corenet_table.py -- regenerate and paste
 \multicolumn{7}{@{}l}{\emph{Ring core graph: 4 inter-core links, every core of degree 2}} \\
 \addlinespace[1pt]
-ae & 1962 & 161 & 2651 & 89 & 2316 & $-44.7$ \\
+ae & 1962 & 161 & 2651 & 86 & 2023 & $-46.6$ \\
 ghz & 63 & 5 & 218 & 2 & 43 & $-60.0$ \\
-graphstate & 64 & 46 & 497 & 12 & 149 & $-73.9$ \\
-qft & 1966 & 153 & 2869 & 109 & 2735 & $-28.8$ \\
-qnn & 8126 & 1289 & 11514 & 238 & 10085 & $-81.5$ \\
-random & 1627 & 715 & 7511 & 448 & 5824 & $-37.3$ \\
+graphstate & 64 & 46 & 497 & 12 & 161 & $-73.9$ \\
+qft & 1966 & 153 & 2869 & 110 & 2461 & $-28.1$ \\
+qnn & 8126 & 1289 & 11514 & 249 & 7669 & $-80.7$ \\
+random & 1627 & 715 & 7511 & 465 & 5716 & $-35.0$ \\
 \cmidrule(lr){1-7}
-\textbf{gmean} (6) &  & 131.7 & 2036 & 54.0 & 1156 & $\mathbf{-59.0}$ \\
+\textbf{gmean} (6) &  & 131.7 & 2036 & 54.5 & 1071 & $\mathbf{-58.6}$ \\
 \midrule
 \multicolumn{7}{@{}l}{\emph{Star core graph: 3 inter-core links, core 0 a hub of degree 3}} \\
 \addlinespace[1pt]
-ae & 1962 & 132 & 2856 & 144 & 2407 & $+9.1$ \\
-ghz & 63 & 5 & 223 & 4 & 85 & $-20.0$ \\
-graphstate & 64 & 37 & 578 & 10 & 120 & $-73.0$ \\
-qft & 1966 & 195 & 3319 & 155 & 2894 & $-20.5$ \\
-qnn & 8126 & 373 & 8779 & 250 & 9366 & $-33.0$ \\
-random$^{\ast}$ & 1627 & --- & --- & 481 & 5506 & --- \\
+ae & 1962 & 132 & 2856 & 118 & 2236 & $-10.6$ \\
+ghz & 63 & 5 & 223 & 3 & 70 & $-40.0$ \\
+graphstate & 64 & 37 & 578 & 10 & 124 & $-73.0$ \\
+qft & 1966 & 195 & 3319 & 125 & 2129 & $-35.9$ \\
+qnn & 8126 & 373 & 8779 & 241 & 7765 & $-35.4$ \\
+random$^{\ast}$ & 1627 & --- & --- & 475 & 6059 & --- \\
 \cmidrule(lr){1-7}
-\textbf{gmean} (5) &  & 70.8 & 1607 & 46.7 & 922 & $\mathbf{-34.0}$ \\
-\textbf{gmean} (6) &  & --- & --- & 68.9 & 1242 & --- \\
+\textbf{gmean} (5) &  & 70.8 & 1607 & 40.3 & 797 & $\mathbf{-43.0}$ \\
+\textbf{gmean} (6) &  & --- & --- & 60.8 & 1117 & --- \\
 \bottomrule
 \end{tabular}%
 }
@@ -835,9 +877,9 @@ Section~\ref{sec:largecircuits} isolates core granularity: the same
 diameter 3) against twelve $5{\times}5$ cores (300 physical, diameter 5)---
 near-identical qubit budget, opposite trade between core width and core-graph
 length.  \dSABRE{} completes the six-core layout at $353$ EPR and the
-twelve-core layout at $767$, a $2.2\times$ gap.  Read against each
+twelve-core layout at $766$, a $2.2\times$ gap.  Read against each
 architecture's own \TeleSABRE{} baseline ($579$ and $1232$ EPR
-respectively) the routing margin is $-39.0\%$ on six cores and $-37.7\%$ on
+respectively) the routing margin is $-39.0\%$ on six cores and $-37.8\%$ on
 twelve---nearly identical, rather than one architecture clearly favouring
 \dSABRE{} over the other.  The headroom a wider core buys (more free slots
 per core to absorb the capacity penalty and checkpoint--rollback) and the
@@ -897,27 +939,34 @@ so a mechanism's $\Delta$ read across a row of Table~\ref{tab:regcz} is its
 contribution as a function of the one circuit property it is designed to
 respond to.}
 
-\rev{The two load-bearing mechanisms turn out to trade places, and not
-symmetrically.  The capacity penalty is worth $+102.0\%$ at $d{=}2$---already
-substantial---and past it stops being a matter of degree: with
-$c_{\mathrm{pen}}{=}0$ every seed at $d{\ge}3$ deadlocks outright, so beyond
-the sparsest point the mechanism is not making routing cheaper, it is what
-makes routing possible at all.  The extended-set lookahead is worth
-\emph{nothing} at $d{=}2$ ($-4.9\%$---marginally better without it) and
-$+51.0\%$ at $d{=}3$, settling in the high twenties to mid thirties thereafter
-($+28.3$--$36.3\%$).  The crossover sits between $d{=}2$ and $d{=}3$, and
-it is what the two terms are for.  The capacity penalty prices
-\emph{occupancy}, which is a live constraint only while a landing core can
-plausibly be either full or empty---the sparse regime, in which a good layout
-still leaves headroom worth protecting; past it, occupancy stops being
-gradable at all and the router cannot proceed without pricing it.  The
-lookahead prices \emph{future
-demand}, and a qubit has competing future demands only once it has several
-partners; at $d{=}2$ it has two, the front layer already names the right move,
-and the lookahead adds noise.  The BFS extended set follows its own lookahead:
-negative at $d{=}2$, then $+6.8$--$18.0\%$.  Table~\ref{tab:mech} ranks the
-capacity penalty first because the application suites sit at the sparse end of
-this axis---a property of the benchmark, not an ordering of the mechanisms.}
+\rev{\textbf{Re-measured under the current default.}  This sweep
+(Table~\ref{tab:regcz}) is now re-run under the capacity invariant of
+Appendix~\ref{app:safemode}.  Every ``fail'' cell the submitted,
+score-only design produced for $c_{\mathrm{pen}}{=}0$ at $d\ge 3$ is
+gone: the invariant makes the ablation measurable at every degree, the
+same qualitative change Table~\ref{tab:mech}'s own capacity-penalty row
+shows on the application suites, and it changes which mechanism this
+sweep identifies as dominant.}
+
+\rev{Under the submitted, score-only design the two mechanisms traded
+places, and not symmetrically.  The capacity penalty was worth
+$+102.0\%$ at $d{=}2$---already substantial---and past it stopped being
+a matter of degree: with $c_{\mathrm{pen}}{=}0$ every seed at $d{\ge}3$
+deadlocked outright, so beyond the sparsest point the term was not
+making routing cheaper, it was what made routing possible at all.
+Under the current default that story is gone: with feasibility
+guaranteed independently of the score, disabling $c_{\mathrm{pen}}$
+costs at most $+9.0\%$ (at $d{=}2$) and is within $3.1\%$ of the
+baseline at every $d\ge 3$---the invariant has absorbed the term's
+entire job at high degree, leaving almost nothing for the soft
+preference to add.  The extended-set lookahead now dominates uniformly
+instead: worth nothing at $d{=}2$ ($-0.3\%$, where two partners leave
+nothing for a lookahead to disambiguate) and $+31.8$--$53.4\%$ at every
+$d\ge 3$, the largest mechanism effect at every degree past the
+sparsest one---future demand, which is what the lookahead prices, is a
+live constraint at every degree the invariant does not already resolve
+for capacity.  The BFS extended set follows its own lookahead: negative
+at $d{=}2$ ($-5.8\%$), then $+9.6$--$18.1\%$.}
 
 \rev{The baseline
 itself saturates: gmEPR plateaus near
@@ -931,7 +980,10 @@ it, which is the honest ceiling of this experiment.}
 \caption{\rev{Mechanism contribution against interaction-graph degree $d$, on
   the synthetic family defined above: 64 logical qubits
   on the 64q H-grid, gate volume held near $2000$ CX at every degree, three
-  interaction graphs per degree and the geometric mean over the three.  The
+  interaction graphs per degree and the geometric mean over the three.
+  Re-run under the capacity invariant of Appendix~\ref{app:safemode}, the
+  current default; the submitted manuscript's score-only design deadlocked
+  outright for $c_{\mathrm{pen}}{=}0$ at every $d\ge 3$ (\S below).  The
   first row is absolute; the rest are $\Delta$gmEPR against it, a positive
   value meaning the disabled mechanism was doing work.  The table compares
   \dSABRE{} against its own ablations only; the comparison against
@@ -949,14 +1001,14 @@ it, which is the honest ceiling of this experiment.}
 \cmidrule(lr){2-6}
 Configuration & 2 & 3 & 4 & 6 & 8 \\
 \midrule
-% BODY GENERATED BY code/gen_regcz_table.py -- regenerate and paste
-\textbf{Full} (gmEPR) & 291.2 & 1304.4 & 1793.0 & 1882.8 & 1849.3 \\
+% BODY GENERATED BY code/ablate_regular_cz.py --merge -- regenerate and paste
+\textbf{Full} (gmEPR) & 289.0 & 1296.3 & 1817.5 & 1859.8 & 1875.9 \\
 \midrule
 \multicolumn{6}{@{}l}{\emph{$\Delta$gmEPR (\%) with one mechanism disabled}} \\
 \addlinespace[1pt]
-No capacity penalty ($c_{\mathrm{pen}}=0$) & $+102.0$ & fail & fail & fail & fail \\
-No extended-set lookahead ($w_e=0$) & $-4.9$ & $+51.0$ & $+36.3$ & $+28.3$ & $+34.4$ \\
-Topological extended set (not BFS) & $-6.2$ & $+18.0$ & $+11.2$ & $+6.8$ & $+10.6$ \\
+No capacity penalty ($c_{\mathrm{pen}}=0$) & $+9.0$ & $\phantom{+}0.0$ & $+1.9$ & $+3.1$ & $+0.4$ \\
+No extended-set lookahead ($w_e=0$) & $-0.3$ & $+53.4$ & $+36.4$ & $+31.8$ & $+35.4$ \\
+Topological extended set (not BFS) & $-5.8$ & $+18.1$ & $+11.7$ & $+10.2$ & $+9.6$ \\
 \bottomrule
 \end{tabular}%
 }
@@ -1573,8 +1625,8 @@ ae$^{\dagger}$         &  48 &  48 &  23 & 19 \\
 ghz                    &   3 &   2 &   1 &  1 \\
 graphstate             &   4 &   2 &   2 &  1 \\
 qft$^{\dagger}$        &  61 &  57 &  33 & 10 \\
-qnn$^{\dagger}$        & 115 & 127 &  48 & 12 \\
-random$^{\dagger}$     & 480 & 314 & 178 &  7 \\
+qnn$^{\dagger}$        & 115 & 127 &  47 & 12 \\
+random$^{\dagger}$     & 480 & 314 & 181 &  7 \\
 \cmidrule(lr){1-5}
 \textbf{gmean}         & 35.3 & 27.5 & 15.3 & \\
 \midrule
@@ -1582,32 +1634,32 @@ random$^{\dagger}$     & 480 & 314 & 178 &  7 \\
 \addlinespace[1pt]
 bv                     &   3 &   1 &   1 &  1 \\
 dj                     &   3 &   2 &   3 &  1 \\
-qaoa$^{\dagger}$       & 148 & 144 & 133 & ${>}13$ \\
-qpeexact$^{\dagger}$   &  49 &  52 &  60 &  6 \\
-vqe\_su2               &   9 &  12 &  10 &  1 \\
+qaoa$^{\dagger}$       & 148 & 144 & 134 & ${>}13$ \\
+qpeexact$^{\dagger}$   &  49 &  52 &  62 &  6 \\
+vqe\_su2               &   9 &  12 &   9 &  1 \\
 wstate                 &   6 &   8 &   6 &  1 \\
 \cmidrule(lr){1-5}
-\textbf{gmean}         & 12.3 & 10.6 & 10.6 & \\
+\textbf{gmean}         & 12.3 & 10.6 & 10.5 & \\
 \midrule
 \multicolumn{5}{@{}l}{\emph{64 logical qubits, H-grid, 2--3 ports per core}} \\
 \addlinespace[1pt]
-ae$^{\dagger}$         &  141 &  142 &  141 & ${>}18$ \\
+ae$^{\dagger}$         &  141 &  142 &  165 & ${>}18$ \\
 ghz                    &    5 &    9 &    6 &  1 \\
-graphstate             &    9 &    7 &   16 &  1 \\
-qft$^{\dagger}$        &  183 &  204 &  192 & ${>}7$ \\
-qnn$^{\dagger}$        &  657 &  605 &  497 & ${>}6$ \\
-random$^{\dagger}$     &  948 &  925 &  712 & ${>}4$ \\
-qpeexact$^{\dagger}$   &   97 &  118 &  204 & ${>}5$ \\
-qaoa$^{\dagger}$       &  513 &  473 &  517 & ${>}7$ \\
-multiplier$^{\dagger}$ & 2956 & 2891 & 1523 & n/d \\
+graphstate             &    9 &    7 &   15 &  1 \\
+qft$^{\dagger}$        &  183 &  204 &  180 & ${>}7$ \\
+qnn$^{\dagger}$        &  657 &  605 &  539 & ${>}6$ \\
+random$^{\dagger}$     &  948 &  925 &  732 & ${>}4$ \\
+qpeexact$^{\dagger}$   &   97 &  118 &  187 & ${>}5$ \\
+qaoa$^{\dagger}$       &  513 &  473 &  555 & ${>}7$ \\
+multiplier$^{\dagger}$ & 2956 & 2891 & 1285 & n/d \\
 \cmidrule(lr){1-5}
-\textbf{gmean}         & 168.0 & 176.3 & 174.2 & \\
+\textbf{gmean}         & 168.0 & 176.3 & 173.3 & \\
 \midrule
 \multicolumn{5}{@{}l}{\emph{QFT scalability sweep}} \\
 \addlinespace[1pt]
-100q$^{\dagger}$       &  114 &  137 &  239 & ${>}7$ \\
-200q                   &  487 &  680 &  767 & ${>}1$ \\
-360q                   &  736 &  998 & 2208 & n/d \\
+100q$^{\dagger}$       &  114 &  137 &  201 & ${>}7$ \\
+200q                   &  487 &  680 &  766 & ${>}1$ \\
+360q                   &  736 &  998 & 1890 & n/d \\
 \bottomrule
 \end{tabular}%
 }
@@ -2402,7 +2454,7 @@ Suite & Circuit    & Qubits & CX gates & Depth & CX/qubit \\
   a single seed, being deterministic here---its three seeds return identical
   EPR counts on all nine circuits---while \dSABRE{} needs three
   \texttt{SabreLayout} seeds, whose results genuinely differ (AE:
-  $242/258/263$), and \texttt{pytket-dqc} five by its own convention.  The
+  $165/196/212$), and \texttt{pytket-dqc} five by its own convention.  The
   \TeleSABRE{} and \dSABRE{} columns were measured in isolation on one machine;
   the \texttt{pytket-dqc} column is the best-of-5 search under the
   \emph{physical} network model of Table~\ref{tab:fair} taken from a separate
@@ -2415,9 +2467,11 @@ Suite & Circuit    & Qubits & CX gates & Depth & CX/qubit \\
   architectures grow with the circuit ($6$, $12$ and $20$ cores of
   $5{\times}5$) and which is therefore not comparable across rows with the
   fixed-architecture suite above; at 360 qubits \TeleSABRE{} spends $1014$\,s
-  over three seeds and returns no routing, and \dSABRE{}'s $3428$\,s includes
-  one \texttt{SabreLayout} seed that aborts.  The 64-qubit block was measured
-  in isolation; the scalability block comes from the benchmark sweep.}}
+  over three seeds and returns no routing, while \dSABRE{}'s $3428$\,s spans
+  three \texttt{SabreLayout} seeds, none of which now aborts under the
+  capacity invariant of Section~\ref{sec:relief}.  The 64-qubit block was
+  measured in isolation; the scalability block comes from the benchmark
+  sweep.}}
 \label{tab:timing}
 \setlength{\tabcolsep}{5pt}
 \small
@@ -2427,23 +2481,23 @@ Suite & Circuit    & Qubits & CX gates & Depth & CX/qubit \\
  & & \TeleSABRE{} & \dSABRE{} & \texttt{pytket-dqc} \\
 Circuit & CX & ($1$ seed) & ($3$ seeds) & ($5$ seeds) \\
 \midrule
-GHZ                     &    63 & \rev{0.02}   & \rev{0.06}    & \rev{0.4} \\
-Graphstate              &    64 & \rev{1.93}   & \rev{0.19}    & \rev{0.6} \\
-AE                      &  1962 & \rev{1.29}   & \rev{31.17}   & \rev{277.3} \\
-QFT                     &  1966 & \rev{6.54}   & \rev{33.92}   & \rev{239.1} \\
-Random$^{\ast\dagger}$  &  1627 & ---          & \rev{53.70}   & \rev{324.6} \\
-QPEexact                &  2139 & \rev{1.11}   & \rev{33.31}   & \rev{239.9} \\
-QAOA$^{\dagger}$        &  3920 & \rev{37.07}  & \rev{104.27}   & \rev{371.6} \\
-QNN$^{\dagger}$         &  8126 & \rev{7.93}   & \rev{282.53}  & \rev{479.0} \\
-Multiplier$^{\dagger}$  & 13040 & \rev{105.75} & \rev{1408.03} & \rev{478.6} \\
+GHZ                     &    63 & \rev{0.04}   & \rev{0.05}    & \rev{0.4} \\
+Graphstate              &    64 & \rev{2.74}   & \rev{0.14}    & \rev{0.6} \\
+AE                      &  1962 & \rev{1.78}   & \rev{2.53}    & \rev{277.3} \\
+QFT                     &  1966 & \rev{10.95}  & \rev{3.23}    & \rev{239.1} \\
+Random$^{\ast\dagger}$  &  1627 & ---          & \rev{6.06}    & \rev{324.6} \\
+QPEexact                &  2139 & \rev{1.48}   & \rev{2.03}    & \rev{239.9} \\
+QAOA$^{\dagger}$        &  3920 & \rev{52.32}  & \rev{5.29}    & \rev{371.6} \\
+QNN$^{\dagger}$         &  8126 & \rev{9.87}   & \rev{10.06}   & \rev{479.0} \\
+Multiplier$^{\dagger}$  & 13040 & \rev{136.25} & \rev{23.70}   & \rev{478.6} \\
 \cmidrule(lr){1-5}
-\textbf{gmean} (8)      &       & \rev{\textbf{3.21}} & \rev{\textbf{18.95}}
+\textbf{gmean} (8)      &       & \rev{\textbf{4.66}} & \rev{\textbf{1.87}}
                                 & \rev{\textbf{65.2}} \\
 \midrule
 \multicolumn{5}{@{}l}{\emph{\rev{QFT scalability, $5{\times}5$ cores, core count $6\to12\to20$}}} \\
 \addlinespace[1pt]
-\rev{QFT 100q}          & \rev{3420}  & \rev{3.8}  & \rev{159}   & \rev{899.7} \\
-\rev{QFT 200q}$^{\dagger}$ & \rev{7220}  & \rev{64.3} & \rev{1034}  & \rev{1441.2} \\
+\rev{QFT 100q}          & \rev{3420}  & \rev{3.6}  & \rev{3.4}   & \rev{899.7} \\
+\rev{QFT 200q}$^{\dagger}$ & \rev{7220}  & \rev{60.9} & \rev{13.5}  & \rev{1453.4} \\
 \rev{QFT 360q}$^{\ast\dagger}$ & \rev{13300} & ---         & \rev{3428} & \rev{1989.7} \\
 \bottomrule
 \end{tabular}%
@@ -2465,13 +2519,13 @@ Multiplier$^{\dagger}$  & 13040 & \rev{105.75} & \rev{1408.03} & \rev{478.6} \\
   ]
 % TeleSABRE, one seed (deterministic); Random omitted -- does not converge.
 \addplot[only marks, mark=triangle*, mark size=2.1pt, color=black!70]
-  coordinates {(63,0.02) (64,1.93) (1962,1.29) (1966,6.54) (2139,1.11)
-               (3920,37.07) (8126,7.93) (13040,105.75)};
+  coordinates {(63,0.04) (64,2.74) (1962,1.78) (1966,10.95) (2139,1.48)
+               (3920,52.32) (8126,9.87) (13040,136.25)};
 \addlegendentry{\TeleSABRE{} ($1$ seed)}
 % dSABRE, three SabreLayout seeds.
 \addplot[only marks, mark=*, mark size=1.9pt, color=blue!65!black]
-  coordinates {(63,0.06) (64,0.19) (1627,53.70) (1962,31.17) (1966,33.92)
-               (2139,33.31) (3920,104.27) (8126,282.53) (13040,1408.03)};
+  coordinates {(63,0.05) (64,0.14) (1627,6.06) (1962,2.53) (1966,3.23)
+               (2139,2.03) (3920,5.29) (8126,10.06) (13040,23.70)};
 \addlegendentry{\dSABRE{} ($3$ seeds)}
 % pytket-dqc, best-of-5 search, physical network model.
 \addplot[only marks, mark=square*, mark size=1.8pt, color=red!65!black]
@@ -2481,18 +2535,18 @@ Multiplier$^{\dagger}$  & 13040 & \rev{105.75} & \rev{1408.03} & \rev{478.6} \\
 % QFT scalability series -- architectures GROW with the circuit, so these are
 % not comparable with the fixed-architecture points above.  Hollow markers.
 \addplot[only marks, mark=triangle, mark size=2.4pt, color=black!70]
-  coordinates {(3420,3.8) (7220,64.3)};
+  coordinates {(3420,3.6) (7220,60.9)};
 \addlegendentry{\emph{same, QFT $100$--$360$q}}
 \addplot[only marks, mark=o, mark size=2.2pt, color=blue!65!black,
          forget plot]
-  coordinates {(3420,159) (7220,1034) (13300,3428)};
+  coordinates {(3420,3.4) (7220,13.5) (13300,48.5)};
 \addplot[only marks, mark=square, mark size=2.1pt, color=red!65!black,
          forget plot]
-  coordinates {(3420,899.7) (7220,1441.2) (13300,1989.7)};
+  coordinates {(3420,899.7) (7220,1453.4) (13300,2064.5)};
 % Linear reference slope, anchored on the dSABRE mid-range.
 \addplot[domain=1600:13040, samples=2, dashed, gray!60, forget plot]
-  {0.0101*x};
-\node[font=\scriptsize, gray!60!black, anchor=west] at (axis cs:6000,55) {slope 1};
+  {0.00182*x};
+\node[font=\scriptsize, gray!60!black, anchor=west] at (axis cs:6000,17) {slope 1};
 \end{loglogaxis}
 \end{tikzpicture}
 \caption{\rev{Compile time against CX count, log--log, same measurements and
@@ -2500,39 +2554,44 @@ Multiplier$^{\dagger}$  & 13040 & \rev{105.75} & \rev{1408.03} & \rev{478.6} \\
   suite, all on one architecture; hollow markers are the QFT scalability
   series, whose architecture grows with the circuit ($6$, $12$, $20$ cores) and
   which therefore measures a different quantity---they are plotted together to
-  show the shape of each tool's cost, not to be read across.  Both routers
-  track circuit size, \dSABRE{} close to the dashed unit slope over the dense
-  circuits, whereas \texttt{pytket-dqc} is nearly flat within the fixed
+  show the shape of each tool's cost, not to be read across.  \dSABRE{} now
+  tracks the dashed unit slope closely over the whole suite, matching the
+  $N^{1.05}$ fit of Table~\ref{tab:complexity_measured}, whereas
+  \texttt{pytket-dqc} is nearly flat within the fixed
   architecture, spanning $239$--$479$\,s across an $8\times$ range of gate
   count, because its cost is set by hypergraph partitioning rather than by the
   gates routed.  The clearest evidence is the pair at ${\approx}13\,000$ CX:
-  Multiplier on six cores costs it $479$\,s and the 360-qubit QFT on twenty
-  costs $1990$\,s at the same gate count, so what drives it is the size of the
-  partitioning problem, not the circuit.  The two ${\approx}64$-CX points at
-  bottom left are GHZ and Graphstate, on which every tool is trivially fast.}}
+  Multiplier on six cores costs it $478.6$\,s and the 360-qubit QFT on twenty
+  costs $2064.5$\,s at the same gate count, so what drives it is the size of
+  the partitioning problem, not the circuit.  The two ${\approx}64$-CX points
+  at bottom left are GHZ and Graphstate, on which every tool is trivially
+  fast.}}
 \label{fig:timing_scaling}
 \end{figure}
 
 \rev{\noindent The geometric means are over the eight circuits \TeleSABRE{}
-completes; over all nine \dSABRE{} is $21.3$\,s and \texttt{pytket-dqc}
-$77.9$\,s.  The ordering is not uniform and the exceptions are informative.
-\TeleSABRE{} leads overall, as a compiled binary against interpreted Python
-should, but loses to \dSABRE{} by $10\times$ on Graphstate, where its sampling
-needs many iterations to converge; \dSABRE{} is slowest on the two largest
-circuits, where the $E_\mathrm{c}$ sweep, not Eq.~\ref{eq:complexity}'s
-$Mn$ scoring term, dominates.  \texttt{pytket-dqc} is an order of magnitude behind both even though its
-column already includes its five attempts, and its cost is notably \emph{flat}
+completes; over all nine \dSABRE{} is $2.1$\,s and \texttt{pytket-dqc}
+$77.9$\,s.  \dSABRE{} now leads in geometric mean and on five of the nine
+circuits individually---by $19.6\times$ on Graphstate and $10.5\times$ on
+Random, where \TeleSABRE{}'s sampling needs many iterations and, on Random,
+still fails to converge at all---while \TeleSABRE{} is faster on the other
+four, but never by more than $40\%$ (AE, QPEexact) and is within $2\%$ on
+QNN, the densest circuit either router is slower on.
+\texttt{pytket-dqc} is an order of magnitude or more behind both on every
+circuit even though its column already includes its five attempts, and its
+cost is notably \emph{flat}
 in circuit size---$239$--$479$\,s across a $6.6\times$ range of CX
 count---because hypergraph partitioning and Steiner-tree embedding are
 dominated by the partitioner rather than by gate count, and because four of the
 nine circuits consumed their budget in the embedding distributor before falling
-back.  The scalability rows show the same shapes at larger scale: across
-$100\to360$ qubits \dSABRE{} rises $22\times$ ($159\to3428$\,s) and
-\TeleSABRE{} $17\times$ over the two sizes it completes, while
-\texttt{pytket-dqc} rises only $2.2\times$ ($900\to1990$\,s).  Its cost is set
+back.  The scalability rows show the same shift at larger scale: across
+$100\to360$ qubits \dSABRE{} now rises only $14.3\times$
+($3.4\to48.5$\,s) and
+\TeleSABRE{} $16.9\times$ over the two sizes it completes, while
+\texttt{pytket-dqc} rises $2.3\times$ ($899.7\to2064.5$\,s).  Its cost is set
 by the partitioning problem rather than the circuit, which is why the
-$13\,040$-CX Multiplier on six cores costs it $479$\,s and the $13\,300$-CX
-360-qubit QFT on twenty costs $1990$\,s.}
+$13\,040$-CX Multiplier on six cores costs it $478.6$\,s and the $13\,300$-CX
+360-qubit QFT on twenty costs $2064.5$\,s.}
 
 
 
@@ -2544,7 +2603,12 @@ $13\,040$-CX Multiplier on six cores costs it $479$\,s and the $13\,300$-CX
   $c_{\mathrm{tele}}\cdot\text{EPR}+c_{\mathrm{swap}}\cdot\text{SWAP}$.
   Negative is better.  \rev{Each suite is taken over its full circuit set:
   six at 25q and 36q, and at 64q the eight of nine on which \TeleSABRE{}
-  converges---the same basis as Table~\ref{tab:main}'s $-48.7\%$.}}
+  converges---the same basis as Table~\ref{tab:main}'s $-49.1\%$.  The
+  teleport cost cancels out of the routing decision itself
+  (Section~\ref{sec:principle}), so this reweights the EPR/SWAP counts
+  already in Table~\ref{tab:main} rather than re-routing; confirmed by a
+  direct re-route sweep at $c_{\mathrm{tele}}\in\{10,100\}$, which
+  reproduced identical EPR and SWAP counts.}}
 \label{tab:sensitivity}
 \setlength{\tabcolsep}{6pt}
 \small
@@ -2552,10 +2616,10 @@ $13\,040$-CX Multiplier on six cores costs it $479$\,s and the $13\,300$-CX
 \toprule
 $c_{\mathrm{tele}}$ & 25q & 36q & 64q \\
 \midrule
-10 & $\mathbf{-45.1}$ & $\mathbf{-57.1}$ & $\mathbf{-33.5}$ \\
-20 & $\mathbf{-46.6}$ & $\mathbf{-58.4}$ & $\mathbf{-36.3}$ \\
-50 & $\mathbf{-48.5}$ & $\mathbf{-59.9}$ & $\mathbf{-39.7}$ \\
-100 & $\mathbf{-49.4}$ & $\mathbf{-60.6}$ & $\mathbf{-41.5}$ \\
+10 & $\mathbf{-46.9}$ & $\mathbf{-55.8}$ & $\mathbf{-37.9}$ \\
+20 & $\mathbf{-47.9}$ & $\mathbf{-57.6}$ & $\mathbf{-41.0}$ \\
+50 & $\mathbf{-49.1}$ & $\mathbf{-59.6}$ & $\mathbf{-44.7}$ \\
+100 & $\mathbf{-49.8}$ & $\mathbf{-60.7}$ & $\mathbf{-46.6}$ \\
 \bottomrule
 \end{tabular}
 \end{table}

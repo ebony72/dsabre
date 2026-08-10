@@ -12,6 +12,17 @@ Protocol (same for all suites):
      SABRE-style fwd→bwd→fwd passes; keep the best-EPR result.
   3. Print a formatted table and save results/results_<suite>.json.
 
+Timing keys in the saved JSON (changed 2026-07-31 -- older files predate this):
+  time_s        cost of the WHOLE protocol: every seed run, summed.  This is
+                the number to compare against another tool, because it is what
+                producing the reported EPR count actually costs.
+  time_seed_s   cost of the single seed whose result is reported.
+Until 2026-07-31 `time_s` held what is now `time_seed_s`, which understated
+dSABRE about threefold against pytket-dqc, whose published timings are
+whole-search totals.  TeleSABRE is deterministic under this configuration
+(all seeds return identical counts), so for it `time_seed_s` is the cost a
+user need pay and `time_s` is what the best-of-N convention adds for nothing.
+
 Usage:
   python benchmark.py                # all suites
   python benchmark.py --suite 25     # 25q only
@@ -75,6 +86,17 @@ SUITES = {
 NUM_TS_SEEDS    = 3
 NUM_SL_SEEDS    = 3   # number of SabreLayout seeds to try
 
+# ~/Documents/telesabre/circuits/ is shared across several projects (see
+# CLAUDE.md); qasm_64/ picked up two extra files (vqe_su2, wstate -- names
+# from the 36q suite, re-scaled to 64 qubits by some other project) that are
+# not part of dSABRE's published 9-circuit 64q suite.  Whitelist rather than
+# glob-all so a shared-directory drop-in can't silently change what suite is
+# being reported.
+CANONICAL_CIRCUITS = {
+    "64q": {"ae", "ghz", "graphstate", "qft", "qnn", "random",
+            "qpeexact", "qaoa", "multiplier"},
+}
+
 # ── TeleSABRE helpers ──────────────────────────────────────────────────────────
 
 def _ts_config(seed: int, report_path: str, ts_name: str) -> str:
@@ -91,7 +113,7 @@ def _ts_config(seed: int, report_path: str, ts_name: str) -> str:
         "max_solving_deadlock_iterations": 1000,
         "gate_usage_penalty": 0.0, "swap_usage_penalty": 0.002,
         "teledata_usage_penaly": 0.005, "telegate_usage_penalty": 0.005,
-        "init_layout_hun_min_free_gate": 5, "init_layout_hun_free_qubit": 4,
+        "init_layout_hun_min_free_gate": 5, "init_layout_hun_min_free_qubit": 4,
         "enable_passing_core_emptying_teleport_possibility": False,
         "max_iterations": 200000,
         "save_report": True, "report_filename": report_path,
@@ -103,8 +125,20 @@ def _ts_config(seed: int, report_path: str, ts_name: str) -> str:
 
 
 def run_telesabre(qasm_path: str, ts_dev: str) -> dict | None:
-    """Run TeleSABRE with seeds 0–(NUM_TS_SEEDS-1); return best result or None."""
+    """Run TeleSABRE with seeds 0-(NUM_TS_SEEDS-1); return best result or None.
+
+    Timing keys, which are NOT interchangeable -- see the note on
+    `time_s` in run_suite():
+      time_s        wall time of the whole protocol, summed over every seed
+                    attempted (including ones that time out or fail).
+      time_seed_s   wall time of the single seed whose result is returned.
+    TeleSABRE is deterministic under optimize_initial with the Hungarian
+    layout -- all seeds return identical counts on every circuit measured --
+    so `time_seed_s` is the cost a user would actually pay; `time_s` is what
+    the best-of-N convention costs on top, and buys nothing.
+    """
     best = None
+    protocol_s = 0.0
     for seed in range(NUM_TS_SEEDS):
         rpt = tempfile.mktemp(suffix=".json")
         cfg = _ts_config(seed, rpt, "bench")
@@ -115,9 +149,11 @@ def run_telesabre(qasm_path: str, ts_dev: str) -> dict | None:
                 capture_output=True, text=True, timeout=300,
             )
         except subprocess.TimeoutExpired:
+            protocol_s += time.perf_counter() - t0   # a timeout is still spent
             os.unlink(cfg)
             continue
         elapsed = time.perf_counter() - t0
+        protocol_s += elapsed
 
         out = proc.stdout + proc.stderr
         td = tg = ls_ts = 0; ok = False
@@ -135,7 +171,9 @@ def run_telesabre(qasm_path: str, ts_dev: str) -> dict | None:
             eprs = td + tg
             if best is None or eprs < best["eprs"]:
                 best = dict(eprs=eprs, teledata=td, telegate=tg, ls=ls_ts,
-                            seed=seed, time_s=round(elapsed, 2))
+                            seed=seed, time_seed_s=round(elapsed, 2))
+    if best is not None:
+        best["time_s"] = round(protocol_s, 2)
     return best
 
 
@@ -161,6 +199,10 @@ def bench_suite(suite_name: str, s: dict) -> list:
     rkeys = list(routers.keys())
 
     qasm_files = sorted(glob.glob(os.path.join(s["circuit_dir"], "*.qasm")))
+    canon = CANONICAL_CIRCUITS.get(suite_name)
+    if canon:
+        qasm_files = [f for f in qasm_files
+                      if os.path.basename(f).replace(suffix, "") in canon]
     if not qasm_files:
         print(f"  [no .qasm files in {s['circuit_dir']}]", flush=True)
         return []
@@ -195,15 +237,26 @@ def bench_suite(suite_name: str, s: dict) -> list:
         router_results = {}
         for k, router in routers.items():
             best_m = None
+            # `time_s` must be the cost of the PROTOCOL, not of the seed that
+            # happened to win it.  dSABRE's three SabreLayout seeds give
+            # genuinely different results (AE at 64q: 242 / 258 / 263), so all
+            # three are needed to produce the reported EPR count and all three
+            # must be charged for.  Recording only the winning seed understated
+            # dSABRE roughly threefold against pytket-dqc, whose published
+            # timings are whole-search totals.
+            protocol_s = 0.0
             for layout in sl_layouts:
+                t_seed = time.perf_counter()
                 m = run_sabre_passes(router, dag, rev_dag, layout)
+                protocol_s += time.perf_counter() - t_seed
                 if m and not m.get("aborted"):
                     if best_m is None or m["eprs"] < best_m["eprs"]:
                         best_m = m
             if best_m is not None:
                 router_results[k] = dict(
                     eprs=best_m["eprs"], ls=best_m["ls"],
-                    time_s=round(best_m["compile_time"], 3), aborted=False,
+                    time_s=round(protocol_s, 3),
+                    time_seed_s=round(best_m["compile_time"], 3), aborted=False,
                     relief_candidates  = best_m.get("relief_candidates", 0),
                     relief_picks       = best_m.get("relief_picks", 0),
                     backup_activations = best_m.get("backup_activations", 0),

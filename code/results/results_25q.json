@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-08-08",
+    "date": "2026-08-10",
     "suite": "25q",
     "arch": "B-grid 2x2 4x4 (64 qubits)",
     "layout": "SabreLayout corners-removed, best of 3 seeds",
@@ -24,15 +24,15 @@
         "telegate": 0,
         "ls": 292,
         "seed": 0,
-        "time_seed_s": 0.09,
-        "time_s": 0.23
+        "time_seed_s": 0.08,
+        "time_s": 0.21
       },
       "routers": {
         "dS": {
           "eprs": 22,
           "ls": 294,
-          "time_s": 0.5,
-          "time_seed_s": 0.164,
+          "time_s": 0.501,
+          "time_seed_s": 0.163,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -40,10 +40,10 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 22,
-          "ls": 253,
-          "time_s": 0.363,
-          "time_seed_s": 0.121,
+          "eprs": 23,
+          "ls": 288,
+          "time_s": 0.369,
+          "time_seed_s": 0.126,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -70,8 +70,8 @@
         "dS": {
           "eprs": 1,
           "ls": 4,
-          "time_s": 0.007,
-          "time_seed_s": 0.002,
+          "time_s": 0.008,
+          "time_seed_s": 0.003,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -110,7 +110,7 @@
           "eprs": 2,
           "ls": 15,
           "time_s": 0.013,
-          "time_seed_s": 0.005,
+          "time_seed_s": 0.004,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -142,14 +142,14 @@
         "ls": 405,
         "seed": 0,
         "time_seed_s": 0.11,
-        "time_s": 0.33
+        "time_s": 0.32
       },
       "routers": {
         "dS": {
-          "eprs": 32,
-          "ls": 379,
-          "time_s": 0.548,
-          "time_seed_s": 0.183,
+          "eprs": 33,
+          "ls": 369,
+          "time_s": 0.54,
+          "time_seed_s": 0.182,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -159,8 +159,8 @@
         "dSE": {
           "eprs": 33,
           "ls": 332,
-          "time_s": 0.392,
-          "time_seed_s": 0.132,
+          "time_s": 0.388,
+          "time_seed_s": 0.131,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -180,15 +180,15 @@
         "telegate": 0,
         "ls": 659,
         "seed": 0,
-        "time_seed_s": 0.18,
-        "time_s": 0.53
+        "time_seed_s": 0.17,
+        "time_s": 0.52
       },
       "routers": {
         "dS": {
-          "eprs": 46,
-          "ls": 732,
-          "time_s": 1.367,
-          "time_seed_s": 0.479,
+          "eprs": 48,
+          "ls": 819,
+          "time_s": 1.317,
+          "time_seed_s": 0.427,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -196,10 +196,10 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 46,
-          "ls": 649,
-          "time_s": 0.677,
-          "time_seed_s": 0.223,
+          "eprs": 47,
+          "ls": 661,
+          "time_s": 0.667,
+          "time_seed_s": 0.224,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -219,15 +219,15 @@
         "telegate": 4,
         "ls": 1248,
         "seed": 0,
-        "time_seed_s": 0.7,
-        "time_s": 2.05
+        "time_seed_s": 0.67,
+        "time_s": 1.99
       },
       "routers": {
         "dS": {
           "eprs": 187,
           "ls": 1241,
-          "time_s": 2.573,
-          "time_seed_s": 0.89,
+          "time_s": 2.503,
+          "time_seed_s": 0.868,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -237,8 +237,8 @@
         "dSE": {
           "eprs": 181,
           "ls": 1208,
-          "time_s": 1.338,
-          "time_seed_s": 0.451,
+          "time_s": 1.289,
+          "time_seed_s": 0.428,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,

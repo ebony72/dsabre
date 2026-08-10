@@ -61,16 +61,34 @@ SUITES = {
     "200q": dict(
         circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_200"),
         suffix      = "_nativegates_ibm_qiskit_opt3_200.qasm",
-        arch        = build_h_grid_architecture(r=4, s=3, m=5),
-        ts_dev      = os.path.expanduser("~/Documents/telesabre/devices/H_grid_4_3_5_5.json"),
+        # r=3,s=4 (not r=4,s=3): build_h_grid_architecture's link placement is
+        # not symmetric under row/column swap -- same core count, size and
+        # diameter, but a genuinely different edge set (verified: the two
+        # orderings' 17 inter-core links do not coincide). bench_scaling.py
+        # --design b, the driver that actually produced tab:main's published
+        # 200q/360q scalability row (results_scaling_b.json), uses (3,4,5)
+        # here; this suite table had (4,3,5), which is why TeleSABRE reported
+        # "No successful runs" under it while converging at 1232 EPR on the
+        # correct graph. dSABRE itself is graph-orientation-agnostic enough
+        # that this went unnoticed on that side.
+        arch        = build_h_grid_architecture(r=3, s=4, m=5),
+        ts_dev      = os.path.expanduser("~/Documents/telesabre/devices/H_grid_3_4_5_5.json"),
         ts_timeout  = 600,
         circuits    = ["qft", "qpeexact"],
     ),
     "360q": dict(
         circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_360"),
         suffix      = "_nativegates_ibm_qiskit_opt3_360.qasm",
-        arch        = build_h_grid_architecture(r=2, s=3, m=9),
-        ts_dev      = os.path.expanduser("~/Documents/telesabre/devices/H_grid_2_3_9_9.json"),
+        # 4x5 of 5x5 cores (20 cores, 500 physical, diam=7) -- matches the
+        # paper's stated scalability series (sec:largecircuits: "core size
+        # held at 5x5 throughout... 4x5 (20,500)... diameter 3->5->7"), not
+        # the 2x3-of-9x9 architecture (6 cores, 81q each, diam=3) this used
+        # to point to. That architecture is a real, separate stress-test
+        # config (CLAUDE.md's "H_grid_2_3_9_9.json ... preferred" device,
+        # used throughout SAFE_DSABRE.md's safe-mode investigation) but it
+        # is not the QFT-scalability series this table reports.
+        arch        = build_h_grid_architecture(r=4, s=5, m=5),
+        ts_dev      = os.path.expanduser("~/Documents/telesabre/devices/H_grid_4_5_5_5.json"),
         ts_timeout  = 600,
         circuits    = ["qft", "qpeexact"],
     ),
@@ -106,8 +124,18 @@ def _ts_config(seed, report_path, ts_name, max_iter=200000):
 
 
 def run_telesabre(qasm_path, ts_dev, timeout=300):
-    """Run TeleSABRE seeds 0–(NUM_TS_SEEDS-1); return best result dict or None."""
+    """Run TeleSABRE seeds 0-(NUM_TS_SEEDS-1); return best result dict or None.
+
+    Timing keys, which are NOT interchangeable:
+      time_s        wall time of the whole protocol, summed over every seed
+                    attempted, including ones that time out or fail.
+      time_seed_s   wall time of the single seed whose result is returned.
+    Compare `time_s` against another tool: it is what producing the reported
+    count actually costs.  Recording only the winning seed understates a
+    best-of-N protocol by roughly N.
+    """
     best = None
+    protocol_s = 0.0
     for seed in range(NUM_TS_SEEDS):
         rpt = tempfile.mktemp(suffix=".json")
         cfg = _ts_config(seed, rpt, "bench")
@@ -118,10 +146,12 @@ def run_telesabre(qasm_path, ts_dev, timeout=300):
                 capture_output=True, text=True, timeout=timeout,
             )
         except subprocess.TimeoutExpired:
+            protocol_s += time.perf_counter() - t0   # a timeout is still spent
             print(f"    TS seed {seed}: timeout ({timeout}s)")
             os.unlink(cfg)
             continue
         elapsed = time.perf_counter() - t0
+        protocol_s += elapsed
 
         out = proc.stdout + proc.stderr
         td = tg = ts_ls = 0; ok = False
@@ -149,9 +179,11 @@ def run_telesabre(qasm_path, ts_dev, timeout=300):
             print(f"    TS seed {seed}: EPR={eprs}, SWAP={ts_ls} ({elapsed:.1f}s)")
             if best is None or eprs < best["eprs"]:
                 best = dict(eprs=eprs, teledata=td, telegate=tg, ts_ls=ts_ls,
-                            seed=seed, time_s=round(elapsed, 2), p2v=p2v)
+                            seed=seed, time_seed_s=round(elapsed, 2), p2v=p2v)
         else:
             print(f"    TS seed {seed}: FAILED ({elapsed:.1f}s)")
+    if best is not None:
+        best["time_s"] = round(protocol_s, 2)
     return best
 
 

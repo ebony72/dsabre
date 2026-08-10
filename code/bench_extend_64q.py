@@ -78,7 +78,7 @@ def _ts_config(seed, report_path):
         "max_solving_deadlock_iterations": 1000,
         "gate_usage_penalty": 0.0, "swap_usage_penalty": 0.002,
         "teledata_usage_penaly": 0.005, "telegate_usage_penalty": 0.005,
-        "init_layout_hun_min_free_gate": 5, "init_layout_hun_free_qubit": 4,
+        "init_layout_hun_min_free_gate": 5, "init_layout_hun_min_free_qubit": 4,
         "enable_passing_core_emptying_teleport_possibility": False,
         "max_iterations": 200000,
         "save_report": True, "report_filename": report_path,

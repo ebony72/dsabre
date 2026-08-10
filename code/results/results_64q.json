@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-08-08",
+    "date": "2026-08-10",
     "suite": "64q",
     "arch": "H-grid 2x3 4x4 (96 qubits)",
     "layout": "SabreLayout corners-removed, best of 3 seeds",
@@ -24,31 +24,31 @@
         "telegate": 94,
         "ls": 1494,
         "seed": 0,
-        "time_seed_s": 1.25,
-        "time_s": 3.77
+        "time_seed_s": 1.27,
+        "time_s": 3.79
       },
       "routers": {
         "dS": {
-          "eprs": 186,
-          "ls": 1472,
-          "time_s": 4.773,
-          "time_seed_s": 1.675,
+          "eprs": 168,
+          "ls": 1565,
+          "time_s": 4.373,
+          "time_seed_s": 1.466,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 2,
-          "force_make_room": 2
+          "backup_activations": 1,
+          "force_make_room": 0
         },
         "dSE": {
-          "eprs": 200,
-          "ls": 1547,
-          "time_s": 2.307,
-          "time_seed_s": 0.727,
+          "eprs": 165,
+          "ls": 1325,
+          "time_s": 2.101,
+          "time_seed_s": 0.726,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 3,
-          "force_make_room": 4
+          "backup_activations": 0,
+          "force_make_room": 0
         }
       }
     },
@@ -64,14 +64,14 @@
         "ls": 132,
         "seed": 0,
         "time_seed_s": 0.02,
-        "time_s": 0.07
+        "time_s": 0.06
       },
       "routers": {
         "dS": {
           "eprs": 6,
           "ls": 39,
-          "time_s": 0.04,
-          "time_seed_s": 0.014,
+          "time_s": 0.043,
+          "time_seed_s": 0.015,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -81,8 +81,8 @@
         "dSE": {
           "eprs": 6,
           "ls": 39,
-          "time_s": 0.039,
-          "time_seed_s": 0.013,
+          "time_s": 0.041,
+          "time_seed_s": 0.014,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -103,13 +103,13 @@
         "ls": 281,
         "seed": 0,
         "time_seed_s": 1.89,
-        "time_s": 5.65
+        "time_s": 5.69
       },
       "routers": {
         "dS": {
           "eprs": 18,
           "ls": 115,
-          "time_s": 0.139,
+          "time_s": 0.131,
           "time_seed_s": 0.041,
           "aborted": false,
           "relief_candidates": 0,
@@ -120,7 +120,7 @@
         "dSE": {
           "eprs": 15,
           "ls": 88,
-          "time_s": 0.125,
+          "time_s": 0.129,
           "time_seed_s": 0.039,
           "aborted": false,
           "relief_candidates": 0,
@@ -141,15 +141,15 @@
         "telegate": 43,
         "ls": 9654,
         "seed": 0,
-        "time_seed_s": 102.26,
-        "time_s": 298.2
+        "time_seed_s": 104.2,
+        "time_s": 297.03
       },
       "routers": {
         "dS": {
-          "eprs": 1139,
-          "ls": 8330,
-          "time_s": 167.588,
-          "time_seed_s": 55.375,
+          "eprs": 1351,
+          "ls": 9121,
+          "time_s": 175.814,
+          "time_seed_s": 56.023,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -159,8 +159,8 @@
         "dSE": {
           "eprs": 1285,
           "ls": 8969,
-          "time_s": 13.061,
-          "time_seed_s": 4.1,
+          "time_s": 13.178,
+          "time_seed_s": 4.219,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -180,15 +180,15 @@
         "telegate": 132,
         "ls": 4189,
         "seed": 0,
-        "time_seed_s": 36.11,
-        "time_s": 108.29
+        "time_seed_s": 36.25,
+        "time_s": 108.65
       },
       "routers": {
         "dS": {
           "eprs": 736,
           "ls": 4604,
-          "time_s": 11.044,
-          "time_seed_s": 3.696,
+          "time_s": 11.114,
+          "time_seed_s": 3.668,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -196,15 +196,15 @@
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 538,
-          "ls": 3759,
-          "time_s": 3.806,
-          "time_seed_s": 1.255,
+          "eprs": 555,
+          "ls": 3734,
+          "time_s": 3.928,
+          "time_seed_s": 1.307,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 2,
-          "force_make_room": 2
+          "backup_activations": 0,
+          "force_make_room": 0
         }
       }
     },
@@ -219,26 +219,26 @@
         "telegate": 4,
         "ls": 1711,
         "seed": 0,
-        "time_seed_s": 6.32,
-        "time_s": 18.97
+        "time_seed_s": 6.4,
+        "time_s": 19.18
       },
       "routers": {
         "dS": {
-          "eprs": 239,
-          "ls": 1869,
-          "time_s": 4.822,
-          "time_seed_s": 1.678,
+          "eprs": 203,
+          "ls": 1554,
+          "time_s": 4.501,
+          "time_seed_s": 1.474,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 3,
-          "force_make_room": 2
+          "backup_activations": 0,
+          "force_make_room": 0
         },
         "dSE": {
-          "eprs": 176,
-          "ls": 1397,
-          "time_s": 2.515,
-          "time_seed_s": 0.727,
+          "eprs": 180,
+          "ls": 1480,
+          "time_s": 2.281,
+          "time_seed_s": 0.74,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -258,26 +258,26 @@
         "telegate": 6,
         "ls": 5471,
         "seed": 0,
-        "time_seed_s": 8.01,
-        "time_s": 23.37
+        "time_seed_s": 8.02,
+        "time_s": 23.43
       },
       "routers": {
         "dS": {
-          "eprs": 786,
-          "ls": 7236,
-          "time_s": 43.893,
-          "time_seed_s": 14.743,
+          "eprs": 699,
+          "ls": 7026,
+          "time_s": 42.199,
+          "time_seed_s": 13.902,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 10,
-          "force_make_room": 18
+          "backup_activations": 1,
+          "force_make_room": 0
         },
         "dSE": {
-          "eprs": 495,
-          "ls": 5344,
-          "time_s": 6.65,
-          "time_seed_s": 2.189,
+          "eprs": 539,
+          "ls": 5260,
+          "time_s": 6.977,
+          "time_seed_s": 2.326,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
@@ -298,30 +298,30 @@
         "ls": 1706,
         "seed": 0,
         "time_seed_s": 1.09,
-        "time_s": 3.26
+        "time_s": 3.27
       },
       "routers": {
         "dS": {
-          "eprs": 273,
-          "ls": 1822,
-          "time_s": 4.648,
-          "time_seed_s": 1.383,
-          "aborted": false,
-          "relief_candidates": 0,
-          "relief_picks": 0,
-          "backup_activations": 3,
-          "force_make_room": 4
-        },
-        "dSE": {
-          "eprs": 184,
-          "ls": 1565,
-          "time_s": 2.005,
-          "time_seed_s": 0.644,
+          "eprs": 203,
+          "ls": 1719,
+          "time_s": 3.845,
+          "time_seed_s": 1.277,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
           "backup_activations": 1,
-          "force_make_room": 1
+          "force_make_room": 0
+        },
+        "dSE": {
+          "eprs": 187,
+          "ls": 1576,
+          "time_s": 1.696,
+          "time_seed_s": 0.554,
+          "aborted": false,
+          "relief_candidates": 0,
+          "relief_picks": 0,
+          "backup_activations": 0,
+          "force_make_room": 0
         }
       }
     },
@@ -333,21 +333,21 @@
       "ts": null,
       "routers": {
         "dS": {
-          "eprs": 775,
-          "ls": 3856,
-          "time_s": 7.875,
-          "time_seed_s": 2.641,
+          "eprs": 777,
+          "ls": 4092,
+          "time_s": 7.866,
+          "time_seed_s": 2.611,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,
-          "backup_activations": 0,
+          "backup_activations": 2,
           "force_make_room": 0
         },
         "dSE": {
-          "eprs": 718,
-          "ls": 3621,
-          "time_s": 4.392,
-          "time_seed_s": 1.399,
+          "eprs": 732,
+          "ls": 3603,
+          "time_s": 4.426,
+          "time_seed_s": 1.438,
           "aborted": false,
           "relief_candidates": 0,
           "relief_picks": 0,

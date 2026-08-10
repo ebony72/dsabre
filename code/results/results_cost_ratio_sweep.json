@@ -1,0 +1,194 @@
+{
+  "meta": {
+    "date": "2026-08-10",
+    "note": "dSABRE only, TS unchanged (read from results_{suite}q.json); cost_local_swap fixed at 3.0"
+  },
+  "results": {
+    "25q": {
+      "10.0": {
+        "ae": {
+          "eprs": 23,
+          "ls": 288
+        },
+        "ghz": {
+          "eprs": 1,
+          "ls": 4
+        },
+        "graphstate": {
+          "eprs": 2,
+          "ls": 15
+        },
+        "qft": {
+          "eprs": 33,
+          "ls": 332
+        },
+        "qnn": {
+          "eprs": 47,
+          "ls": 661
+        },
+        "random": {
+          "eprs": 181,
+          "ls": 1208
+        }
+      },
+      "100.0": {
+        "ae": {
+          "eprs": 23,
+          "ls": 288
+        },
+        "ghz": {
+          "eprs": 1,
+          "ls": 4
+        },
+        "graphstate": {
+          "eprs": 2,
+          "ls": 15
+        },
+        "qft": {
+          "eprs": 33,
+          "ls": 332
+        },
+        "qnn": {
+          "eprs": 47,
+          "ls": 661
+        },
+        "random": {
+          "eprs": 181,
+          "ls": 1208
+        }
+      }
+    },
+    "36q": {
+      "10.0": {
+        "bv": {
+          "eprs": 1,
+          "ls": 13
+        },
+        "dj": {
+          "eprs": 3,
+          "ls": 23
+        },
+        "qaoa": {
+          "eprs": 134,
+          "ls": 1017
+        },
+        "qpeexact": {
+          "eprs": 62,
+          "ls": 612
+        },
+        "vqe_su2": {
+          "eprs": 9,
+          "ls": 45
+        },
+        "wstate": {
+          "eprs": 6,
+          "ls": 40
+        }
+      },
+      "100.0": {
+        "bv": {
+          "eprs": 1,
+          "ls": 13
+        },
+        "dj": {
+          "eprs": 3,
+          "ls": 23
+        },
+        "qaoa": {
+          "eprs": 134,
+          "ls": 1017
+        },
+        "qpeexact": {
+          "eprs": 62,
+          "ls": 612
+        },
+        "vqe_su2": {
+          "eprs": 9,
+          "ls": 45
+        },
+        "wstate": {
+          "eprs": 6,
+          "ls": 40
+        }
+      }
+    },
+    "64q": {
+      "10.0": {
+        "ae": {
+          "eprs": 165,
+          "ls": 1325
+        },
+        "ghz": {
+          "eprs": 6,
+          "ls": 39
+        },
+        "graphstate": {
+          "eprs": 15,
+          "ls": 88
+        },
+        "multiplier": {
+          "eprs": 1285,
+          "ls": 8969
+        },
+        "qaoa": {
+          "eprs": 555,
+          "ls": 3734
+        },
+        "qft": {
+          "eprs": 180,
+          "ls": 1480
+        },
+        "qnn": {
+          "eprs": 539,
+          "ls": 5260
+        },
+        "qpeexact": {
+          "eprs": 187,
+          "ls": 1576
+        },
+        "random": {
+          "eprs": 732,
+          "ls": 3603
+        }
+      },
+      "100.0": {
+        "ae": {
+          "eprs": 165,
+          "ls": 1325
+        },
+        "ghz": {
+          "eprs": 6,
+          "ls": 39
+        },
+        "graphstate": {
+          "eprs": 15,
+          "ls": 88
+        },
+        "multiplier": {
+          "eprs": 1285,
+          "ls": 8969
+        },
+        "qaoa": {
+          "eprs": 555,
+          "ls": 3734
+        },
+        "qft": {
+          "eprs": 180,
+          "ls": 1480
+        },
+        "qnn": {
+          "eprs": 539,
+          "ls": 5260
+        },
+        "qpeexact": {
+          "eprs": 187,
+          "ls": 1576
+        },
+        "random": {
+          "eprs": 732,
+          "ls": 3603
+        }
+      }
+    }
+  }
+}
