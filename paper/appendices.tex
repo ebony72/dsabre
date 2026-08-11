@@ -1117,9 +1117,9 @@ evaluation (Section~\ref{sec:experiments}).
 \textbf{pytket-dqc topology model.}
 \texttt{pytket-dqc}'s \texttt{NISQNetwork} represents inter-QPU connectivity as
 a simple adjacency list of core pairs, without modelling the number of physical
-links per pair.  Its e-bit cost therefore depends only on \emph{which} core pairs
+links per pair.  Its \rev{EPR} cost therefore depends only on \emph{which} core pairs
 are connected, not on \emph{how many} physical links connect them.  Running
-\texttt{pytket-dqc} on the enhanced architecture produces identical e-bit counts
+\texttt{pytket-dqc} on the enhanced architecture produces identical \rev{EPR} counts
 (geometric means 48.1 and 16.0 for 25q and 36q respectively), confirming this
 invariance.
 
@@ -1128,7 +1128,7 @@ change relative to the 4-link baseline is shown below each gmean row.
 
 \begin{table}[h]
 \centering
-\caption{EPR/e-bit counts on standard 4-link (4L) vs.\ enhanced 8-link
+\caption{EPR counts on standard 4-link (4L) vs.\ enhanced 8-link
   (8L) B-grid ($2{\times}2$ $4{\times}4$, 64 physical qubits).
   \texttt{pytket-dqc}'s output depends only on the core adjacency and
   is therefore identical for both architectures (single column).  The
@@ -1141,7 +1141,7 @@ change relative to the 4-link baseline is shown below each gmean row.
 \toprule
  & pytket-dqc & \multicolumn{2}{c}{TeleSABRE} & \multicolumn{2}{c}{\dSABRE{}} \\
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}
-Circuit & e-bits & 4L & 8L & 4L & 8L \\
+Circuit & \rev{EPR} & 4L & 8L & 4L & 8L \\
 \midrule
 \multicolumn{6}{@{}l}{\textit{25-qubit suite}} \\
 ae         &  85 &  26 &  27 &  23 &  23 \\
