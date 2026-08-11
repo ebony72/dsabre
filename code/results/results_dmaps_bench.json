@@ -1083,6 +1083,186 @@
       ],
       "circuit": "random",
       "suite": "64"
+    },
+    {
+      "epr": 408,
+      "local_swap": 1136,
+      "remote_cx": 158,
+      "remote_swap": 125,
+      "local_cx": 1981,
+      "overall": 5216,
+      "seed": 2,
+      "seed_time": 23.700793417170644,
+      "total_time": 120.08108962653205,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 426,
+          "local_swap": 1154,
+          "remote_cx": 190,
+          "remote_swap": 118,
+          "overall": 5414,
+          "seed_time": 25.351380417123437
+        },
+        {
+          "seed": 1,
+          "epr": 494,
+          "local_swap": 1269,
+          "remote_cx": 200,
+          "remote_swap": 147,
+          "overall": 6209,
+          "seed_time": 23.759435333311558
+        },
+        {
+          "seed": 2,
+          "epr": 408,
+          "local_swap": 1136,
+          "remote_cx": 158,
+          "remote_swap": 125,
+          "overall": 5216,
+          "seed_time": 23.700793417170644
+        },
+        {
+          "seed": 3,
+          "epr": 522,
+          "local_swap": 1145,
+          "remote_cx": 200,
+          "remote_swap": 161,
+          "overall": 6365,
+          "seed_time": 23.545057791750878
+        },
+        {
+          "seed": 4,
+          "epr": 490,
+          "local_swap": 1204,
+          "remote_cx": 220,
+          "remote_swap": 135,
+          "overall": 6104,
+          "seed_time": 23.72442266717553
+        }
+      ],
+      "circuit": "qpeexact",
+      "suite": "64"
+    },
+    {
+      "epr": 1256,
+      "local_swap": 3199,
+      "remote_cx": 456,
+      "remote_swap": 400,
+      "local_cx": 3464,
+      "overall": 15759,
+      "seed": 2,
+      "seed_time": 119.53024379070848,
+      "total_time": 601.0683389157057,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 1530,
+          "local_swap": 3877,
+          "remote_cx": 572,
+          "remote_swap": 479,
+          "overall": 19177,
+          "seed_time": 122.31565579073504
+        },
+        {
+          "seed": 1,
+          "epr": 1642,
+          "local_swap": 3715,
+          "remote_cx": 620,
+          "remote_swap": 511,
+          "overall": 20135,
+          "seed_time": 120.7461258340627
+        },
+        {
+          "seed": 2,
+          "epr": 1256,
+          "local_swap": 3199,
+          "remote_cx": 456,
+          "remote_swap": 400,
+          "overall": 15759,
+          "seed_time": 119.53024379070848
+        },
+        {
+          "seed": 3,
+          "epr": 1382,
+          "local_swap": 3276,
+          "remote_cx": 470,
+          "remote_swap": 456,
+          "overall": 17096,
+          "seed_time": 118.31717600021511
+        },
+        {
+          "seed": 4,
+          "epr": 1680,
+          "local_swap": 4062,
+          "remote_cx": 578,
+          "remote_swap": 551,
+          "overall": 20862,
+          "seed_time": 120.15913749998435
+        }
+      ],
+      "circuit": "qaoa",
+      "suite": "64"
+    },
+    {
+      "epr": 3944,
+      "local_swap": 8514,
+      "remote_cx": 2376,
+      "remote_swap": 784,
+      "local_cx": 10664,
+      "overall": 47954,
+      "seed": 0,
+      "seed_time": 177.61769666709006,
+      "total_time": 885.4268594179302,
+      "seeds": [
+        {
+          "seed": 0,
+          "epr": 3944,
+          "local_swap": 8514,
+          "remote_cx": 2376,
+          "remote_swap": 784,
+          "overall": 47954,
+          "seed_time": 177.61769666709006
+        },
+        {
+          "seed": 1,
+          "epr": 4619,
+          "local_swap": 9319,
+          "remote_cx": 2875,
+          "remote_swap": 872,
+          "overall": 55509,
+          "seed_time": 178.46588595909998
+        },
+        {
+          "seed": 2,
+          "epr": 4267,
+          "local_swap": 8801,
+          "remote_cx": 2685,
+          "remote_swap": 791,
+          "overall": 51471,
+          "seed_time": 178.24359437497333
+        },
+        {
+          "seed": 3,
+          "epr": 4139,
+          "local_swap": 8906,
+          "remote_cx": 2531,
+          "remote_swap": 804,
+          "overall": 50296,
+          "seed_time": 176.26220266707242
+        },
+        {
+          "seed": 4,
+          "epr": 4016,
+          "local_swap": 8676,
+          "remote_cx": 2544,
+          "remote_swap": 736,
+          "overall": 48836,
+          "seed_time": 174.83747974969447
+        }
+      ],
+      "circuit": "multiplier",
+      "suite": "64"
     }
   ]
 }

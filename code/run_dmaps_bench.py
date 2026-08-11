@@ -36,7 +36,20 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 # Make DMapS importable
-sys.path.insert(0, os.path.expanduser("~/Documents/DMapS/src"))
+# DMapS lives beside this repo under pyzoo/other/; the old ~/Documents/DMapS
+# path is kept as a fallback.  This MUST precede the dsabre code directory on
+# sys.path: dsabre's own router.py otherwise shadows DMapS's `router` package
+# and the import below fails with "'router' is not a package".
+_DMAPS_SRC = next(
+    (p for p in (
+        os.path.expanduser("~/Documents/pyzoo/other/DMapS/src"),
+        os.path.expanduser("~/Documents/DMapS/src"),
+    ) if os.path.isdir(p)),
+    None,
+)
+if _DMAPS_SRC is None:
+    sys.exit("[dmaps] DMapS checkout not found; expected pyzoo/other/DMapS/src")
+sys.path.insert(0, _DMAPS_SRC)
 
 # Quiet third-party noise
 import logging

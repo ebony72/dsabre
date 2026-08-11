@@ -1,8 +1,47 @@
 # Safe-dSABRE — a router that always terminates *with success* (2026-08-07)
 
+> **Status, updated 2026-08-11.** `config.safe_mode` became the **default**
+> (`True`) on 2026-08-09, so "safe mode" and "the router" are now the same
+> thing and the pre-2026-08-09 behaviour is what `safe_mode=False` selects.
+> That off setting is called **score-only mode** — the same two names are
+> used in `config.py`, in this file and in the paper's Section III-F.
+>
+> **The three recovery budgets became derived on 2026-08-11**
+> (`CHANGES_FROM_SUBMITTED.md` §8). `deadlock_limit=None` selects
+> `deadlock_limit_for(arch) = 4·diam(G_C)·(diam(core)+1)`,
+> `max_backup_attempts=None` the unrouted-gate count, and
+> `max_iterations=None` `iterations_bound` — so in safe mode the loop
+> terminates by the theorem of §5, not by a budget it can exhaust. Measured
+> over all eight suites, this reproduces every published EPR count exactly.
+> A flat `L=10` was measured too and **rejected**: it is EPR-identical up to
+> 200 qubits but loses the best-of-three seed on `qpeexact_360`
+> (1938 → 2735). The "EPR is flat at L=10" note in `deadlock_limit_for`'s
+> docstring had only 64q evidence behind it.
+>
+> This document was written for the *strict* design, in which Tier 1 alone
+> maintains the reserve. That variant was measured and **rejected** (§10.3–10.5);
+> what ships is the **split** floor of §10.4. Three sections were never
+> retro-fitted to the split and are corrected inline below — §2 (the invariant),
+> §3 (the legality condition) and §5 (the termination proof). Read §10.4 as
+> authoritative wherever it disagrees with them.
+>
+> The consequence that matters: under the shipped default **(†) does not hold
+> at every action boundary.** Measured over every teleport of the 64q suite,
+> some core sits below `r = 2` at 24.6 % of boundaries (11 177 of 45 527) —
+> and at none of them does any core reach 0, which is the floor Tier 1
+> actually enforces. The induction that carries the theorem is **(F†)**, which
+> *is* conserved, not (†). The paper's Section III and Appendix stated this
+> incorrectly until 2026-08-10 and now match §10.4.
+>
+> The six-suite mechanism table that used to sit at §10.6 has been **deleted**:
+> its Tier-2 column predated the current router, and its 360q row used the
+> 6-core `H_grid_2_3_9_9` (`P = 486`) rather than the 20-core `H_grid_4_5_5_5`
+> the paper specifies (`CHANGES_FROM_SUBMITTED.md` §7). Current, paper-aligned
+> counts are in §10.6; §12's counter table went the same way.
+
 **Implemented and tested** — see §10 for the result. `config.safe_mode`
-(default `False`) gates every behavioural change; default-mode output is
-unchanged and checked by `verify_router.py`.
+(default `True` since 2026-08-09) gates every behavioural change;
+`safe_mode=False` output is unchanged and checked by `verify_router.py`.
 
 **Headline:** `qft_360` pass 2 — the one archived instance of a genuine,
 non-budget abort — now routes. The guaranteed transaction has **never failed**
@@ -13,8 +52,10 @@ against 21–222 in default mode.
 Cost depends on one setting. With `tier1_floor` at its strict default the 64q
 suite pays **+20.8 % EPR gmean**; splitting the Tier-1 floor from the Tier-2
 reserve (`tier1_floor=2`, §10.4) brings that to **+4.2 %** — with *fewer*
-iterations than the default router and 9 guaranteed transactions instead of
-124. Use the split.
+iterations than the default router and far fewer guaranteed transactions
+(9 against 124 as measured here; 42 against the score-only design's 104
+reactive room-making calls on the current router, §10.6). The split is what
+ships.
 
 Follows on from the complexity-analysis session (commit `4ea5d6f`), whose
 closing diagnosis was:
@@ -140,9 +181,20 @@ Two facts used throughout:
 >
 > **(F†) Feasibility.** `F ≥ 2K + 1`, equivalently `P ≥ n + 2K + 1`.
 
-(†) is required to hold at every **boundary between top-level actions** — after
-the initial layout, and after each iteration of the main loop. Inside an atomic
-transaction a core may dip to `free = 1`; it may never reach 0.
+> **Corrected 2026-08-10.** What follows describes the *strict* design, which
+> was rejected on cost (§10.3–10.5). In the shipped router the two conditions
+> come apart: **(F†) is the invariant** — it is exactly conserved by every SWAP
+> and teleport, so it holds unconditionally once checked — while **(†) is a
+> precondition of the Tier-2 transaction**, re-established on entry by
+> `_make_layout_safe` rather than maintained between actions. Tier 1 holds only
+> `free(c) ≥ 1`. See §10.4 for the argument as it actually runs, and §10.7 for
+> how often (†) is violated in practice.
+
+(†) is required to hold at the entry of every **Tier-2 transaction**. Under the
+strict floor that coincides with every boundary between top-level actions;
+under the shipped split floor it does not, and only `free(c) ≥ 1` holds
+between actions. Inside an atomic transaction a core may dip to `free = 1`; it
+may never reach 0.
 
 Why 2 rather than 1, and why the extra `+1` in (F†):
 
@@ -196,9 +248,15 @@ One change to candidate generation. In `_generate_candidates`
 ([router.py:227](code/router.py:227)):
 
 ```python
-if free_cache.get(next_c, 0) < 1:      # current
-if free_cache.get(next_c, 0) < 3:      # Safe-dSABRE
+if free_cache.get(next_c, 0) < 1:      # score-only design (safe_mode=False)
+if free_cache.get(next_c, 0) < 3:      # strict floor  -- MEASURED AND REJECTED
+if free_cache.get(next_c, 0) < 2:      # split floor   -- WHAT SHIPS (§10.4)
 ```
+
+**Corrected 2026-08-10.** The `< 3` line is the strict variant this section was
+written for; the shipped default is `tier1_floor = 2`, i.e. `< 2`, which leaves
+the destination at `≥ 1` rather than at the reserve. Everything below about
+*why* a floor is needed holds for both; only the constant differs.
 
 A teleport into `c'` is legal iff `free(c') ≥ 3`, so the post-state is `≥ 2`
 and **(†) is preserved by every ordinary action**:
@@ -351,18 +409,32 @@ successor's problem to fix, which is the trade being made deliberately.
 
 > **Theorem.** Let `G_C` be connected, every core's intra-coupling graph
 > connected with `κ_c ≥ 5`, every core-graph edge carry at least one inter-core
-> link, and let (F†) hold and the initial layout satisfy (†). Then Safe-dSABRE
-> routes every gate of the input DAG. It never aborts.
+> link, and let (F†) hold. Then Safe-dSABRE routes every gate of the input DAG.
+> It never aborts.
 
-*Proof.* (†) holds initially and is preserved by every Tier-1 action (§3) and
-by every Tier-2 transaction (§4.3), hence at every boundary. Every Tier-2 call
-therefore has its precondition met, and by §4.3 it succeeds and retires its
-target gate. Gates only leave the DAG, so the count of unrouted gates strictly
+*Proof.* **(corrected 2026-08-10 — the induction runs on (F†), not (†).)**
+`F` is exactly conserved: a SWAP permutes occupancy within a core and a
+teleport moves one unit between two, so neither changes `P − n`. (F†) therefore
+holds at every boundary unconditionally, whatever Tier 1 does to the
+distribution. By the donor pigeonhole of §2, a Tier-2 call entered from *any*
+reachable state can relay slack until (†) holds — this is `_make_layout_safe`,
+and §10.4 shows the relay terminates in ≤ K sweeps and never breaks `free ≥ 1`
+en route. Its precondition met, by §4.3 it succeeds and retires its target
+gate. Gates only leave the DAG, so the count of unrouted gates strictly
 decreases at each Tier-2 call: at most `|G|` calls occur. Between consecutive
 Tier-2 calls the main loop runs at most `deadlock_limit` non-progressing
 iterations (after which Tier 2 fires by construction) plus progressing ones,
 of which there are at most `|G|` in total. Hence the loop runs at most
 `|G|·(deadlock_limit + 2)` iterations and ends with an empty DAG. ∎
+
+The earlier version of this proof asserted that (†) "is preserved by every
+Tier-1 action (§3) and by every Tier-2 transaction (§4.3), hence at every
+boundary". That is true of the strict floor and **false of the shipped split
+floor**, under which Tier 1 routinely spends a core below the reserve (§10.7).
+The theorem itself is unaffected — (F†) is the stronger footing, since it is
+conserved rather than merely re-established — but the initial layout drops out
+of the hypotheses: it is *repaired* to (†) at entry, which (F†) always permits,
+rather than assumed to satisfy it.
 
 Three changes to the loop are needed to make the theorem true of the code:
 
@@ -373,9 +445,22 @@ Three changes to the loop are needed to make the theorem true of the code:
 | `ITERATION_LIMIT` / `NO_ACTIONS_NO_FALLBACK` / `ALL_CANDIDATES_REJECTED` abort | switch to **safe-drain mode**: stop heuristic search and retire remaining gates one at a time with Tier 2 |
 
 Safe-drain also gives a worst-case cost bound worth stating in the paper: a
-circuit drained entirely by Tier 2 costs at most `2·diam(G_C)` EPRs per remote
-gate, so `EPR ≤ 2·diam(G_C)·|G_remote|` — the first non-vacuous upper bound
-dSABRE has had.
+circuit drained entirely by Tier 2 costs `O(K·D_K)` EPRs per remote gate, so
+`EPR = O(K·D_K·|G_remote|)` — the first non-vacuous upper bound dSABRE has
+had.
+
+**Corrected 2026-08-11.** This previously read `2·diam(G_C)` per remote gate,
+which prices only the walk to the meeting core (`D_K` hops) and the
+meeting-core relay (`≤ 2·D_K`). It omits `_make_layout_safe`, which
+re-establishes (†) `free(c) ≥ r` for *every* core on entry to each
+transaction, and which runs in the default configuration (`router.py:1192`,
+gated on `_tier1_is_strict()` being false — it is, at `phi_1=2, r=2`).
+Ordinary moves keep `free(c) ≥ 1` but may leave every core one slot short of
+`r`, so that repair relays up to `K` units of slack over up to `D_K` hops
+each: `O(K·D_K)`. It is `Θ(K²)` on a path core graph whose slack all sits at
+one end — the `i`-th short core is `i` hops from the only donor, summing to
+`K(K+1)/2`. `paper/dsabre.tex` §III-F and `paper/appendices.tex` carry the
+corrected wording.
 
 ---
 
@@ -789,7 +874,7 @@ also still never fires, because Tier 1's floor of 2 keeps every core at ≥ 1.
 > **(current)** marker were taken after it; the rest predate it and are marked
 > **(taint-era)** — both arms of those used the old construction, so the
 > comparison is internally consistent, but neither arm describes the router as
-> it now ships. §10.7 gives the before/after.
+> it now ships. The collapsed taint-era table below gives the before/after.
 
 **64q suite (current)** — 9 circuits, 3 layouts, fwd→bwd→fwd, best-of-3:
 
@@ -815,7 +900,7 @@ Tier-2 calls 4 (from 9); `force_make_room` 26 → **0**; iterations 66 958 →
 `ae` 22→23 and `qnn` 46→47 move); 36q **+0.0 %** (base 215, split 215 —
 identical on every circuit). Zero Tier-2 calls in both, as before.
 
-<details><summary>Taint-era 64q table, superseded — kept for the §10.7 comparison</summary>
+<details><summary>Taint-era 64q table, superseded — kept for the before/after comparison</summary>
 
 **64q suite (taint-era)** — 9 circuits, 3 layouts, fwd→bwd→fwd, best-of-3:
 
@@ -911,8 +996,12 @@ Two things follow, and they pull in opposite directions:
   valid routing. There is no percentage to quote here because the baseline has
   no number.
 - **The drain's output is far from optimal, exactly as its bound says.** At
-  1.20 EPR per two-qubit gate it is well inside the theorem's `2·D_K = 10`
-  worst case, but it is the product of abandoning the heuristic entirely.
+  1.20 EPR per two-qubit gate it is far inside the theorem's worst case,
+  which on this architecture is `O(K·D_K)` — with `K=20, D_K=7`, two orders
+  of magnitude above the measured figure rather than the `2·D_K = 10` this
+  line previously compared against (§5). The bound is loose; the point stands
+  either way, which is that this is the product of abandoning the heuristic
+  entirely.
   `_safe_drain` is a guarantee of *an answer*, not of a good one, and this is
   the first instance that shows the difference at scale.
 
@@ -961,58 +1050,70 @@ mover is `qaoa_36` (133 → 146), and notably it moves with *zero* Tier-2
 activations: the Tier-1 legality floor changed a single choice and the
 three-pass protocol amplified it.
 
-### 10.6 Across all six suites
+### 10.6 Current counts, on the paper's own architectures (2026-08-10)
 
-`safe_split` against the default router, geometric mean EPR:
+Re-measured on the shipped default (`safe_mode=True`, `core_reserve=2`,
+`tier1_floor=2`), on the architectures the paper specifies after the
+`CHANGES_FROM_SUBMITTED.md` §7/§7a corrections, over the published circuit
+sets. Every EPR count reproduces the committed `results_*.json` digit for
+digit, which is the check that this is the published protocol.
 
-| suite | cores | `P` | fill | circuits | **gmean Δ** | total Δ | Tier-2 calls | base `force_make_room` |
+Two conventions differ and both are reported. **Reported** counts only the
+route whose EPR figure reaches `tab:main` (winning layout, winning pass);
+**search** counts all nine routes per circuit, which is the basis on which the
+paper charges compile time and the basis §12 uses.
+
+| suite | cores | `P` | circuits | routes | Tier-2 (reported) | Tier-2 (search) | relay teleports | failed |
 |---|---|---|---|---|---|---|---|---|
-| 25q | 4 | 64 | 39 % | 6 | **−0.7 %** | −0.4 % | 0 | 0 |
-| 36q | 4 | 64 | 56 % | 6 | **+1.6 %** | +6.1 % | 0 | 0 |
-| 64q | 6 | 96 | 67 % | 9 | **+4.2 %** | +0.1 % | 9 | 21 |
-| 100q | 6 | 150 | 67 % | 7 | **−0.3 %** | +0.2 % | 13 | 20 |
-| 200q | **12** | 300 | 67 % | 6 (+`random`) | **−5.0 %** | **−14.4 %** | 69 | 206 |
-| 360q | 6 | 486 | 74 % | 6 | **+2.9 %** | +9.9 % | 94 | 107 |
-| **all** | | | | **40** | **+0.7 %** | **−1.8 %** | | |
+| 25q | 4 | 64 | 6 | 54 | 0 | 0 | 4 | 0 |
+| 36q | 4 | 64 | 6 | 54 | 0 | 0 | 5 | 0 |
+| 64q | 6 | 96 | 9 | 81 | 0 | 42 | 145 | 0 |
+| 100q | 6 | 150 | 2 | 18 | 6 | 73 | 250 | 0 |
+| 200q | 12 | 300 | 2 | 18 | 10 | 214 | 756 | 0 |
+| 360q | 20 | 500 | 2 | 18 | 66 | 745 | 3822 | 0 |
+| **all** | | | **27** | **243** | **82** | **1074** | **4982** | **0** |
 
-`random_200` is excluded from the 200q row and the total because the default
-router has no number for it — it aborts. Safe mode routes it (§10.5).
-`qnn_200` (79 798 CX) is the one circuit still unmeasured.
+Four things worth recording:
 
-**Over all 40 comparable circuits the guarantee costs +0.7 % EPR in geometric
-mean and saves 1.8 % in total** — free, to within the noise of a protocol whose
-per-circuit swings reach ±20 %. Per suite it stays inside ±5 %, and it is a
-clear win on the one 12-core architecture. An earlier draft claimed the cost
-falls monotonically with chip width; 360q breaks that — it is the largest chip
-and costs +2.9 %, while the smaller 200q chip saves 5.0 %. Six points say
-there is no monotone trend in size at all.
+1. **The reported routes at 25/36/64q never use Tier 2 at all.** Those suites'
+   published numbers are Tier-1 scoring unassisted. At 64q the mechanism is not
+   idle — the surrounding search takes 42 transactions — but never on a route
+   that wins, which is what one expects of a mechanism that rescues the passes
+   heuristic search handles worst.
+2. **All 1 074 transactions arrive through `_backup_plan`.** The two entry
+   points that skip the deadlock wait — `_safe_progress` on an empty or
+   fully-rejected candidate list — fire **0 times** on every published suite,
+   as does `_safe_drain`. Verified by stack inspection at each call.
+   `backup_activations` is therefore an exact count here, though it remains a
+   lower bound in principle.
+3. **`safe_route_failed` is 0 over all 1 074.** The rollback paths inside the
+   transaction are assertions on the theorem's hypotheses and have never fired.
+4. **Score-only comparison, 64q whole search:** `_force_make_room` 104,
+   `_backup_plan` 111, routing iterations 207 650 against safe mode's 201 776
+   (−2.8 %), 0 layout aborts in either arm.
 
-What the table does show cleanly is **where safe mode is even relevant**. On
-the two small suites it does nothing, because nothing goes wrong: zero Tier-2
-calls, zero reactive room-making in the baseline. The mechanism only starts
-mattering once the default router begins making `force_make_room` calls, and
-the one suite where it clearly pays — 200q — is the one where the baseline
-makes the most of them (206). That is the right correlation to expect if
-capacity drift is what the invariant prevents, but with a single 12-core suite
-it stays a hypothesis rather than a result.
+### 10.7 How often (†) is actually violated
 
-**On the circuits the paper actually reports at 100q and 200q** — the
-published suites contain only `qft` and `qpeexact` at each size — safe mode is
-a net win of **−9.3 % gmean, −12.8 % total**, better on three of the four:
+The split floor means Tier 1 may leave a core below the reserve. Measured over
+every applied teleport of the 64q suite (whole search, 45 527 boundaries):
 
-| | published dSE | this harness, base | **safe (split)** |
+| circuit | boundaries | below `r = 2` | below 1 |
 |---|---|---|---|
-| qft_100 | 239 | 239 ✓ | **225** |
-| qpeexact_100 | 275 | 275 ✓ | 281 |
-| qft_200 | 975 | 975 ✓ | **742** |
-| qpeexact_200 | 994 | 994 ✓ | **918** |
+| ae | 2 399 | 1 113 (46.4 %) | 0 |
+| ghz | 66 | 18 (27.3 %) | 0 |
+| graphstate | 207 | 2 (1.0 %) | 0 |
+| multiplier | 17 770 | 3 274 (18.4 %) | 0 |
+| qaoa | 5 301 | 497 (9.4 %) | 0 |
+| qft | 2 543 | 925 (36.4 %) | 0 |
+| qnn | 7 270 | 2 795 (38.4 %) | 0 |
+| qpeexact | 2 670 | 1 149 (43.0 %) | 0 |
+| random | 7 301 | 1 404 (19.2 %) | 0 |
+| **suite** | **45 527** | **11 177 (24.6 %)** | **0** |
 
-The base column reproducing the committed results digit for digit is also the
-check that this harness runs the published protocol and not a variant of it.
-
-Two things the cost buys that the EPR column does not show: the abort is gone,
-and the 360q protocol no longer depends on best-of-3 masking a failed seed —
-default mode reports 559 only because seed 2 happened to survive.
+So (†) fails at roughly a quarter of all action boundaries, and the floor that
+does hold everywhere is `free ≥ 1`. This is the measurement behind the §2/§5
+corrections: any argument that needs (†) between actions is arguing about the
+strict variant, not about what ships.
 
 ## 11. `deadlock_limit` and predicting the iteration count
 
@@ -1070,12 +1171,14 @@ Two figures, both live, both now in `metrics` (`iterations`,
 **A hard bound, valid at every step** — `General_dSABRE_Router.iterations_bound`:
 
 ```
-I_remaining  ≤  R_2q · (deadlock_limit + 1)
+I_remaining  ≤  R_2q · (deadlock_limit + 2)
 ```
 
 Each iteration either retires an operation or increments the no-progress
 counter; after `L` of the latter the guaranteed transaction fires and retires
-a gate. So no gate absorbs more than `L + 1` iterations. Only 2-qubit gates
+a gate. Charging each gate its stall window, its own transaction and one
+progressing iteration — the accounting §5's proof uses, and the paper's proof
+sketch with it — no gate absorbs more than `L + 2` iterations. Only 2-qubit gates
 count — 1q gates and already-adjacent intra-core 2q gates drain inside the
 iteration that finds them. In default mode there is no such bound at all;
 `max_iterations` is a budget the route can hit and abort on.
@@ -1104,41 +1207,40 @@ timed unconditionally — it is rare and dominant when it happens. Counters live
 on the router, not in `metrics`: a rollback restores every scalar metric, so a
 counter kept there would undo its own increment and always read 0.
 
-**64q suite, whole run (9 circuits × 3 layouts × 3 passes = 81 `route()` calls
-per condition):**
+The per-condition counter table that used to sit here has been **deleted**: its
+`safe_split` row (9 wdag rebuilds / backup activations) does not reproduce on
+the current router, which takes **42** at 64q (§10.6), and the run's exact
+configuration could not be reconstructed. Re-measured on the current router,
+64q suite, whole run (9 circuits × 3 layouts × 3 passes = 81 `route()` calls
+per condition):
 
-| condition | snapshots | **rollbacks** | wdag rebuilds | wdag_s | snapshot_s | rollback_s | wall | txn share |
-|---|---|---|---|---|---|---|---|---|
-| base | 15 800 | **0** | 29 | 0.25 s | 0.04 s | 0.00 s | 349 s | **0.08 %** |
-| safe_strict | 26 244 | **0** | 124 | 1.16 s | 0.06 s | 0.00 s | 354 s | 0.34 % |
-| safe_split | 13 330 | **0** | 9 | 0.09 s | 0.04 s | 0.00 s | 339 s | **0.04 %** |
+| | score-only | default (split) |
+|---|---|---|
+| rollbacks taken | **0** | **0** |
+| `_force_make_room` | 104 | **0** |
+| `_backup_plan` activations | 111 | 42 |
+| routing iterations | 207 650 | **201 776** (−2.8 %) |
+| layout aborts | 0 | 0 |
 
-Three findings:
+Two findings, both of which survive the re-measurement:
 
-1. **Rollbacks are almost never taken, and only by the default router.** Zero
-   across all 47 374 snapshots of the 64q suite. They become nonzero only on
-   the widest architecture: 1 on `qft_100`, then 5 on `qft_200` and 4 on
-   `qpeexact_200` — against 12 188 and 22 049 snapshots, so still under
-   0.05 %. **Every one of them is in the default router**; both safe arms
-   take zero everywhere measured, which is what the invariant is supposed to
-   buy. The atomic-transaction machinery built in the 2026-08-03/05 sessions
+1. **Rollbacks are never taken.** Zero in both arms, and zero across all 1 074
+   guaranteed transactions of every published suite (§10.6). The
+   atomic-transaction machinery built in the 2026-08-03/05 sessions
    (`_apply_teleport`'s checked rollback, `_route_gate_transaction`) is a
-   safety net the published suites barely exercise. Verified rather than
+   safety net the published suites do not exercise. Verified rather than
    assumed: a deliberately invalid `TeleportAction` increments the counter, so
    the zeros are real, not an unwired probe.
-2. **The transaction machinery costs under 0.4 % of compile time**, and 0.04 %
-   in the split configuration. Snapshot creation — two dict copies on every
-   candidate teleport, the hottest path — totals 0.04 s over a 349 s run. The
-   expensive operation is the O(N) `_rebuild_wdag` a checkpoint restore needs,
-   and there is exactly one per deadlock recovery: 0.25 s / 29 in base,
-   1.16 s / 124 under the strict floor, 0.09 s / 9 under the split.
-3. **`wdag_rebuilds == backup_activations` exactly**, in every condition — a
-   useful consistency check that no recovery path skips its checkpoint restore.
+2. **The reactive room-making step becomes unreachable.** `_force_make_room`
+   goes from 104 calls to 0, which is what promoting capacity to a legality
+   condition is supposed to buy — Tier 1's floor keeps every core at `≥ 1`, so
+   the situation the patch existed to repair no longer arises. The default
+   router also needs *fewer* routing iterations than the design it replaced.
 
-The strict floor's cost shows up here too: 66 % more snapshots and 4× the
-checkpoint-restore work than base, because it drives the router into recovery
-4× as often. The split configuration is *cheaper than the default router* on
-every one of these counters.
+The expensive transaction operation is the O(N) `_rebuild_wdag` that a
+checkpoint restore needs, and there is exactly one per deadlock recovery —
+`wdag_rebuilds == backup_activations` in every condition measured, a useful
+check that no recovery path skips its checkpoint restore.
 
 ## 13. Does safe mode always terminate with success?
 
@@ -1297,8 +1399,8 @@ Three readings:
 - **The drain works, and it is expensive.** Under the strict floor the budget
   runs out with 23 111 operations outstanding, the drain retires all of them,
   and the pass completes — at +30.8 % EPR. That is the escape hatch behaving
-  as designed: it abandons the heuristic entirely, and its `2·diam` per-gate
-  bound is a worst case, not a target. It was also *faster* in wall time
+  as designed: it abandons the heuristic entirely, and its `O(K·D_K)`
+  per-gate bound is a worst case, not a target. It was also *faster* in wall time
   (432 s vs base's 486 s), because one transaction per gate beats thrashing.
 - **The default setting never gets there.** With `tier1_floor = 2` the pass
   costs **+0.4 %** over the default router, uses 13 guaranteed transactions
@@ -1388,7 +1490,7 @@ mechanism being evaluated; the theorem does not.
 ### 13.5 What the guarantee still does not cover
 
 - **It is a guarantee about routing, not about cost.** `_safe_drain` bounds
-  EPR at `2·diam(G_C)` per remote gate; nothing bounds how bad that is
+  EPR at `O(K·D_K)` per remote gate; nothing bounds how bad that is
   relative to a good solution.
 - **Architectures below the feasibility line are refused, not degraded.** The
   25-qubit 3-core `F=2<K=3` stress case cannot satisfy (†) at all; safe mode
@@ -1421,7 +1523,7 @@ strong candidate for the default once the paper lands.**
 | transaction rollbacks | 0–5 | **0 everywhere** |
 | min free reached | **0**, on 6 of 9 circuits at 64q | ≥ 1 always, ≥ 2 at boundaries |
 | aborts, confirmed under current code | `random_200`, 3/3 layouts (`qft_360`, `qft_200` retracted — §13.2) | **none, ever** |
-| worst case | none — `max_iterations` is a budget it can hit | `2·D_K` teleports per remote gate; `N_r(L_d+1)` iterations |
+| worst case | none — `max_iterations` is a budget it can hit | `O(K·D_K)` teleports per remote gate; `N_r(L_d+2)` iterations |
 
 ¹ from the taint-era timing run; not remeasured post-`89c088a`, but timing is
 governed by iteration count and Tier-1's per-candidate cost, neither of which
@@ -1515,9 +1617,12 @@ two properties that happen to coincide.
 **A worst-case bound on the *output*, not only on running time.** Nothing
 else in this project bounds EPR count in terms of circuit or architecture
 size — the complexity appendix bounds compile *time*. `_safe_drain` gives
-`EPR ≤ 2·D_K` per remote gate (§5), and every individual guaranteed
-transaction is within a factor of 2 of the information-theoretic lower bound
-`d` for the gate it resolves (§4.4). The default router's fallback has no
+`EPR = O(K·D_K)` per remote gate (§5), and a transaction entered from a
+state that already satisfies (†) — so needing no `_make_layout_safe` repair
+— costs `O(D_K)`, a constant factor of the information-theoretic lower bound
+`d` for the gate it resolves (§4.4). The factor of 2 previously claimed here
+came from the uncorrected `2·D_K`; the constant has not been re-derived. The
+default router's fallback has no
 such property: a bad recovery can cost arbitrarily more than `d` relative to
 that lower bound, and — before this work — could fail outright rather than
 merely cost a lot.

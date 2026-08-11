@@ -220,9 +220,10 @@ class General_dSABRE_Router:
         """
         arch = self.arch
         cfg  = self.config
-        # Capacity as a legality condition (safe_mode): a teleport into
-        # `next_c` is legal only if it leaves the destination at or above
-        # `tier1_floor - 1`.  Default mode keeps the historical ">= 1" rule.
+        # Capacity as a legality condition (safe mode, the default): a
+        # teleport into `next_c` is legal only if it leaves the destination
+        # at or above `tier1_floor - 1`.  Score-only mode
+        # (`safe_mode=False`) keeps the pre-2026-08-09 ">= 1" rule.
         min_dst_free = self._tier1_floor() if cfg.safe_mode else 1
 
         def score_nodes(node_list, free_cache):
@@ -545,7 +546,7 @@ class General_dSABRE_Router:
                 # touches the port, since `intra` is connected), so retry over
                 # the reachable ones instead of failing the whole action.  Grid
                 # cores have no articulation points, so this never fires there
-                # -- hence the safe_mode gate, which keeps default-mode output
+                # -- hence the safe_mode gate, which keeps score-only output
                 # bit-identical.
                 staging_path = None
                 if cfg.safe_mode:
@@ -950,57 +951,71 @@ class General_dSABRE_Router:
         return self._tier1_floor() >= self.config.core_reserve + 1
 
     @staticmethod
-    def iterations_bound(remaining_2q: int, config: HardwareConfig) -> int:
+    def iterations_bound(remaining_2q: int, deadlock_limit: int) -> int:
         """Worst-case main-loop iterations still needed, in safe mode.
 
         Every iteration either retires at least one operation or increments the
         no-progress counter; after `deadlock_limit` of the latter the
         guaranteed transaction fires and retires a gate outright (§5 of
-        SAFE_DSABRE.md).  So no gate can absorb more than
-        `deadlock_limit + 1` iterations, and
+        SAFE_DSABRE.md).  Charging each gate its stall window, its own
+        transaction and one progressing iteration -- the accounting the
+        paper's proof sketch uses -- no gate absorbs more than
+        `deadlock_limit + 2` iterations, and
 
-            I_remaining <= remaining_2q * (deadlock_limit + 1)
+            I_remaining <= remaining_2q * (deadlock_limit + 2)
 
         Only 2-qubit gates count: 1-qubit gates and already-adjacent
         intra-core 2q gates are drained inside the iteration that finds them,
         without consuming one of their own.
 
         This is a genuine bound, not an estimate -- it holds at every step, so
-        `router.iterations_bound(router._remaining_2q(wdag), cfg)` is a live
+        `router.iterations_bound(router._remaining_2q(wdag), L)` is a live
         "iterations still required" figure.  It is loose by construction: it
         assumes every remaining gate stalls for the full deadlock window, which
         measurement puts 1-3 orders of magnitude above the actual count.
 
-        Outside safe mode there is no bound -- `max_iterations` is a budget the
-        route can hit and abort on, which is the difference this mode removes.
+        `config.max_iterations = None` sets the budget to this bound at entry,
+        so in safe mode the loop terminates by the theorem rather than by a
+        budget it can exhaust.  Outside safe mode there is no bound --
+        `max_iterations` is then a budget the route can hit and abort on,
+        which is the difference safe mode removes.
         """
-        return remaining_2q * (config.deadlock_limit + 1)
+        return remaining_2q * (deadlock_limit + 2)
 
     @staticmethod
-    def deadlock_limit_for(arch: DistributedArchitecture,
-                           safe_mode: bool = False) -> int:
-        """A `deadlock_limit` derived rather than hand-tuned per suite.
+    def deadlock_limit_for(arch: DistributedArchitecture) -> int:
+        """`deadlock_limit` derived from the architecture, not tuned per suite.
 
-        **Default mode.** Recovery is a gamble that can fail outright, so the
-        limit wants to be high enough that a gate which was about to resolve
-        by ordinary means is not interrupted: at most `diam(core graph)` hops,
-        each preceded by up to `diam(core)` intra-core SWAP iterations to reach
-        the staging slot, plus the teleport.  The factor 4 is the smallest
-        integer covering the values hand-tuned before this mode existed
-        (50 / 100 / 200 at 25q / 64q / 360q, against 56 / 84 / 204 here).
+        This is what `config.deadlock_limit = None` selects, and what every
+        benchmark driver in this repository passes.  It exists so the router
+        has no per-suite parameter: the rule reads two diameters off the
+        architecture and nothing off the circuit or the results.
 
-        **Safe mode: go small.**  That reasoning turns out not to survive
-        measurement.  Recovery cannot fail, so interrupting a gate early costs
-        nothing but the transaction itself -- and a sweep over the 64q suite
-        (L = 10, 25, 50, 100, 200) found total EPR **flat**: 2573 at L=10
-        against 2579 at every larger value, while pass-1 iterations rose
-        monotonically 13 542 -> 26 544.  L=10 matches the default router's own
-        iteration count (13 436) at identical EPR, and tightens
-        `iterations_bound` by 20x.  There is no measured reason to let the
-        heuristic thrash before invoking a transaction that always succeeds.
+        A gate about to resolve by ordinary means should not be interrupted,
+        and resolving one takes at most `diam(core graph)` teleports, each
+        preceded by up to `diam(core)` intra-core SWAP iterations to reach the
+        staging slot, plus the teleport itself.  The factor 4 is the smallest
+        integer covering the values that were hand-tuned before the rule
+        existed (50 / 100 / 200 at 25q / 64q / 360q, against 56 / 84 / 252
+        here).
+
+        Measured on every suite in the paper -- 25q, 36q, 64q, 100q, 200q,
+        360q and the two heavy-hex core graphs, per SabreLayout seed, safe
+        mode -- this rule reproduces the hand-tuned runs' EPR counts
+        **exactly**, best and median alike, at equal or fewer iterations
+        (`probe_derived_deadlock.py --rule arch`).  So adopting it costs
+        nothing and removes the last per-suite constant.
+
+        A constant `L = 10` was measured too, on the argument that in safe
+        mode the stall window is pure waste: recovery cannot fail, and the
+        work done while stalling is discarded by the checkpoint restore, so
+        EPR should not depend on how long the router thrashes first.  That
+        holds up to 200 qubits -- identical EPR on 25q through 200q, at 20-35%
+        fewer iterations -- and then breaks: on the 360-qubit QPEexact it
+        loses the seed that produced the reported route, 1938 -> 2735 EPR
+        (+41%), while the medians move only +2%.  Cutting the window short
+        costs a best-of-three winner there, so the rule below is what ships.
         """
-        if safe_mode:
-            return 10
         diam_core = max(max(d.values()) for d in arch.core_dist.values())
         diam_intra = max(max(max(d.values()) for d in arch.intra_dist[c].values())
                          for c in range(arch.num_cores))
@@ -1858,10 +1873,26 @@ class General_dSABRE_Router:
         last_remaining   = self._remaining
         no_progress_iters = 0
         backup_attempts  = 0
+        # `deadlock_limit = None` means "derive it from the architecture"
+        # (`deadlock_limit_for`), which is what every benchmark driver here
+        # passes so that no suite carries a hand-tuned value.  An explicit int
+        # is honoured unchanged, so pre-rule configs reproduce bit-for-bit.
+        deadlock_limit = (self.deadlock_limit_for(arch)
+                          if self.config.deadlock_limit is None
+                          else self.config.deadlock_limit)
+        # `max_iterations = None` sets the budget to the worst case the
+        # termination theorem allows, so it cannot bind: in safe mode the loop
+        # then stops because every gate is routed, not because a budget ran
+        # out.  In score-only mode there is no such theorem, and None simply
+        # means "do not cap".
+        max_iterations = (self.iterations_bound(n_2q_at_entry, deadlock_limit)
+                          if self.config.max_iterations is None
+                          else self.config.max_iterations)
         # Safe mode: every recovery retires a gate, so the useful bound on
         # activations is the gate count, not a hand-tuned constant -- capping
         # below it would abort a route the guarantee says must finish.
-        max_backups = (max(self.config.max_backup_attempts, self._remaining + 1)
+        max_backups = (max(self.config.max_backup_attempts or 0,
+                           self._remaining + 1)
                        if self.config.safe_mode
                        else self.config.max_backup_attempts)
         committed_nid    = None  # DAG node id of the gate the last teleport advanced
@@ -1882,7 +1913,7 @@ class General_dSABRE_Router:
         prev_remaining = last_remaining
 
         while self._remaining > 0:
-            if iteration >= self.config.max_iterations:
+            if iteration >= max_iterations:
                 remaining = self._remaining
                 elapsed   = time.perf_counter() - _t_start
                 # Safe mode: the budget running out stops the heuristic search,
@@ -2031,7 +2062,7 @@ class General_dSABRE_Router:
             else:
                 no_progress_iters += 1
 
-            if no_progress_iters >= self.config.deadlock_limit:
+            if no_progress_iters >= deadlock_limit:
                 if not self.config.enable_deadlock_recovery:
                     elapsed = time.perf_counter() - _t_start
                     failure_log.append(("DEADLOCK_NO_RECOVERY", iteration, remaining, elapsed))
@@ -2081,7 +2112,8 @@ class General_dSABRE_Router:
         # computed from the gate count at entry (see `iterations_bound`).
         metrics["iterations"]       = iteration
         metrics["iterations_bound"] = self.iterations_bound(n_2q_at_entry,
-                                                            self.config)
+                                                            deadlock_limit)
+        metrics["deadlock_limit"]   = deadlock_limit
         # Transaction accounting.  `snapshots`/`rollbacks` cover every nested
         # transaction (`_apply_teleport`, `_relay_slack_to`, `_safe_route_gate`
         # ...); `wdag_rebuilds` are the O(N) whole-DAG replays a deadlock
