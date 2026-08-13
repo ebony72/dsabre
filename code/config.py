@@ -91,30 +91,41 @@ class HardwareConfig:
     cap_penalty: float = 15.0
     capacity_threshold: int = 3
 
-    # ── Capacity-safe mode (2026-08-07, promoted to the default 2026-08-09) ────
-    # Promotes capacity from the soft `cap_penalty` above to a LEGALITY
-    # condition, which turns "every core keeps >= core_reserve free slots" from
-    # a starting condition into an invariant, and makes deadlock recovery
-    # provably able to execute any remote gate -- a termination-WITH-SUCCESS
-    # guarantee the router did not have before.  See SAFE_DSABRE.md.
+    # ── Safe mode (2026-08-07, promoted to the default 2026-08-09) ────────────
+    # Two configurations, named the same way here, in SAFE_DSABRE.md and in the
+    # paper: SAFE MODE (safe_mode=True, the shipped default) and SCORE-ONLY
+    # MODE (safe_mode=False, the submitted design).
     #
-    # True (default): a teleport into core c is legal only if free(c) >
-    #   core_reserve, so the post-state is still >= core_reserve; deadlock
-    #   recovery runs `_safe_route_gate` first -- relay slack to the meeting
-    #   core, walk one operand there hop by hop, execute -- which cannot fail
-    #   while the invariant holds; the iteration limit stops being an abort:
-    #   routing switches to draining the remaining gates with
-    #   `_safe_route_gate`.  Requires P - n >= core_reserve * num_cores + 1
-    #   (checked in route()), so a donor core with a spare slot always exists
-    #   by pigeonhole -- an architecture below that line raises rather than
-    #   silently falling back; there is no degrade path yet (SAFE_DSABRE.md
-    #   §14.2 item 5).
-    # False restores the pre-2026-08-09 router: capacity as a score penalty
-    #   only, no invariant, no completion guarantee.  Measured EPR-neutral
-    #   against this setting across all six published suites (+0.2% gmean
-    #   over 41 circuits) -- see SAFE_DSABRE.md §10.6 -- so it is kept only
-    #   for that comparison and for architectures that cannot satisfy the
-    #   feasibility line above.
+    # Safe mode promotes capacity from the soft `cap_penalty` above to a
+    # LEGALITY condition, which turns "every core keeps >= core_reserve free
+    # slots" from a starting condition into a precondition the router can
+    # always re-establish, and makes deadlock recovery provably able to execute
+    # any remote gate -- a termination-WITH-SUCCESS guarantee the router did
+    # not have before.  See SAFE_DSABRE.md.
+    #
+    # True (default, "safe mode"): a teleport into core c is legal only if
+    #   free(c) >= tier1_floor, so the post-state is still >= tier1_floor - 1;
+    #   deadlock recovery runs `_safe_route_gate` first -- relay slack to the
+    #   meeting core, walk one operand there hop by hop, execute -- which
+    #   cannot fail while the capacity conditions hold; the iteration limit
+    #   stops being an abort: routing switches to draining the remaining gates
+    #   with `_safe_route_gate`.  Requires P - n >= core_reserve * num_cores
+    #   + 1 (checked in route()), so a donor core with a spare slot always
+    #   exists by pigeonhole -- an architecture below that line raises rather
+    #   than silently falling back; there is no degrade path yet
+    #   (SAFE_DSABRE.md §14.2 item 5), so the fallback is score-only mode.
+    # False ("score-only mode") restores the pre-2026-08-09 router: capacity as
+    #   a score penalty only, no legality floor, no completion guarantee.
+    #   Measured EPR-neutral against safe mode across all six published suites
+    #   (+0.2% gmean over 41 circuits) -- see SAFE_DSABRE.md §10.6 -- so it is
+    #   kept only for that comparison and for architectures that cannot satisfy
+    #   the feasibility line above.
+    #
+    # Safe mode also makes a set of recovery paths dead code -- `_force_make_room`,
+    # `_fallback_local_swap`, `_route_gate_transaction`, `_relay_room_to`, every
+    # rollback path inside `_apply_teleport`, and every abort -- which are kept
+    # live for score-only mode and for a violated hypothesis.  router.py's module
+    # docstring lists them with the reason each is unreachable.
     safe_mode: bool = True
     core_reserve: int = 2
     # Free slots a destination core must hold for an ORDINARY (Tier-1) teleport
@@ -137,12 +148,27 @@ class HardwareConfig:
     tier1_floor: int | None = 2
 
     # ── Deadlock recovery ──────────────────────────────────────────────────────
-    # Maximum routing iterations before declaring failure.
-    max_iterations: int = 10000
+    # None on any of the three means "derive it", and is what every benchmark
+    # driver here passes, so no suite carries a hand-tuned recovery constant.
+    # An explicit int is honoured unchanged, so a pre-rule config reproduces
+    # bit-for-bit; the literal defaults below are the historical ones.
+    #
+    # Maximum routing iterations before declaring failure.  None -> the
+    # worst case the termination theorem allows,
+    # `General_dSABRE_Router.iterations_bound`, so the budget cannot bind and
+    # safe mode terminates by the theorem rather than by budget exhaustion.
+    max_iterations: int | None = 10000
     # Consecutive non-progress iterations before activating backup plan.
-    deadlock_limit: int = 50
-    # Maximum number of backup-plan activations before aborting.
-    max_backup_attempts: int = 50
+    # None -> `General_dSABRE_Router.deadlock_limit_for(arch)`, which reads the
+    # core and core-graph diameters and nothing else.  Measured to reproduce
+    # every published EPR count exactly in place of the hand-tuned 50/100/200
+    # (probe_derived_deadlock.py --rule arch).
+    deadlock_limit: int | None = 50
+    # Maximum number of backup-plan activations before aborting.  In safe mode
+    # this is already raised to the unrouted-gate count at route() entry --
+    # every recovery retires a gate, so a smaller cap would abort a route the
+    # theorem says must finish -- and None simply leaves it there.
+    max_backup_attempts: int | None = 50
     # When True, _backup_plan's cross-core hops use _relay_room_to (BFS relay
     # of a genuine free-slot surplus along the core graph) to guarantee every
     # core keeps >=1 free qubit before each forced hop, instead of the default
