@@ -29,6 +29,41 @@ output is bit-identical to the pre-optimisation implementation, frozen as
 `_baseline_router.py` and checked by `verify_router.py` across the
 25/36/64/360-qubit suites.  The measured effect is 3.5-5.6x less compile
 time; see the complexity appendix of the paper.
+
+What safe mode makes dead code.  Under the five hypotheses route() checks
+at entry -- r >= 2, connected core graph, connected core coupling graphs,
+M >= r+3, and P - n >= r*K + 1 -- every core keeps at least one free slot
+at every point of the run, and every scored teleport candidate therefore
+executes exactly as scored.  The paper's Appendix C proves this; the
+measurement is no rejection in 1.08M scored candidates over four
+architectures.  Unreachable in consequence:
+
+  _force_make_room            both call sites in `_apply_teleport` are
+                              guarded by free(c) == 0
+  `_apply_teleport`'s 18      every `return rollback()` path in it; the
+  rollback paths              method itself is of course still required
+  _fallback_local_swap        reached only when `_safe_progress` returns
+                              False, which requires safe_mode off
+  _backup_plan's greedy       the safe branch at its head returns first
+  cross-core hops
+  _route_gate_transaction     called only after that branch has failed,
+                              and with it `_relay_room_to` and
+                              `_find_nearest_slack_core`
+  _safe_drain                 its two backup-exhaustion callers cannot
+                              fire (safe mode raises `max_backups` to the
+                              gate count); its ITERATION_LIMIT caller can,
+                              but only when `max_iterations` is set
+                              explicitly rather than derived from
+                              `iterations_bound`
+  every metrics["aborted"]    that is the termination-with-success theorem
+
+None of them is replaced by an assertion, so that a violated hypothesis
+degrades to the pre-safe-mode behaviour instead of aborting, and so
+score-only mode (safe_mode=False), where all of them are live, still
+works.  Still required in safe mode: `_snapshot`/`rollback`
+(checkpoint-rollback is one of the hypotheses, and deadlock recovery does
+fire), `_make_layout_safe`, `_relay_slack_to`, `_find_donor_core`,
+`_plan_meeting_core`, `_safe_pick_gate` and `_safe_route_gate`.
 """
 
 import time
@@ -459,6 +494,18 @@ class General_dSABRE_Router:
         failure the layout, counters, and trace are restored to their state
         at entry and False is returned (the action is a complete no-op).
 
+        In safe mode none of those failure paths can fire: under the entry
+        hypotheses they are assertions, not branches the router takes (see
+        the module docstring, and the proposition in the paper's Appendix
+        C).  They divide into the six checks that restate how the candidate
+        was built -- exact because a rejected attempt restores the state its
+        whole list was scored in, so attempt k begins where attempt 1 did --
+        the three capacity checks, excluded by every core keeping a free
+        slot, the three staging checks, excluded by intra-core connectivity
+        plus the port-neighbour retry below, the final port/staging
+        validation, and the two map-consistency postconditions.  In
+        score-only mode they are live and do the work they look like they do.
+
         `partner_phys`, if given, maps a logical qubit with a pending
         front-layer gate to that gate's partner's physical position -- passed
         through to `_evict`/`_force_make_room` for distance-aware eviction.
@@ -728,7 +775,13 @@ class General_dSABRE_Router:
         return ext
 
     def _fallback_local_swap(self, front_inter, wdag, l2p, p2l, metrics):
-        """SABRE-style SWAP when no teleportation candidates are available."""
+        """SABRE-style SWAP when no teleportation candidates are available.
+
+        Not required in safe mode: both call sites are
+        `_safe_progress(...) or _fallback_local_swap(...)`, and with
+        `front_inter` non-empty `_safe_progress` returns False only when
+        safe mode is off (module docstring).
+        """
         arch = self.arch
         involved = {l2p[n.qargs[0]] for n in front_inter} | {l2p[n.qargs[1]] for n in front_inter}
 
@@ -776,6 +829,14 @@ class General_dSABRE_Router:
 
     def _force_make_room(self, core_id, l2p, p2l, metrics, exclude_virt=None, partner_phys=None):
         """Teleport a qubit out of a full core to free one slot.
+
+        Not required in safe mode.  Its two callers in `_apply_teleport` are
+        guarded by `free(core) == 0`, and no core ever reaches zero once the
+        legality floor is enforced; its third caller is in `_backup_plan`'s
+        greedy branch, which safe mode does not reach either (module
+        docstring).  It is the only step inside a macro-action that can
+        spend an EPR pair besides the teleport itself, which is why safe
+        mode's ordinary iterations cost exactly one.
 
         `exclude_virt`, when given, must not be the qubit relieved: used by
         `_apply_teleport` when it calls this mid-move, so the relief hop
@@ -846,7 +907,12 @@ class General_dSABRE_Router:
         """BFS outward from `start_core` over the core graph for the nearest
         core (possibly `start_core` itself) with >= `min_free` free physical
         qubits.  Returns None only if no such core exists anywhere on the
-        chip (i.e. precondition (*) does not actually hold)."""
+        chip (i.e. precondition (*) does not actually hold).
+
+        Not required in safe mode: its only caller is `_relay_room_to`
+        (module docstring).  The safe-mode transaction relays through
+        `_relay_slack_to`/`_find_donor_core` instead, which apply the
+        reserve-aware donor threshold this one does not."""
         arch = self.arch
         if self._free_slots(start_core, arch, p2l) >= min_free:
             return start_core
@@ -866,7 +932,11 @@ class General_dSABRE_Router:
     def _relay_room_to(self, target_core, l2p, p2l, metrics, min_free=2, protect=()):
         """Ensure `target_core` has >= `min_free` free slots by relaying the
         chip's slack there one hop at a time, never dropping any core below
-        1 free.  `protect` qubits (the gate's own two qubits) are never moved
+        1 free.
+
+        Not required in safe mode: its callers are `_route_gate_transaction`
+        and `_backup_plan`'s relay branch, neither of which safe mode reaches
+        (module docstring).  `protect` qubits (the gate's own two qubits) are never moved
         as filler.
 
         The relay is a single transaction: a chain that gets partway and then
@@ -1290,6 +1360,13 @@ class General_dSABRE_Router:
         search is abandoned, and each remaining gate is executed by the
         guaranteed transaction.  Cost is bounded by 2*diam(core graph) EPRs per
         remote gate; termination is the strictly decreasing gate count.
+
+        Mostly not required in safe mode.  The two backup-exhaustion callers
+        cannot fire, since safe mode raises `max_backups` to the unrouted-gate
+        count and every recovery retires one.  The `ITERATION_LIMIT` caller
+        can, but only when a driver sets `max_iterations` to a finite value
+        below the theorem's bound instead of leaving it None (module
+        docstring).
         """
         arch = self.arch
         guard = self._remaining + 1
@@ -1400,6 +1477,12 @@ class General_dSABRE_Router:
         are exactly as at entry (False). `wdag` is only mutated on success
         (the gate's removal is the transaction's last step), so a failed
         attempt never needs to touch it.
+
+        Not required in safe mode: `_backup_plan` calls this only after
+        `_safe_route_gate` has already failed, which under the entry
+        hypotheses it cannot (module docstring).  It remains the best
+        recovery available when one of them is violated, and the only one in
+        score-only mode.
         """
         arch = self.arch
         rollback = self._snapshot(l2p, p2l, metrics)
@@ -1483,10 +1566,13 @@ class General_dSABRE_Router:
         if not front:
             return False
         if self.config.safe_mode:
-            # Guaranteed path first: under (†) this cannot fail, so the greedy
-            # branches below are unreachable in safe mode.  They stay as a
-            # fallback rather than an assertion so a violated hypothesis
-            # degrades to today's behaviour instead of aborting the route.
+            # Guaranteed path first: under (†) this cannot fail, so everything
+            # below -- the greedy cross-core hops, `_route_gate_transaction`,
+            # and through it `_relay_room_to` -- is unreachable in safe mode
+            # (module docstring; the paper's Appendix C proves the ordinary
+            # scored path never needs them either).  They stay as a fallback
+            # rather than an assertion so a violated hypothesis degrades to
+            # today's behaviour instead of aborting the route.
             node = self._safe_pick_gate(front, l2p, p2l)
             if node is not None and self._safe_route_gate(node, wdag, l2p, p2l,
                                                           metrics):
