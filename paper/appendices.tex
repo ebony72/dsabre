@@ -41,11 +41,16 @@ drawn as a flowchart in its Figure~\ref{fig:workflow}.  Phase labels \textup{(P1
 \textup{(P4)} match those used there: drain the front layer, classify
 the remainder into intra- and inter-core gates, apply one SWAP or one
 teleport, and checkpoint on forward progress.  Equation numbers refer
-to the main paper.  It omits, for clarity, the capacity floor that by
-default makes every SWAP and teleport in lines 59--65 additionally
-legality-checked against $\mathrm{free}(c')\ge r$, and the guaranteed
-transaction line 70 falls back to in place of aborting; both are
-Appendix~\ref{app:safemode}'s subject.}
+to the main paper.  It omits, for clarity, three things that are
+Appendix~\ref{app:safemode}'s subject: the legality floor that by
+default admits a candidate at line 16 only if its destination holds
+$\phi_1$ free slots (a SWAP needs no such check---it leaves the
+occupied set unchanged); the rollback that line 18 performs when a
+candidate's preconditions no longer hold at execution time, after which
+the next candidate down the sorted list is tried; and the guaranteed
+transaction that line 23 falls back to in place of aborting, which is
+also reached directly from line 16 when no candidate is legal or none
+commits.}
 
 \begin{algorithm}[t]
 \caption{\dSABRE{} \texttt{route}$(C, \ell_0)$}
@@ -58,34 +63,36 @@ Appendix~\ref{app:safemode}'s subject.}
   \STATE drain $F$ (execute 1Q gates and adjacent intra-core 2Q gates; append them to $C_\mathrm{out}$) \hfill\textit{(P1)}
   \IF{$W$ empty} \STATE \textbf{break} \ENDIF
   \STATE compute $F$, partition into $F_\mathrm{intra}, F_\mathrm{inter}$ \hfill\textit{(P2)}
+  \STATE compute extended set $E$ by BFS layer if not cached (Section~\ref{sec:bfsext})
   \IF{$F_\mathrm{intra}\!\neq\!\emptyset$}
-    \STATE compute per-core intra-only extended set $E_c$ for each active core $c$ \hfill\textit{(P3a)}
+    \STATE restrict $E$ to each active core: $E_c \leftarrow \{g \in E:\text{both operands in } c\}$ \hfill\textit{(P3a)}
     \STATE pick best SWAP $(u,v)$ within a core (Eq.~\ref{eq:intra})
     \STATE apply SWAP$(u,v)$ to $\ell$;\ \ append SWAP$(u,v)$ to $C_\mathrm{out}$
   \ELSIF{$F_\mathrm{inter}\!\neq\!\emptyset$}
-    \STATE compute global $E$ if not cached \hfill\textit{(P3b)}
-    \STATE generate candidates over $F_\mathrm{inter}$
+    \STATE generate candidates over $F_\mathrm{inter}$ \hfill\textit{(P3b)}
     \STATE pick lowest-score candidate (Eq.~\ref{eq:dsabre})
     \STATE apply teleport to $\ell$;\ \ append teleport (staging SWAPs $+$ teledata) to $C_\mathrm{out}$
   \ENDIF
   \IF{$|W|$ decreased}
     \STATE save checkpoint \hfill\textit{(P4)}
-  \ELSIF{$L_\mathrm{deadlock}{=}50$ stalled iterations}
-    \STATE restore checkpoint;\ \texttt{backup\_plan}$(W,\ell,C_\mathrm{out})$ \hfill\textit{// guaranteed transaction after $N_\mathrm{backup}^\mathrm{max}{=}50$ failed recoveries (default); abort without it}
+  \ELSIF{$L_\mathrm{deadlock}$ stalled iterations (Table~\ref{tab:notation})}
+    \STATE restore checkpoint;\ \texttt{backup\_plan}$(W,\ell,C_\mathrm{out})$ \hfill\textit{// guaranteed transaction once recoveries are exhausted---one per unrouted gate in safe mode, since each retires one; abort without it}
   \ENDIF
 \ENDWHILE
 \RETURN $(\ell, C_\mathrm{out}, \mathrm{metrics})$
 \end{algorithmic}
 \end{algorithm}
 
-\rev{\textbf{Operational definition of a teleport (line 61).}  Executing
+\rev{\textbf{Operational definition of a teleport (lines 16--18).}  Executing
 a candidate is deterministic given the state at the moment it is
 scored.  The destination port $\pi_d$ need not be empty: if occupied,
 its occupant is evicted---walked by intra-core SWAPs to the nearest
 free slot in $c_\mathrm{next}$, exactly the rule also applied to the
 source port $\pi_s$ if it is occupied.  That requires $c_\mathrm{next}$
 to have a free slot to evict into, so the router only ever proposes
-landing cores with at least one; a core with none is never scored as
+landing cores that have one---$\phi_1{=}2$ of them under the default
+legality floor, one under the softer score-only rule the submitted
+manuscript used; a core below the floor is never scored as
 $c_\mathrm{next}$ to begin with, rather than being scored and losing on
 the capacity penalty (the underlying eviction cost is a large but
 finite placeholder in that case, never reached by a scored candidate).
@@ -96,7 +103,10 @@ to go, so the router first teleports one further qubit out of
 $c_\mathrm{src}$ to open a slot (leaving $q_1$ itself untouched), and,
 because that correction can itself land in and fill $c_\mathrm{next}$,
 re-applies the same correction there if needed before evicting
-$\pi_d$.  Once the move completes, $\ell$ and $\ell^{-1}$ are updated
+$\pi_d$.  A candidate that cannot be corrected this way---because no
+neighbour of the full core has room, or because a port eviction or the
+staging walk fails---is rolled back to the state it was scored in and
+the next candidate is tried.  Once the move completes, $\ell$ and $\ell^{-1}$ are updated
 in place: $q_1$'s image becomes $\pi_d$, the staging slot $n_s$ it
 vacated becomes free, and $\pi_d$'s prior occupant, if any, takes the
 image of wherever it was evicted to.}
@@ -210,8 +220,14 @@ per-iteration product was loose by close to a factor $M$.}
 \subsection{\rev{The two lookahead sets}}
 
 \rev{The two sets have genuinely different complexities, and the
-distinction is what separates Eq.~\ref{eq:complexity}, which is linear in
-$N$, from the router we measure, which is quadratic.}
+distinction is what separated Eq.~\ref{eq:complexity}, which is linear
+in $N$, from the submitted router, which measured quadratic.  Three
+constructions of the per-core set appear below: the \emph{sweep} the
+submitted manuscript used, which is the source of that exponent; a
+\emph{seeded closure} that the analysis of this subsection shows can
+replace it; and the \emph{restriction} of $E$ that
+Section~\ref{sec:intra} now specifies and every number in this paper is
+produced under.}
 
 \rev{The inter-core set $E$ costs $O(n{+}L)$ per call by (F1) and (F3),
 provided remaining in-degrees are carried between calls rather than
@@ -222,8 +238,8 @@ Section~\ref{sec:bfsext} must classify the truncated final layer, which
 the layout, so it needs recomputation only when a gate retires---never
 after a teleport, which removes no gate.}
 
-\rev{The intra-core set $E_\mathrm{c}$ is where the router's quadratic
-behaviour originates, and it is an artefact of how the set is built rather
+\rev{The submitted sweep is where the quadratic behaviour originates, and
+it is an artefact of how the set is built rather
 than of what it contains.  A gate enters $E_\mathrm{c}$ only if both
 operands are untainted and in the core, and taint, once acquired,
 propagates along the wire forever.  Unfolding that recursion, the admitted
@@ -257,8 +273,8 @@ certificate---what the live-qubit exit above approximates---and the bound
 is tight, since a from-scratch construction must at least read
 $F_\mathrm{c}$.}
 
-\rev{The two constructions moreover agree exactly in the regime that makes
-the scan expensive.  When $|G_\mathrm{c}|\le L$---the unreachable-quota
+\rev{The sweep and the closure moreover agree exactly in the regime that
+makes the scan expensive.  When $|G_\mathrm{c}|\le L$---the unreachable-quota
 case---neither truncates, so both return all of $G_\mathrm{c}$ with the
 same depths, the recursion $\max(d_{q_1},d_{q_2}){+}1$ being
 longest-path-from-front and hence invariant across topological orders of
@@ -280,18 +296,40 @@ the router untouched, confirms both halves of that account.  The work per
 call stops growing with the circuit: the sweep examines $28$ to $5328$ DAG
 nodes a call, rising with gate count, and the closure a flat $7.5$ to
 $25.3$ regardless---$375$ against $3.2$ million nodes over the suite, a
-factor of $118$---and suite compile time falls from $361$\,s to $34.5$\,s,
-$10.5\times$.  Routing is \emph{not} preserved outright.  Emitted
+factor of $118$---and suite compile time falls from $366$\,s to $34.5$\,s,
+$10.6\times$.  Routing is \emph{not} preserved outright.  Emitted
 first-in-first-out the closure reproduces the sweep's EPR count on two of
 the nine circuits and moves the rest by $-11.3\%$ to $+17.0\%$, for
 $-4.1\%$ over the suite; emitted in the host DAG library's own topological
 order it reproduces the sweep's EPR \emph{and} SWAP counts exactly on six
-of nine, at $-3.8\%$ and $9.7\times$, the residual three differing through
+of nine, at $-3.8\%$ and $9.8\times$, the residual three differing through
 a tie-break in that library's order that a closure over $G_\mathrm{c}$
 alone does not see.  So the quadratic is removable, at no aggregate cost in
 EPR pairs and none at all on two thirds of the suite---but not by a change
-that provably leaves every output untouched, which is why the numbers
-reported in this paper remain the sweep's.}
+that provably leaves every output untouched.}
+
+\rev{What ships is simpler than either, and is the construction
+Section~\ref{sec:intra} specifies: $E_\mathrm{c}$ is the inter-core set
+$E$ restricted to core $c$.  Given $E$ it is one pass over at most $L$
+gates, $O(L)$ for every core together, and it needs no depth recursion
+of its own---$\mathrm{dep}(g)$ is $E$'s BFS layer, so both scorers read
+the same number.  It is a different set, not a cheaper route to the same
+one: only the operands' \emph{current} cores are tested, so gates whose
+ancestors are non-local are admitted where the sweep refused them, and
+the cores share one budget of $|E|{=}L$ instead of $L$ each.  Sharing is
+not a compromise---granting every core its own $L$, a $K$-fold larger
+$E$, costs $2.6\times$ the compile time for $0.7$ percentage points
+\emph{more} EPR on the 64-qubit suite.  Measured against the sweep under
+the same protocol, over the $39$ circuits of all eight suites this paper
+reports: $2.4\%$ fewer EPR pairs in geometric mean, $4.3\%$ on suite
+totals, total compile time $1745$\,s to $239$\,s or $7.3\times$, and no
+abort in either arm.  On the 64-qubit suite alone it is $9.7\times$
+faster at $5.0\%$ fewer EPR pairs, examining $11.2$ to $20.0$ nodes a
+call; as with the closure, routing changes---one of the nine circuits
+reproduces the sweep exactly.  The $M$ in Eq.~\ref{eq:complexity}'s
+lookahead term prices the per-core constructions; under the restriction
+that term is $O(n{+}L)$, so the bound as stated is loose in $M$ but
+valid.}
 
 \subsection{\rev{What is inherent}}
 
@@ -328,16 +366,16 @@ $4535$ gates outstanding.  The exponent survives this pass, as the
 analysis predicts, because $E_\mathrm{c}$ remains $\Theta(N_r)$ under
 \texttt{"taint"}: what improves is the constant, not the order.}
 
-\rev{The seeded closure (\texttt{local\_ext\_mode="shared"}) is what
-removes the exponent, and it is now the default---every other number in
+\rev{Restricting $E$ per core (\texttt{local\_ext\_mode="shared"}) is what
+removes the exponent, and it is the default---every other number in
 this paper is produced under it.  Refit across $27$ circuits spanning
-this paper's six suites ($17$ to $13\,979$ CX, each already reported
+this paper's six grid suites ($17$ to $13\,979$ CX, each already reported
 elsewhere in this paper so no new routing was needed to check it), compile
 time scales as $N^{1.05}$: linear, matching Eq.~\ref{eq:complexity},
-where the row above was quadratic.  The last block of the table is the
-closure's cost measured the original way, on the 64q suite alone; the new
-row above it is the same claim re-measured at the scale this paper
-actually reports.}
+where the row above was quadratic.  The last block of the table compares
+all three constructions of $E_\mathrm{c}$ on the 64-qubit suite, with the
+shipped restriction also totalled over the eight suites in which it was
+measured against the sweep.}
 
 \begin{table}[t]
 \centering
@@ -361,8 +399,8 @@ iterations linear in $N$ & $T/N$ & $0.67$--$0.68$ \\
 (F2) front disjointness & violations over 4 circuits & $0$ \\
 per-move charge is tight & active cores per iteration & $1.00$--$1.01$ \\
 $E$ is layout-independent & rebuilds returning an identical set & $4$--$55\%$ \\
-$E_\mathrm{c}$ is unbounded & calls reaching the end of the order & $72$--$100\%$ \\
-early exit is worth taking & scan length after the exit & $16.5$--$80.8\%$ \\
+sweep is unbounded & calls reaching the end of the order & $72$--$100\%$ \\
+its early exit is worth taking & scan length after the exit & $16.5$--$80.8\%$ \\
 \midrule
 \multicolumn{3}{@{}l}{\emph{Hierarchical $\dphys$ (Eq.~\ref{eq:dphys})}} \\
 exactness & disagreeing pairs, 7 architectures & $0$ of $385\,336$ \\
@@ -376,14 +414,21 @@ output identity & routing passes compared & $207$, all identical \\
 compile time & 25q / 36q / 64q / 360q & $3.6$ / $3.5$ / $6.7$ / $4.0\times$ \\
 exponent unchanged (still \texttt{"taint"}) & fit of $t$ vs $N$, optimised & $N^{1.93}$ \\
 \midrule
-\multicolumn{3}{@{}l}{\emph{Replacing the $E_\mathrm{c}$ sweep by the seeded closure (64q)}} \\
-same set unless truncated & counterexamples, $4854$ calls (25q) & $0$ \\
+\multicolumn{3}{@{}l}{\emph{Replacing the submitted $E_\mathrm{c}$ sweep (64q, 9 circuits)}} \\
+sweep $=$ closure unless truncated & counterexamples, $4854$ calls (25q) & $0$ \\
 sweep grows with $N$ & DAG nodes examined per call & $28$--$5328$ \\
 closure does not & DAG nodes examined per call & $7.5$--$25.3$ \\
+nor does the restriction & DAG nodes examined per call & $11.2$--$20.0$ \\
 work over the suite & nodes, sweep vs closure & $118\times$ fewer \\
-compile time & suite total, $361$\,s $\to$ $34.5$\,s & $10.5\times$ \\
-EPR cost & suite total, FIFO / DAG order & $-4.1\%$ / $-3.8\%$ \\
-output identity & circuits reproduced exactly & $2$ / $6$ of $9$ \\
+compile time & $366$\,s $\to$ $34.5$ / $37.4$ / $37.7$\,s
+  & $10.6$ / $9.8$ / $9.7\times$ \\
+EPR cost & suite total, FIFO / DAG / restriction & $-4.1$ / $-3.8$ / $-5.0\%$ \\
+output identity & circuits reproduced exactly & $2$ / $6$ / $1$ of $9$ \\
+\textbf{restriction over all eight suites} & suite totals, $39$ circuits
+  & $\mathbf{-4.3\%}$ EPR \\
+\quad(the shipped default) & geometric mean & $-2.4\%$ EPR \\
+\quad & total compile time, $1745$\,s $\to$ $239$\,s & $7.3\times$ \\
+\quad & aborts, restriction / sweep & $0$ / $0$ \\
 \bottomrule
 \end{tabular}%
 }
@@ -472,7 +517,8 @@ actually enforced.  Eq.~\ref{eq:safe_feasible} is what makes this safe: a
 donor always exists,
 so the transaction can relay slack in and re-establish
 Eq.~\ref{eq:safe_invariant} for itself on entry, paying for the reserve when
-it is used instead of on every iteration.  Section~\ref{app:safemode_cost}
+it is used instead of on every iteration.  That no core reaches zero is not
+merely observed here: Section~\ref{app:safemode_commit} proves it cannot.  Section~\ref{app:safemode_cost}
 measures what the alternative---Tier 1 maintaining the reserve
 unaided---costs, and it is not small.}
 
@@ -551,6 +597,143 @@ initial layout is not among them: it is brought up to
 Eq.~\ref{eq:safe_invariant} at the same entry point, which
 Eq.~\ref{eq:safe_feasible} always permits.}
 
+\subsection{\rev{Ordinary iterations commit what they score}}
+\label{app:safemode_commit}
+
+\rev{An ordinary teleport is transactional in the same sense as the plan of
+Section~\ref{app:safemode_transaction}.  The macro-action of
+Section~\ref{sec:tele} re-checks each of its preconditions as it executes,
+and if one fails it restores the layout, every counter and the trace and
+reports failure, whereupon the loop attempts the next candidate down the
+score-sorted list (Algorithm~\ref{alg:dsabre}, lines 16--18).  That rollback
+is what lets an occupied communication port raise a candidate's price
+instead of vetoing it.  Under the theorem's hypotheses it is also never
+taken.}
+
+\rev{\textbf{Proposition.}  \emph{Let the five hypotheses of
+Section~\ref{app:safemode_theorem} hold, with safe mode on.  Then every
+teleport candidate the main loop attempts commits.  In particular the
+cheapest candidate commits, none of lower rank is ever attempted, and the
+``no candidate commits'' state of Section~\ref{sec:workflow} is
+unreachable: P3b reaches the transaction only through an empty candidate
+list.}}
+
+\rev{\emph{Proof.}  (i)~\emph{The two layout maps stay mutually inverse.}
+Every primitive that moves a qubit---the intra-core SWAP, the eviction
+chain, the staging walk, the teleport commit---writes $\ell$ and
+$\ell^{-1}$ together, and a rollback restores both, so
+$\ell^{-1}(\ell(q)){=}q$ throughout and the routine's two consistency
+postconditions cannot fire.}
+
+\rev{(ii)~\emph{An attempt begins in the state its candidate was scored
+in.}  Candidates are enumerated once per iteration from a single state $S$,
+together with the free-slot census the legality floor is applied to; an
+attempt that fails restores $S$ exactly, so by induction the $k$-th attempt
+starts at $S$ whatever became of the first $k{-}1$.  Everything the
+candidate was built from therefore still holds when it runs: the mover is
+in the layout and in $c_\mathrm{src}$; $(\pi_s,\pi_d)$ is a link from
+$c_\mathrm{src}$ to $c_\mathrm{next}$, so the ports lie in those cores and
+the cores are adjacent; $n_s$ neighbours $\pi_s$; and
+$\mathrm{free}(c_\mathrm{next})\ge\phi_1{=}2$.  Six of the routine's checks
+assert exactly these.}
+
+\rev{(iii)~\emph{No core is ever full.}  We claim $\mathrm{free}(c)\ge1$
+for every $c$ at every point of a safe-mode run.  At entry
+$\mathrm{free}(c)\ge r$, which Eq.~\ref{eq:safe_feasible} permits.  An
+intra-core SWAP and an eviction permute occupancy inside one core and
+change no count.  An ordinary teleport finds
+$\mathrm{free}(c_\mathrm{next})\ge2$ by (ii), and leaves $c_\mathrm{next}$
+at $\ge1$ and $c_\mathrm{src}$ one higher.  A restored checkpoint is an
+earlier state of the same run.  A transaction opens by re-establishing
+Eq.~\ref{eq:safe_invariant}---at $\phi_1{=}2<r{+}1$ that repair always
+runs---and its relay hands one slot along a core path, so no core ends
+below its entry count except the donor, chosen at $\ge r{+}1$ and left at
+$\ge r$; its hops then arrive in cores holding $\ge r$, leaving
+$r{-}1\ge1$, with the departure restoring $r$, and it exits at
+$\mathrm{free}(c)\ge r$ or rolls back.  This turns the measurement of
+Section~\ref{app:safemode_invariant}---that no core reaches zero at any
+action boundary---into a consequence, and it settles the routine's three
+capacity checks: the
+full-core correction of Appendix~\ref{app:pseudocode} is never invoked, and
+it is the only step inside a macro-action that can lower a third core's
+count.}
+
+\rev{(iv)~\emph{Both ports clear, and a staging walk always exists.}  By
+(iii) a port's core holds a free slot other than the port, and by
+connectivity an intra-core path reaches it, so walking the occupant along
+that path leaves the port empty: the eviction cannot fail.  Hence
+$\ell^{-1}(\pi_s)$ is empty and, by (i), the mover is not on $\pi_s$.  For
+the staging walk, delete $\pi_s$ from the core: the mover's component still
+contains a neighbour of $\pi_s$---the vertex preceding $\pi_s$ on any path
+from the mover to it, whose prefix avoids $\pi_s$---and safe mode scans
+exactly the neighbours of $\pi_s$ for one, so a port-avoiding walk exists.
+It ends on a neighbour of $\pi_s$ holding the mover with both ports empty,
+which is the last precondition.\hfill$\square$}
+
+\rev{Two things the proposition does not say.  It is silent about
+score-only mode, where a destination is admitted at one free slot: there
+$\mathrm{free}(c){=}0$ is reachable and the capacity checks are live---on
+the 64-qubit suite the full-core correction fires $104$ times under that
+floor and never under the default.  And it inherits the theorem's
+hypotheses exactly: the one primitive that can empty a core is the greedy
+hop of the pre-safe-mode recovery path, which safe mode reaches only after
+a transaction has failed, that is, only when a hypothesis is violated.}
+
+\rev{One consequence is worth stating, and one non-consequence.  Because no
+relief hop fires inside a macro-action, an ordinary teleport iteration
+spends \emph{exactly} the one EPR pair the accounting of
+Section~\ref{app:safemode_theorem} charges it.  But $d_\mathrm{prep}$ is a
+price, not an identity: when the mover begins on $\pi_s$ the eviction that
+clears the port performs the staging step as well, and when an eviction
+chain displaces the mover the walk to $n_s$ must detour around the port, so
+the SWAPs executed can differ by one from the SWAPs scored, in either
+direction.}
+
+\rev{Table~\ref{tab:norejection} measures all of this.  The router was
+instrumented to record every attempt and, for a failure, the precondition
+that produced it; over four architectures no candidate is rejected in
+$1\,077\,858$ scored, and the cheapest commits on every one of $74\,631$
+attempts.  A zero is informative only if the instrument can see a one, so
+the same instrument was run on hand-built states that violate individual
+preconditions---a mover displaced out of its core, a link that does not
+exist, a chip with every slot occupied---and each is caught, attributed to
+its own check, and left with the layout unchanged.}
+
+\begin{table}[t]
+\centering
+\caption{\rev{Teleport candidates scored, attempted and rejected, under the
+  protocol of Section~\ref{sec:setup}.  Iterations are those reaching
+  candidate scoring (P3b); an \emph{empty list} is the other route from P3b
+  to the transaction and is not a rejection.  The high-fill rows are QFT at
+  $n{=}36$ and $48$ on the 64-physical B-grid, $56\%$ and $75\%$
+  occupancy---the tight-capacity regime; at $n{=}56$ that architecture
+  leaves $8$ free slots against the $rK{+}1{=}9$ of
+  Eq.~\ref{eq:safe_feasible}, and safe mode reports so at entry instead of
+  routing.  The last row is the submitted score-only floor on the same nine
+  circuits as the second.}}
+\label{tab:norejection}
+\small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Suite & Circ. & Iter. & Cand. & Attempts & Rej. & Empty \\
+\midrule
+25q B-grid      & 6 & $2\,860$  & $30\,713$  & $2\,860$  & 0 & 0 \\
+64q H-grid      & 9 & $44\,643$ & $681\,075$ & $44\,643$ & 0 & 0 \\
+Heavy-hex ring  & 6 & $9\,133$  & $159\,718$ & $9\,133$  & 0 & 0 \\
+Heavy-hex star  & 6 & $15\,440$ & $172\,115$ & $15\,431$ & 0 & 9 \\
+High-fill B-grid & 2 & $2\,564$ & $34\,237$  & $2\,564$  & 0 & 0 \\
+\midrule
+\textbf{Total} & \textbf{29} & $\mathbf{74\,640}$ & $\mathbf{1\,077\,858}$
+               & $\mathbf{74\,631}$ & \textbf{0} & \textbf{9} \\
+\midrule
+64q, score-only $\phi_1{=}1$ & 9 & $51\,512$ & $743\,188$ & $51\,512$ & 0 & 0 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
 \subsection{\rev{What changes in theory, not just in measurement}}
 \label{app:safemode_theory}
 
@@ -584,7 +767,8 @@ the score-only design's scoring function, evaluated locally per candidate; it
 discourages emptying a core but never forbids it, and nothing is true of the
 layout as a whole between iterations beyond it being a valid bijection.
 Safe mode adds two things that are true of the layout as a whole: no core is
-ever empty, and Eq.~\ref{eq:safe_feasible} holds at every action
+ever empty (Section~\ref{app:safemode_commit}), and
+Eq.~\ref{eq:safe_feasible} holds at every action
 boundary---the latter conserved rather than merely re-established, which is
 why the theorem can induct on it.  The score-only design has no comparable
 object to induct over.  Note what is \emph{not} claimed:
@@ -1016,23 +1200,26 @@ diminishing returns.}
 \label{app:corenet}
 
 \rev{Per-circuit counts for the heavy-hex ring and star architectures of
-Section~\ref{sec:scalability}.  Against the H-grid of Table~\ref{tab:main}, EPR
-counts \emph{fall} on the ring for both routers (\dSABRE{}: AE
-$165\!\to\!86$, Random $732\!\to\!465$) while intra-core SWAPs \emph{rise} by
-half to four-fifths on every circuit but the trivially small GHZ: spreading
-the same 64 logical qubits over four 27-qubit cores instead of six 16-qubit
-ones leaves fewer gates crossing a boundary but makes each core twice as wide.
-Moving from the ring to the star then charges for the lost link and the hub,
-most visibly on AE ($86\!\to\!118$).  \dSABRE{} follows both trades without
-retuning.}
+Section~\ref{sec:scalability}, over the same nine circuits as the 64-qubit
+block of Table~\ref{tab:main}.  Against that H-grid, \dSABRE{}'s EPR count
+\emph{falls} on the ring for every circuit of the nine (AE $165\!\to\!86$,
+Multiplier $1285\!\to\!451$) while its intra-core SWAPs \emph{rise} by a
+quarter to four-fifths on every circuit but the trivially small GHZ:
+spreading the same 64 logical qubits over four
+27-qubit cores instead of six 16-qubit ones leaves fewer gates crossing a
+boundary but makes each core twice as wide.  Moving from the ring to the star
+then charges for the lost link and the hub, most visibly on Multiplier
+($451\!\to\!722$) and QPEexact ($80\!\to\!120$), though not uniformly---QNN
+and Graphstate come in at or below their ring counts.  \dSABRE{} follows both
+trades without retuning.}
 
 \begin{table}[h]
 \centering
 \caption{\rev{The 64-qubit suite on non-grid architectures: four IBM 27-qubit
   heavy-hex cores (108 physical qubits) wired as a ring (4 inter-core links,
   every core of degree 2) and as a star (3 links, core~0 a hub of degree 3).
-  Same circuits, hyperparameters, and protocol as Table~\ref{tab:main},
-  restricted to the six circuits common to every suite; only the architecture
+  Same circuits, hyperparameters, and protocol as the 64-qubit block of
+  Table~\ref{tab:main}, over all nine of its circuits; only the architecture
   differs.  $^{\ast}$\TeleSABRE{} fails to converge on all three seeds, so the
   geometric mean is taken over the circuits it completes and a second row gives
   \dSABRE{}'s mean over every circuit it routed.}}
@@ -1057,8 +1244,11 @@ graphstate & 64 & 46 & 497 & 12 & 161 & $-73.9$ \\
 qft & 1966 & 153 & 2869 & 110 & 2461 & $-28.1$ \\
 qnn & 8126 & 1289 & 11514 & 249 & 7669 & $-80.7$ \\
 random & 1627 & 715 & 7511 & 465 & 5716 & $-35.0$ \\
+qpeexact & 2139 & 131 & 2486 & 80 & 2001 & $-38.9$ \\
+qaoa & 3920 & 318 & 5466 & 249 & 5331 & $-21.7$ \\
+multiplier & 13040 & 798 & 12712 & 451 & 11450 & $-43.5$ \\
 \cmidrule(lr){1-7}
-\textbf{gmean} (6) &  & 131.7 & 2036 & 54.5 & 1071 & $\mathbf{-58.6}$ \\
+\textbf{gmean} (9) &  & 177.4 & 2848 & 85.2 & 1786 & $\mathbf{-52.0}$ \\
 \midrule
 \multicolumn{7}{@{}l}{\emph{Star core graph: 3 inter-core links, core 0 a hub of degree 3}} \\
 \addlinespace[1pt]
@@ -1068,9 +1258,12 @@ graphstate & 64 & 37 & 578 & 10 & 124 & $-73.0$ \\
 qft & 1966 & 195 & 3319 & 125 & 2129 & $-35.9$ \\
 qnn & 8126 & 373 & 8779 & 241 & 7765 & $-35.4$ \\
 random$^{\ast}$ & 1627 & --- & --- & 475 & 6059 & --- \\
+qpeexact & 2139 & 132 & 2880 & 120 & 2484 & $-9.1$ \\
+qaoa & 3920 & 676 & 7589 & 251 & 5431 & $-62.9$ \\
+multiplier & 13040 & 1068 & 13579 & 722 & 12183 & $-32.4$ \\
 \cmidrule(lr){1-7}
-\textbf{gmean} (5) &  & 70.8 & 1607 & 40.3 & 797 & $\mathbf{-43.0}$ \\
-\textbf{gmean} (6) &  & --- & --- & 60.8 & 1117 & --- \\
+\textbf{gmean} (8) &  & 142.4 & 2741 & 83.3 & 1642 & $\mathbf{-41.5}$ \\
+\textbf{gmean} (9) &  & --- & --- & 101.1 & 1898 & --- \\
 \bottomrule
 \end{tabular}%
 }
@@ -2615,31 +2808,6 @@ Suite & Circuit    & Qubits & CX gates & Depth & CX/qubit \\
 
 \begin{table}[t]
 \centering
-\caption{\rev{Compile time (seconds) on the five circuits every compiler
-  completes rather than times out or falls back on, so the three columns
-  price the same finished work (Section~\ref{sec:timing} of the main
-  paper).  \TeleSABRE{} is one seed (deterministic); \dSABRE{} is the cost
-  of its best-of-three \texttt{SabreLayout} protocol; \texttt{pytket-dqc}
-  is its own best-of-five search under the \emph{physical} network model
-  of Table~\ref{tab:fair}.}}
-\label{tab:timing_examples}
-\small
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}l r rrr@{}}
-\toprule
-Circuit & CX & \TeleSABRE{} & \dSABRE{} & \texttt{pytket-dqc} \\
-\midrule
-QFT, 100q          &  3420 &   3.6 &   3.4 &  899.7 \\
-QFT, 200q          &  7220 &  60.9 &  13.5 & 1453.4 \\
-QAOA, 64q          &  3920 &  52.3 &   5.3 &  371.6 \\
-QNN, 64q           &  8126 &   9.9 &  10.1 &  479.0 \\
-Multiplier, 64q    & 13040 & 136.3 &  23.7 &  478.6 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[t]
-\centering
 \caption{\rev{Compilation time in seconds on the 64-qubit suite (H-grid
   $2{\times}3$ of $4{\times}4$).  Each column is the cost of the protocol that
   produced that tool's reported result, not of one attempt: \TeleSABRE{} needs
@@ -2654,8 +2822,13 @@ Multiplier, 64q    & 13040 & 136.3 &  23.7 &  478.6 \\
   identical work vary by up to ${\sim}2.7\times$ with machine load, so the
   table should be read for orders of magnitude.  $^{\ast}$\TeleSABRE{} fails to
   converge on Random.  $^{\dagger}$\texttt{pytket-dqc} fell back to
-  \textsc{PartitioningHeterogeneous} where the embedding distributor exceeded
-  its budget.  The lower block is the QFT scalability series, whose
+  \textsc{PartitioningHeterogeneous} where the embedding distributor returned
+  no distribution---it exhausts its budget on QAOA, QNN and Multiplier, and
+  raises on Random; the time spans the whole search, so it includes that
+  abandoned attempt.  The geometric mean is over the eight
+  circuits all three compilers complete---the same basis in every column, so
+  the columns are comparable---and excludes Random, which only \TeleSABRE{}
+  fails.  The lower block is the QFT scalability series, whose
   architectures grow with the circuit ($6$, $12$ and $20$ cores of
   $5{\times}5$) and which is therefore not comparable across rows with the
   fixed-architecture suite above; at 360 qubits \TeleSABRE{} spends $1014$\,s
@@ -2746,7 +2919,7 @@ Multiplier$^{\dagger}$  & 13040 & \rev{136.25} & \rev{23.70}   & \rev{478.6} \\
   suite, all on one architecture; hollow markers are the QFT scalability
   series, whose architecture grows with the circuit ($6$, $12$, $20$ cores) and
   which therefore measures a different quantity---they are plotted together to
-  show the shape of each tool's cost, not to be read across.  \dSABRE{} now
+  show the shape of each tool's cost, not to be read across.  \dSABRE{}
   tracks the dashed unit slope closely over the whole suite, matching the
   $N^{1.05}$ fit of Table~\ref{tab:complexity_measured}, whereas
   \texttt{pytket-dqc} is nearly flat within the fixed
