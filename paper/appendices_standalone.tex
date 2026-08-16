@@ -1,6 +1,6 @@
 \documentclass[conference]{IEEEtran}
 \usepackage{cite}
-\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
 \usepackage{algorithmic}
 \usepackage{algorithm}
 \usepackage{graphicx}
@@ -16,11 +16,12 @@
 \usetikzlibrary{shapes.geometric,arrows,arrows.meta,positioning,fit,backgrounds,patterns}
 
 %% Pull cross-references from the main paper's aux file.
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
 \usepackage{xr}
 \externaldocument{dsabre}
 
 %% ── Notation macros (mirrors dsabre.tex) ─────────────────────────────────────
-\newcommand{\rev}[1]{{\color{blue}#1}}
 \newcommand{\dSABRE}{d\textsc{sabre}}
 \newcommand{\TeleSABRE}{Tele\textsc{sabre}}
 \newcommand{\SABRE}{\textsc{sabre}}
