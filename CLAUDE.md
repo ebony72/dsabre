@@ -19,9 +19,15 @@ write the point-by-point response to the reviewers. A response drafted ahead
 of the revision cites text the paper does not yet contain, and has to be
 rewritten once the edits actually land.
 
-### Page budget: the main paper must come in under 13 pages
+### Page budget: the main paper must stay at 12 pages
 
-The submitted PDF is 18 pages. Everything cut from `dsabre.tex` to reach the
+The submitted PDF is 18 pages. As of 2026-08-18 `dsabre.tex` builds to 12, and
+**12 is now the target, not a floor to spend down** — an edit that pushes the
+build to 13 has to be paid for by a cut of comparable length. Verify with
+`pdfinfo dsabre.pdf | grep Pages` after any prose edit; the working tree's
+`dsabre.pdf` is often a stale rebuild, so compile before trusting it.
+
+Everything cut from `dsabre.tex` to reach the
 limit goes into `appendices.tex` (the online appendices) — **nothing is
 deleted outright**. Move the text, keep the numbers, and leave a one-sentence
 pointer in the main paper (`\rev{... reported in the online appendices}`) so a
@@ -54,7 +60,7 @@ claim to the abstract, cut another one out rather than appending.
 | `router.py` | Self-contained `General_dSABRE_Router` — imports from {config,architecture,actions}.py |
 | `dsabre_ext.py` | `dSABRE_BFSExt` — BFS extended-set variant (called "dSE" in benchmarks, "\dSABRE{}" in paper) |
 | `_baseline_*.py` | Frozen pre-optimisation router/ext/architecture — reference for the verifiers, do not edit |
-| `verify_router.py` | Diffs the default router against the baseline over all four suites |
+| `verify_router.py` | Diffs the router, pinned to score-only mode, against the baseline over all four suites |
 | `verify_architecture.py` | Diffs the composed `phys_dist` against a dense all-pairs table |
 | `config.py` | `HardwareConfig` — FEWER params than main repo (no `max_burst_walk_depth`) |
 | `architecture.py` | `build_h_grid_architecture`, `DistributedArchitecture` |
@@ -105,15 +111,36 @@ checkpoints, incremental `Δ_F`/`Δ_E` in `_best_intra_swap`, an exact early
 exit in `_get_local_extended`, and a composed (not materialised) `phys_dist`.
 Output is **bit-identical** to the pre-optimisation code — verified over 207
 routing passes across the 25/36/64/360-qubit suites — at 3.2–5.6× less
-compile time.
+compile time. ("Bit-identical" is under the mode the baseline implements,
+score-only (`safe_mode=False`) — see the next bullet.)
 
 - The pre-optimisation code is frozen as `_baseline_router.py`,
   `_baseline_dsabre_ext.py`, `_baseline_architecture.py`. **Do not edit them**;
   they exist so `verify_router.py` / `verify_architecture.py` can diff against
-  the implementation that produced every published number.
-- **Re-run both verifiers after any router or architecture change.** They
-  compare metrics, final layout, failure log and (on 25q) the full SWAP /
-  teleport trace.
+  the implementation that produced every published number. They predate
+  `safe_mode` entirely — frozen 2026-08-07, before safe mode existed at all —
+  and contain zero occurrences of it; they only ever ran what is now called
+  score-only mode.
+- **Re-run both verifiers after any router or architecture change — but know
+  what a pass actually proves.** `verify_router.py` pins both routers to
+  `local_ext_mode="taint", safe_mode=False`, the mode the frozen baseline
+  implements, regardless of `HardwareConfig`'s current defaults. A `PASS`
+  proves the **incremental rewrite** (maintained in-degrees, log-based
+  checkpoints, composed `phys_dist`, etc.) is output-identical to the
+  baseline in that mode — it does **not** exercise `safe_mode=True` (the
+  shipped default since 2026-08-09) or the shared extended set (the default
+  since 2026-08-08); both are deliberate behavioural changes from the
+  baseline and each has its own check instead: `verify_shared_ext.py` for the
+  shared set, `test_safe_drain.py` + `SAFE_DSABRE.md` §10 for safe mode. The
+  verifier compares metrics, final layout, failure log and (on 25q) the full
+  SWAP / teleport trace.
+- **Do not read a bare `python3 verify_router.py` run as a verdict on the
+  router as shipped.** It was silently comparing the wrong things between
+  2026-08-09 (safe mode became the default) and the fix that pinned
+  `safe_mode=False` explicitly — every safe-mode-only mechanism read as a
+  547-diff `FAILED` on a clean tree (giveaway: `relay_hops: base=0 fast=1`).
+  If a router change should be checked against the safe-mode default itself,
+  that requires the safe-mode-specific coverage above, not this script.
 - The router now carries per-route state, so one instance is safe to reuse
   sequentially (as `run_sabre_passes` does) but **not** across threads.
 - Incremental in-degrees are correct only because gates leave the DAG solely

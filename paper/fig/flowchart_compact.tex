@@ -23,7 +23,7 @@
 \node[block, left=4mm of intra] (inter)
    {\textbf{P3b.}~Teleport\\(Eq.\,\ref{eq:dsabre})};
 \node[decision, right=7mm of prog] (deadlock) {$L_\mathrm{deadlock}$\\reached?};
-\node[block, above=7mm of deadlock] (recovery) {Restore ckpt;\\force-hop};
+\node[block, above=7mm of deadlock] (recovery) {Restore ckpt;\\\textsc{Recover}};
 
 \draw[arrow] (input)  -- (drain);
 \draw[arrow] (drain)  -- (prog);
