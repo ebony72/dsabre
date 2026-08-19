@@ -23,6 +23,7 @@ interaction_graph_figures/
 todel/
 
 # Local-only working notes (kept on disk, not in the public repo).
+CLAUDE.md
 EXPERIMENTS.md
 SAFE_DSABRE.md
 TELEGATE.md

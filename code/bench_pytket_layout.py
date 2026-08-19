@@ -92,7 +92,7 @@ SUITES = {
 }
 
 # ~/Documents/telesabre/circuits/qasm_64 is shared across projects (see
-# CLAUDE.md) and picked up two extra files (vqe_su2, wstate -- 36q-suite
+# benchmark_circuits/README.md) and picked up two extra files (vqe_su2, wstate -- 36q-suite
 # names re-scaled to 64 qubits by some other project) that are not part of
 # dSABRE's published 9-circuit 64q suite; vqe_su2_64 also crashes pytket-dqc's
 # DQCPass.  Whitelist rather than glob-all.

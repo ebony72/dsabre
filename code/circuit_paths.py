@@ -24,7 +24,7 @@ published number.
 Generators that *write* circuits (``gen_deep_qnn.py``, ``gen_80q_suite.py``,
 ``gen_new_64q_circuits.py``, ``gen_regular_cz.py``) deliberately do not use
 this helper: they target the shared tree by design, and regenerating a suite
-circuit in place is exactly the mistake ``../CLAUDE.md`` warns about.
+circuit in place is exactly the mistake ``../benchmark_circuits/README.md`` warns about.
 """
 
 import os

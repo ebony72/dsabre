@@ -290,7 +290,7 @@ nothing pushed back.
 <sup>†</sup> **Architecture caveat, found while acting on item 1 of your last
 message (§7 below):** this instance was measured on the 6-core, 81-qubit-per-core
 architecture (`H_grid_2_3_9_9`, `build_h_grid_architecture(r=2,s=3,m=9)`) that
-`CLAUDE.md` documents as the project's standing 360q device, **not** the
+the project notes document as the standing 360q device, **not** the
 20-core, 25-qubit-per-core architecture (`H_grid_4_5_5_5`, diameter 7) that
 `sec:largecircuits` actually specifies for the QFT-scalability row. The two
 had diverged in `bench_large.py`'s suite table; §7 fixes the wiring. The
@@ -548,12 +548,12 @@ and 5, confirmed by direct computation). The correct device file,
 and needed no generation — only the suite table's wiring was wrong.
 
 The 2x3-of-9x9 architecture this used to point to is not fabricated or
-wrong in general — it is `CLAUDE.md`'s long-standing, separately-documented
+wrong in general — it is the project's long-standing, separately-documented
 360q device (`H_grid_2_3_9_9.json`, "preferred"), used throughout
 `SAFE_DSABRE.md`'s safe-mode investigation including §6.1's motivating
 abort. It simply is not the architecture the current paper draft's
 scalability-series text describes, and the two had drifted apart without
-either the code or `CLAUDE.md` flagging the mismatch.
+either the code or the project notes flagging the mismatch.
 
 **Corrected 360q numbers (dSE, this router):**
 

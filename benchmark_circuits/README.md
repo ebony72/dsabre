@@ -48,10 +48,9 @@ basis/opt-level/seed as the rest of the suite. Their header comments read
 form the *installed* MQT Bench v2.2.2 would generate by default for the same
 benchmark name. This matters: the two forms differ by two orders of magnitude
 in CX count (8126 vs 63 at 64 qubits) and the shallow form cannot discriminate
-between routers. See `../CLAUDE.md` ("DO NOT regenerate benchmark circuits
-with the installed MQT Bench") for the full incident history — this file was
-briefly overwritten with the shallow form by an unrelated project sharing the
-source directory, caught, and restored. **If you regenerate any MQT Bench
+between routers. The file was briefly overwritten with the shallow form by an
+unrelated project sharing the source directory, caught, and restored — which
+is why the CX table at the end of this file is the check that matters. **If you regenerate any MQT Bench
 circuit from scratch rather than using the files here, verify the CX count
 against the table below first** — a mismatch means a different construction,
 not a rounding difference.
@@ -156,7 +155,7 @@ before being copied here. `grep -c '^cx ' <file>` reproduces each count.
 
 ## How to route these yourself
 
-See `../CLAUDE.md` and `../code/benchmark.py` / `../code/bench_large.py` for
+See `../REPRODUCE.md` and `../code/benchmark.py` / `../code/bench_large.py` for
 the full driver setup. In short:
 
 ```bash
@@ -190,7 +189,7 @@ Use `benchmark.py`/`bench_large.py` directly for a number comparable to the
 paper.
 
 For TeleSABRE, point the binary at the matching device JSON in
-`~/Documents/telesabre/devices/` (see `../CLAUDE.md`, "TeleSABRE Setup") —
+`~/Documents/telesabre/devices/` (see `../REPRODUCE.md`, "TeleSABRE baseline") —
 those device files are architecture descriptions, not benchmark data, and are
 not duplicated here.
 

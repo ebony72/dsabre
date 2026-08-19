@@ -88,7 +88,7 @@ SUITES = {
         # held at 5x5 throughout... 4x5 (20,500)... diameter 3->5->7"), not
         # the 2x3-of-9x9 architecture (6 cores, 81q each, diam=3) this used
         # to point to. That architecture is a real, separate stress-test
-        # config (CLAUDE.md's "H_grid_2_3_9_9.json ... preferred" device,
+        # config (the standing "H_grid_2_3_9_9.json" device,
         # used throughout SAFE_DSABRE.md's safe-mode investigation) but it
         # is not the QFT-scalability series this table reports.
         arch        = build_h_grid_architecture(r=4, s=5, m=5),

@@ -48,7 +48,7 @@ OUT = os.path.join(_HERE, "results", "results_ablate_local_ext_64q.json")
 CANON = {"ae", "ghz", "graphstate", "qft", "qnn", "random",
          "qpeexact", "qaoa", "multiplier"}
 
-# CX counts of the published 64q suite (CLAUDE.md): abort on a mismatch rather
+# CX counts of the published 64q suite (benchmark_circuits/README.md): abort on a mismatch rather
 # than silently benchmarking a regenerated circuit.
 EXPECTED_CX = {"ae": 1962, "ghz": 63, "graphstate": 64, "multiplier": 13040,
                "qaoa": 3920, "qft": 1966, "qnn": 8126, "qpeexact": 2139,

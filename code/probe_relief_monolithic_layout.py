@@ -157,7 +157,7 @@ def main() -> None:
         ncx = sum(1 for _ in dag.two_qubit_ops())
         if ncx != EXPECTED_CX[c]:
             raise SystemExit(f"ABORT: {c} has {ncx} CX, published table says "
-                             f"{EXPECTED_CX[c]}. See CLAUDE.md.")
+                             f"{EXPECTED_CX[c]}. See benchmark_circuits/README.md.")
         loaded[c] = (qc, dag, ncx)
         print(f"  loaded {c:<12} {ncx:>6} CX  (preflight OK)", flush=True)
 

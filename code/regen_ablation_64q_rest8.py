@@ -83,7 +83,7 @@ def load(name):
         raise SystemExit(
             f"ABORT: {name} has {ncx} CX, published table says "
             f"{EXPECTED_CX[name]}.  The circuit directory has drifted; see "
-            f"CLAUDE.md on MQT Bench version drift.")
+            f"benchmark_circuits/README.md on MQT Bench version drift.")
     return qc, dag, ncx
 
 

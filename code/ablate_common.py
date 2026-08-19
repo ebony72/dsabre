@@ -11,7 +11,7 @@ Three studies build on this module:
   ablate_corner_variants.py corner-reservation count and shape variants.
 
 All three are restricted to the 25q (B-grid 2x2 4x4) and 64q (H-grid 2x3 4x4)
-suites, and all route with dSE (`dSABRE_BurstExt`) only — per CLAUDE.md, dS is
+suites, and all route with dSE (`dSABRE_BurstExt`) only — per the project convention, dS is
 run only for the "topological extended set" row of the mechanism ablation.
 
 Nothing here modifies the existing modules; `sabre_layout_masked` is a
@@ -138,7 +138,7 @@ SUITE_CIRCUITS = {
 
 # Preflight against the published CX counts — a suite .qasm that has been
 # regenerated with a newer MQT Bench emits a structurally different circuit
-# (see CLAUDE.md, "DO NOT regenerate benchmark circuits").
+# (see benchmark_circuits/README.md, "Do not regenerate").
 EXPECTED_CX = {
     "25q": {"ae": 558, "ghz": 24, "graphstate": 25,
             "qft": 580, "qnn": 1223, "random": 1124},
@@ -172,7 +172,7 @@ def load_circuit(suite: str, cname: str):
     if n_cx != exp:
         raise SystemExit(
             f"ABORT: {suite}/{cname} has {n_cx} CX, published table says {exp}. "
-            f"The circuit has been regenerated — see CLAUDE.md."
+            f"The circuit has been regenerated — see benchmark_circuits/README.md."
         )
     return qc, dag, rev_dag, n_cx
 

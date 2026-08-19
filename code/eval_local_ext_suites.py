@@ -92,7 +92,7 @@ SUITES = {
 }
 
 # CX counts the published tables report.  A mismatch means the shared circuit
-# directory was regenerated (see CLAUDE.md) and the run is not comparable.
+# directory was regenerated (see benchmark_circuits/README.md) and the run is not comparable.
 EXPECTED_CX = {
     "64q": {"ae": 1962, "ghz": 63, "graphstate": 64, "multiplier": 13040,
             "qaoa": 3920, "qft": 1966, "qnn": 8126, "qpeexact": 2139,

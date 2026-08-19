@@ -91,7 +91,7 @@ NUM_TS_SEEDS    = 3
 NUM_SL_SEEDS    = 3   # number of SabreLayout seeds to try
 
 # ~/Documents/telesabre/circuits/ is shared across several projects (see
-# CLAUDE.md); qasm_64/ picked up two extra files (vqe_su2, wstate -- names
+# benchmark_circuits/README.md); qasm_64/ picked up two extra files (vqe_su2, wstate -- names
 # from the 36q suite, re-scaled to 64 qubits by some other project) that are
 # not part of dSABRE's published 9-circuit 64q suite.  Whitelist rather than
 # glob-all so a shared-directory drop-in can't silently change what suite is
