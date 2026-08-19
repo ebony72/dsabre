@@ -57,7 +57,7 @@ every logical qubit) — a hard structural guarantee, not a fill-optimisation
 choice, since the reserved slots are removed from SabreLayout's coupling map
 entirely and cannot be filled regardless of what the fill target says.
 
-**Verified against every architecture in the paper** (`check_full_core_layouts.py`):
+**Verified against every architecture in the paper** (`investigations/check_full_core_layouts.py`):
 25q/36q/64q H-grid/100q/200q/360q/heavy-hex ring+star all already had k>=2
 under the old rule — **k is unchanged for all of them**, floor never binds.
 Only 64q_c33 (k: 0->1) and the uncited 64q_b243 (k: 0->1) are affected.
@@ -91,8 +91,8 @@ synthetic family — showed relief helping at all; it costs -6.7% to -9.3% gmean
 everywhere it was tested short of 64q_c33, an architecture where a separate
 circuit (Multiplier) fails unconditionally regardless of relief.
 
-Four controlled reproductions (`probe_relief_monolithic_layout.py`,
-`probe_relief_exact_reproduction.py`, `probe_relief_isolate_node_decay.py`),
+Four controlled reproductions (`investigations/probe_relief_monolithic_layout.py`,
+`investigations/probe_relief_exact_reproduction.py`, `investigations/probe_relief_isolate_node_decay.py`),
 all on the real 96-physical 64q H-grid, all 6/6 circuits completing with no
 aborts:
 
@@ -161,19 +161,19 @@ QFT, all on non-failing architectures — see the mechanism-necessity
 investigation earlier this session). Neither is affected by this change.
 
 **Downstream scripts fixed to not crash** on the removed `HardwareConfig`
-fields: `ablate_occupancy.py` (relief configs dropped from `mech_configs`,
-now `full`/`no_hop_gain` only), `ablate_occupancy_complete64.py`,
-`ablate_occupancy_64q_c33_k1.py` (both marked historical/frozen — their
-purpose was relief ablation on 64q_c33, now moot), `ablate_regular_cz.py`,
-`regen_ablation_64q_full9.py`, `regen_ablation_64q_rest8.py`,
-`regen_ablation_corners.py` (all had a `no_relief` config row constructed via
+fields: `investigations/ablate_occupancy.py` (relief configs dropped from `mech_configs`,
+now `full`/`no_hop_gain` only), `investigations/ablate_occupancy_complete64.py`,
+`investigations/ablate_occupancy_64q_c33_k1.py` (both marked historical/frozen — their
+purpose was relief ablation on 64q_c33, now moot), `investigations/ablate_regular_cz.py`,
+`investigations/regen_ablation_64q_full9.py`, `investigations/regen_ablation_64q_rest8.py`,
+`investigations/regen_ablation_corners.py` (all had a `no_relief` config row constructed via
 `dataclasses.replace(..., enable_congestion_relief=False)`, which raises
 `TypeError` against the current dataclass — removed).
 
 **Not yet done — every benchmark table needs regenerating:** `full` is now
 what used to be a *different* run (relief was active in every published
-number). The EPR-count preflight constants in `regen_ablation_64q_full9.py`
-and `regen_ablation_64q_rest8.py` (`EXPECTED_FULL`) are stale and will reject
+number). The EPR-count preflight constants in `investigations/regen_ablation_64q_full9.py`
+and `investigations/regen_ablation_64q_rest8.py` (`EXPECTED_FULL`) are stale and will reject
 a re-run until updated. This affects, at minimum: Table III (main results,
 all suites), Table IV (mechanism ablation — the "No congestion relief" row
 disappears, the "Full" baseline changes), Table VI (heavy-hex ring/star),
@@ -528,8 +528,8 @@ PDF will find:
   25-qubit figure, so a like-for-like comparison has to exist somewhere.
 - **The degree-swept synthetic suite is removed** (`app:regcz`, `tab:regcz`,
   and the roadmap entry). It was judged not to earn its space. The generator
-  and driver survive in `code/gen_regular_cz.py`, `code/gen_regcz_scaling.py`,
-  `code/ablate_regular_cz.py` and `code/circuits_regcz*/`, so the experiment is
+  and driver survive in `code/investigations/gen_regular_cz.py`, `code/investigations/gen_regcz_scaling.py`,
+  `code/investigations/ablate_regular_cz.py` and `code/circuits_regcz*/`, so the experiment is
   reproducible if it is ever wanted back. Note in passing that it had
   independently found §6.3's substitution effect — "the invariant has absorbed
   the term's entire job at high degree" — so that corroboration is no longer
@@ -572,7 +572,7 @@ respectively, for whatever future ablation needs the comparison.
 converge at 200q. That was wrong, and the reason is now understood
 precisely: `bench_large.py`'s `SUITES["200q"]` used
 `build_h_grid_architecture(r=4, s=3, m=5)`, and the *actual* driver behind
-`tab:main`'s published scalability row — `bench_scaling.py --design b`,
+`tab:main`'s published scalability row — `investigations/bench_scaling.py --design b`,
 found by tracing the string `1232` through eight-plus past sessions back to
 2026-07-29, where it has been byte-identical ever since (dSABRE's own number
 moved release to release; TeleSABRE's never did — "ts unchanged" is even
@@ -622,7 +622,7 @@ circuit-manifest work below) — so it is recorded here for completeness and
 not carried further.
 
 **360q's non-convergence is real and independently confirmed, not an
-artefact of this bug.** `bench_scaling.py`'s own `(r,s,m)=(4,5,5)` for 360q
+artefact of this bug.** `investigations/bench_scaling.py`'s own `(r,s,m)=(4,5,5)` for 360q
 already matches what §7's fix uses — no transposition issue there — and,
 decisively, `results_scaling_b.json` **itself** carries `"ts": null` for
 360q and has since the file was first committed (`d81702c`, 2026-08-06):
@@ -656,7 +656,7 @@ consecutive iterations first) is some other internal TS criterion —
 `max_solving_deadlock_iterations: 1000` is the likely candidate, not traced
 further into TS's own source since it does not change anything published.
 
-**Going forward, `bench_scaling.py --design b` — not `bench_large.py` — is
+**Going forward, `investigations/bench_scaling.py --design b` — not `bench_large.py` — is
 the script to use for this row.** It is proven correct (it produced every
 number currently in `tab:main`'s scalability section), and it differs from
 `bench_large.py` in more than the one bug found here: it runs TeleSABRE
@@ -705,7 +705,7 @@ most `diam(core graph)` teleports, each preceded by up to `diam(core)`
 intra-core SWAP iterations to reach a staging slot. The factor 4 is the
 smallest integer covering the values that had been tuned by hand.
 
-**Measured effect: none.** `probe_derived_deadlock.py --rule arch` reruns
+**Measured effect: none.** `investigations/probe_derived_deadlock.py --rule arch` reruns
 every suite — 25q, 36q, 64q, 100q, 200q, 360q, heavy-hex ring and star, dSE,
 three SabreLayout seeds × fwd→bwd→fwd — and reproduces the published EPR
 counts **exactly**, best and per-seed median alike, at equal or fewer

@@ -36,23 +36,28 @@ macOS 26.5, under Python 3.13 / Qiskit 2.3 / NetworkX 3.5.
 ## What's in the box
 
 ```
-code/                  reference implementation + benchmark scripts
+code/                  the implementation and the drivers behind the paper's tables
   router.py            General_dSABRE_Router (multi-core routing loop)
   dsabre_ext.py        dSABRE_BFSExt — BFS extended-set variant ("dSABRE" in the paper)
   architecture.py      DistributedArchitecture, B-grid and H-grid builders
   layout.py            locality_aware_layout + run_passes helpers
   config.py            HardwareConfig
+  circuit_paths.py     where the benchmark circuits are found
   benchmark.py         main benchmark runner (25q / 36q / 64q suites)
   bench_large.py       100q / 200q / 360q scalability sweep (QFT, QPEexact)
   bench_heavyhex.py    heavy-hex ring and star core networks
   bench_pytket_fair.py pytket-dqc cross-model baseline
-  ablate_*.py          ablation drivers (capacity, extended set, recovery, ...)
-  probe_*.py           the investigations behind CHANGES_FROM_SUBMITTED.md
+  ablate_*.py          the three ablations reported in Table IV and Appendix A
+  gen_*_table.py       LaTeX table bodies, generated from results/
   verify_*.py          router / architecture / structural-equivalence verifiers
   _baseline_*.py       frozen pre-optimisation router — the verifiers diff against it
   _legacy_*_submitted.py   the router exactly as submitted (May 2026), frozen
   results/             per-experiment JSON results (matches the paper's tables)
   tables/              generated LaTeX table bodies
+  investigations/      60 supporting scripts that are NOT on the reproduction
+                       path: probes, unpublished ablation arms, superseded
+                       drivers, circuit generators.  Nothing in code/ imports
+                       them; see investigations/README.md
 
 benchmark_circuits/    the 45 circuits every table is computed from, with a
                        README recording provenance and per-circuit CX counts
@@ -79,12 +84,12 @@ from qiskit.converters import circuit_to_dag
 from architecture import build_h_grid_architecture
 from config import HardwareConfig
 from layout import locality_aware_layout, run_passes
-from dsabre_ext import dSABRE_BurstExt
+from dsabre_ext import dSABRE_BFSExt
 import random
 
 arch    = build_h_grid_architecture(rows=2, cols=3, m=4)
 config  = HardwareConfig()
-router  = dSABRE_BurstExt(arch, config)
+router  = dSABRE_BFSExt(arch, config)
 
 dag     = circuit_to_dag(my_circuit)
 layout  = locality_aware_layout(dag, arch, rng=random.Random(0))
