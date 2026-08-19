@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "date": "2026-08-13 14:55:36",
+    "suite": "36q",
+    "network_model": "A_published",
+    "scored_from": "results_pytket_fair_v3_36q.json",
+    "source_sweep_meta": {
+      "date": "2026-08-13 07:55:48",
+      "seeds": 5,
+      "budget_s": 900.0,
+      "python": "3.13.9",
+      "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+      "versions": {
+        "pytket": "2.16.0",
+        "pytket_dqc": "0.0.1",
+        "kahypar": "1.3.5",
+        "networkx": "3.5"
+      },
+      "git_commit": "b576b12",
+      "models": {
+        "A_published": "even split of logical qubits, unbounded ebit memory",
+        "B_ports": "same data capacity, server_ebit_mem = deg(core)",
+        "C_physical": "data capacity M-deg(core), server_ebit_mem = deg(core)"
+      }
+    },
+    "counter": "dmax_counter.costs_under_dmax",
+    "note": "distributions are loaded from disk, not re-searched, so the D_max=inf column is tab:fair's pytket-dqc column by construction"
+  },
+  "results": [
+    {
+      "circuit": "bv",
+      "method": "CoverEmbeddingSteinerDetached",
+      "ebits_fair": 3,
+      "ebits_reloaded": 3,
+      "matches_fair": true,
+      "counter_reproduces_tool": true,
+      "n_bad_hyperedges": 0,
+      "seed_loop_truncated": false,
+      "dsabre_eprs": 1,
+      "dmax": {
+        "inf": 3,
+        "10": 4,
+        "5": 6,
+        "3": 9,
+        "1": 24
+      }
+    },
+    {
+      "circuit": "dj",
+      "method": "CoverEmbeddingSteinerDetached",
+      "ebits_fair": 3,
+      "ebits_reloaded": 3,
+      "matches_fair": true,
+      "counter_reproduces_tool": true,
+      "n_bad_hyperedges": 0,
+      "seed_loop_truncated": false,
+      "dsabre_eprs": 3,
+      "dmax": {
+        "inf": 3,
+        "10": 6,
+        "5": 12,
+        "3": 18,
+        "1": 52
+      }
+    },
+    {
+      "circuit": "qaoa",
+      "method": "CoverEmbeddingSteinerDetached",
+      "ebits_fair": 150,
+      "ebits_reloaded": 150,
+      "matches_fair": true,
+      "counter_reproduces_tool": true,
+      "n_bad_hyperedges": 0,
+      "seed_loop_truncated": false,
+      "dsabre_eprs": 134,
+      "dmax": {
+        "inf": 150,
+        "10": 206,
+        "5": 326,
+        "3": 500,
+        "1": 1332
+      }
+    },
+    {
+      "circuit": "qpeexact",
+      "method": "CoverEmbeddingSteinerDetached",
+      "ebits_fair": 45,
+      "ebits_reloaded": 45,
+      "matches_fair": true,
+      "counter_reproduces_tool": true,
+      "n_bad_hyperedges": 0,
+      "seed_loop_truncated": false,
+      "dsabre_eprs": 62,
+      "dmax": {
+        "inf": 45,
+        "10": 90,
+        "5": 154,
+        "3": 245,
+        "1": 684
+      }
+    },
+    {
+      "circuit": "vqe_su2",
+      "method": "CoverEmbeddingSteinerDetached",
+      "ebits_fair": 9,
+      "ebits_reloaded": 9,
+      "matches_fair": true,
+      "counter_reproduces_tool": true,
+      "n_bad_hyperedges": 0,
+      "seed_loop_truncated": false,
+      "dsabre_eprs": 9,
+      "dmax": {
+        "inf": 9,
+        "10": 9,
+        "5": 9,
+        "3": 9,
+        "1": 9
+      }
+    },
+    {
+      "circuit": "wstate",
+      "method": "CoverEmbeddingSteinerDetached",
+      "ebits_fair": 6,
+      "ebits_reloaded": 6,
+      "matches_fair": true,
+      "counter_reproduces_tool": true,
+      "n_bad_hyperedges": 0,
+      "seed_loop_truncated": false,
+      "dsabre_eprs": 6,
+      "dmax": {
+        "inf": 6,
+        "10": 6,
+        "5": 6,
+        "3": 6,
+        "1": 6
+      }
+    }
+  ],
+  "problems": []
+}

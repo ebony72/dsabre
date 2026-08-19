@@ -9,7 +9,7 @@ See also: `../CLAUDE.md` for the full project reference.
 
 ---
 
-## Revision Workflow (branch `tcad-revision`)
+## Revision Workflow
 
 **Do not work on the response letter before the revision itself is finished.**
 
@@ -202,7 +202,7 @@ and 8126 at n=64 exactly.
 On 2026-07-09 a `cphm` session judged the deep circuit "a stale legacy file
 structurally inconsistent with qnn_100/qnn_200" and overwrote it with the
 v2.2.2 output, labelling the shallow one "CORRECTED" (`cphm/code/fix_qnn_64.py`).
-It was not corrected — 8126 CX is the count in the submitted TCAD manuscript.
+It was not corrected — 8126 CX is the count in the submitted manuscript.
 An SFC session flagged the regression on 2026-07-10. **Restored 2026-07-27**
 from the `.bak`, preserving the original v1.1.0 header; the shallow file is kept
 as `qnn_SHALLOW_v2.2.2_...qasm.bak` in case another project depends on it.

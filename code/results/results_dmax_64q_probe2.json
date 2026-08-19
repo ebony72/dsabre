@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "date": "2026-08-12",
+    "suite": "64q",
+    "network_model": "C_physical (the model of tab:fair)",
+    "distributor": "per circuit, as recorded in results_pytket_fair_64q.json",
+    "seeds": 5,
+    "budget_s": 900.0,
+    "counter": "dmax_counter.cost_under_dmax"
+  },
+  "results": [
+    {
+      "circuit": "qpeexact",
+      "method": "CoverEmbeddingSteinerDetached",
+      "ebits_recorded": 118,
+      "ebits_rebuilt": 118,
+      "matches_fair": true,
+      "counter_reproduces_tool": true,
+      "n_bad_hyperedges": 0,
+      "dsabre_eprs": 187,
+      "dmax": {
+        "inf": 118,
+        "10": 211,
+        "5": 365,
+        "3": 558,
+        "1": 1554
+      }
+    }
+  ],
+  "problems": []
+}

@@ -1,0 +1,678 @@
+{
+ "meta": {
+  "date": "2026-08-14",
+  "purpose": "one-at-a-time hyperparameter sweep behind app:sensitivity",
+  "router": "dSE (dsabre_ext.dSABRE_BurstExt)",
+  "protocol": "SabreLayout corners-removed, best of 3 seeds, fwd->bwd->fwd",
+  "note": "w_link is hardcoded in architecture.py, not a HardwareConfig field, so it is not swept here"
+ },
+ "results": {
+  "25q": {
+   "_default": {
+    "gmean": 15.32,
+    "per_circuit": {
+     "ghz": 1,
+     "graphstate": 2,
+     "ae": 23,
+     "qft": 33,
+     "random": 181,
+     "qnn": 47
+    },
+    "aborts": 0
+   },
+   "cap_penalty": {
+    "15.0": {
+     "gmean": 15.32,
+     "delta_pct": 0.0,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 33,
+      "random": 181,
+      "qnn": 47
+     },
+     "aborts": 0,
+     "note": "default cell, routed once"
+    },
+    "0.0": {
+     "gmean": 14.94,
+     "delta_pct": -2.5,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 22,
+      "qft": 32,
+      "random": 168,
+      "qnn": 47
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "5.0": {
+     "gmean": 15.11,
+     "delta_pct": -1.4,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 22,
+      "qft": 32,
+      "random": 176,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "30.0": {
+     "gmean": 15.37,
+     "delta_pct": 0.4,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 33,
+      "random": 181,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "60.0": {
+     "gmean": 15.37,
+     "delta_pct": 0.4,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 33,
+      "random": 181,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    }
+   },
+   "lookahead_decay": {
+    "0.9": {
+     "gmean": 15.32,
+     "delta_pct": 0.0,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 33,
+      "random": 181,
+      "qnn": 47
+     },
+     "aborts": 0,
+     "note": "default cell, routed once"
+    },
+    "0.5": {
+     "gmean": 15.3,
+     "delta_pct": -0.1,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 33,
+      "random": 176,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "0.7": {
+     "gmean": 15.41,
+     "delta_pct": 0.6,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 33,
+      "random": 184,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "1.0": {
+     "gmean": 15.01,
+     "delta_pct": -2.0,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 21,
+      "qft": 32,
+      "random": 177,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    }
+   },
+   "lookahead_size": {
+    "20": {
+     "gmean": 15.32,
+     "delta_pct": 0.0,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 33,
+      "random": 181,
+      "qnn": 47
+     },
+     "aborts": 0,
+     "note": "default cell, routed once"
+    },
+    "5": {
+     "gmean": 15.56,
+     "delta_pct": 1.6,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 35,
+      "random": 184,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "10": {
+     "gmean": 15.36,
+     "delta_pct": 0.3,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 33,
+      "random": 180,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "40": {
+     "gmean": 14.99,
+     "delta_pct": -2.2,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 22,
+      "qft": 33,
+      "random": 166,
+      "qnn": 47
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "80": {
+     "gmean": 15.19,
+     "delta_pct": -0.9,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 22,
+      "qft": 33,
+      "random": 176,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    }
+   },
+   "weight_extended": {
+    "0.25": {
+     "gmean": 15.32,
+     "delta_pct": 0.0,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 33,
+      "random": 181,
+      "qnn": 47
+     },
+     "aborts": 0,
+     "note": "default cell, routed once"
+    },
+    "0.0": {
+     "gmean": 17.06,
+     "delta_pct": 11.4,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 27,
+      "qft": 35,
+      "random": 251,
+      "qnn": 52
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "0.1": {
+     "gmean": 15.36,
+     "delta_pct": 0.3,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 23,
+      "qft": 33,
+      "random": 180,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "0.5": {
+     "gmean": 15.01,
+     "delta_pct": -2.0,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 22,
+      "qft": 32,
+      "random": 169,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "1.0": {
+     "gmean": 15.04,
+     "delta_pct": -1.8,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 22,
+      "qft": 34,
+      "random": 161,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "2.0": {
+     "gmean": 15.03,
+     "delta_pct": -1.8,
+     "per_circuit": {
+      "ghz": 1,
+      "graphstate": 2,
+      "ae": 21,
+      "qft": 32,
+      "random": 179,
+      "qnn": 48
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    }
+   }
+  },
+  "64q": {
+   "_default": {
+    "gmean": 173.25,
+    "per_circuit": {
+     "ghz": 6,
+     "graphstate": 15,
+     "random": 732,
+     "ae": 165,
+     "qft": 180,
+     "qpeexact": 187,
+     "qaoa": 555,
+     "qnn": 539,
+     "multiplier": 1285
+    },
+    "aborts": 0
+   },
+   "cap_penalty": {
+    "15.0": {
+     "gmean": 173.25,
+     "delta_pct": 0.0,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 15,
+      "random": 732,
+      "ae": 165,
+      "qft": 180,
+      "qpeexact": 187,
+      "qaoa": 555,
+      "qnn": 539,
+      "multiplier": 1285
+     },
+     "aborts": 0,
+     "note": "default cell, routed once"
+    },
+    "0.0": {
+     "gmean": 189.5,
+     "delta_pct": 9.4,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 19,
+      "random": 714,
+      "ae": 205,
+      "qft": 239,
+      "qpeexact": 231,
+      "qaoa": 537,
+      "qnn": 518,
+      "multiplier": 1230
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "5.0": {
+     "gmean": 178.23,
+     "delta_pct": 2.9,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 15,
+      "random": 709,
+      "ae": 185,
+      "qft": 229,
+      "qpeexact": 224,
+      "qaoa": 522,
+      "qnn": 501,
+      "multiplier": 1146
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "30.0": {
+     "gmean": 197.18,
+     "delta_pct": 13.8,
+     "per_circuit": {
+      "ghz": 10,
+      "graphstate": 15,
+      "random": 757,
+      "ae": 200,
+      "qft": 232,
+      "qpeexact": 207,
+      "qaoa": 556,
+      "qnn": 542,
+      "multiplier": 1371
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "60.0": {
+     "gmean": 201.46,
+     "delta_pct": 16.3,
+     "per_circuit": {
+      "ghz": 10,
+      "graphstate": 15,
+      "random": 751,
+      "ae": 227,
+      "qft": 232,
+      "qpeexact": 236,
+      "qaoa": 568,
+      "qnn": 540,
+      "multiplier": 1273
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    }
+   },
+   "lookahead_decay": {
+    "0.9": {
+     "gmean": 173.25,
+     "delta_pct": 0.0,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 15,
+      "random": 732,
+      "ae": 165,
+      "qft": 180,
+      "qpeexact": 187,
+      "qaoa": 555,
+      "qnn": 539,
+      "multiplier": 1285
+     },
+     "aborts": 0,
+     "note": "default cell, routed once"
+    },
+    "0.5": {
+     "gmean": 209.04,
+     "delta_pct": 20.7,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 17,
+      "random": 816,
+      "ae": 210,
+      "qft": 314,
+      "qpeexact": 212,
+      "qaoa": 633,
+      "qnn": 507,
+      "multiplier": 2041
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "0.7": {
+     "gmean": 203.54,
+     "delta_pct": 17.5,
+     "per_circuit": {
+      "ghz": 8,
+      "graphstate": 17,
+      "random": 719,
+      "ae": 248,
+      "qft": 215,
+      "qpeexact": 233,
+      "qaoa": 570,
+      "qnn": 507,
+      "multiplier": 1708
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "1.0": {
+     "gmean": 177.04,
+     "delta_pct": 2.2,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 14,
+      "random": 742,
+      "ae": 215,
+      "qft": 214,
+      "qpeexact": 219,
+      "qaoa": 533,
+      "qnn": 534,
+      "multiplier": 956
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    }
+   },
+   "lookahead_size": {
+    "20": {
+     "gmean": 173.25,
+     "delta_pct": 0.0,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 15,
+      "random": 732,
+      "ae": 165,
+      "qft": 180,
+      "qpeexact": 187,
+      "qaoa": 555,
+      "qnn": 539,
+      "multiplier": 1285
+     },
+     "aborts": 0,
+     "note": "default cell, routed once"
+    },
+    "5": {
+     "gmean": 199.03,
+     "delta_pct": 14.9,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 16,
+      "random": 800,
+      "ae": 184,
+      "qft": 234,
+      "qpeexact": 216,
+      "qaoa": 948,
+      "qnn": 505,
+      "multiplier": 1433
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "10": {
+     "gmean": 187.03,
+     "delta_pct": 7.9,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 17,
+      "random": 756,
+      "ae": 161,
+      "qft": 222,
+      "qpeexact": 201,
+      "qaoa": 659,
+      "qnn": 497,
+      "multiplier": 1543
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "40": {
+     "gmean": 179.25,
+     "delta_pct": 3.5,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 19,
+      "random": 682,
+      "ae": 155,
+      "qft": 219,
+      "qpeexact": 195,
+      "qaoa": 530,
+      "qnn": 497,
+      "multiplier": 1409
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "80": {
+     "gmean": 184.47,
+     "delta_pct": 6.5,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 19,
+      "random": 687,
+      "ae": 180,
+      "qft": 208,
+      "qpeexact": 208,
+      "qaoa": 539,
+      "qnn": 493,
+      "multiplier": 1526
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    }
+   },
+   "weight_extended": {
+    "0.25": {
+     "gmean": 173.25,
+     "delta_pct": 0.0,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 15,
+      "random": 732,
+      "ae": 165,
+      "qft": 180,
+      "qpeexact": 187,
+      "qaoa": 555,
+      "qnn": 539,
+      "multiplier": 1285
+     },
+     "aborts": 0,
+     "note": "default cell, routed once"
+    },
+    "0.0": {
+     "gmean": 244.98,
+     "delta_pct": 41.4,
+     "per_circuit": {
+      "ghz": 7,
+      "graphstate": 24,
+      "random": 985,
+      "ae": 220,
+      "qft": 350,
+      "qpeexact": 246,
+      "qaoa": 922,
+      "qnn": 518,
+      "multiplier": 2123
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "0.1": {
+     "gmean": 184.17,
+     "delta_pct": 6.3,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 16,
+      "random": 760,
+      "ae": 168,
+      "qft": 226,
+      "qpeexact": 204,
+      "qaoa": 565,
+      "qnn": 507,
+      "multiplier": 1506
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "0.5": {
+     "gmean": 181.58,
+     "delta_pct": 4.8,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 16,
+      "random": 688,
+      "ae": 210,
+      "qft": 225,
+      "qpeexact": 217,
+      "qaoa": 513,
+      "qnn": 495,
+      "multiplier": 1248
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "1.0": {
+     "gmean": 176.98,
+     "delta_pct": 2.1,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 16,
+      "random": 731,
+      "ae": 184,
+      "qft": 237,
+      "qpeexact": 222,
+      "qaoa": 523,
+      "qnn": 503,
+      "multiplier": 953
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    },
+    "2.0": {
+     "gmean": 179.28,
+     "delta_pct": 3.5,
+     "per_circuit": {
+      "ghz": 6,
+      "graphstate": 16,
+      "random": 711,
+      "ae": 184,
+      "qft": 239,
+      "qpeexact": 200,
+      "qaoa": 527,
+      "qnn": 524,
+      "multiplier": 1154
+     },
+     "aborts": 0,
+     "circuits_failed": 0
+    }
+   }
+  }
+ }
+}

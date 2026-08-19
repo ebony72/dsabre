@@ -1,0 +1,427 @@
+{
+  "meta": {
+    "date": "2026-08-17",
+    "study": "telegate macro-action (single gate, one hop)",
+    "suite": "64q_b243",
+    "arch": "B-grid 2x4 of 3x3 (72 physical, 8 cores x 9) \u2014 F=8=K",
+    "router": "dSE (dsabre_ext.dSABRE_BurstExt)",
+    "circuits": [
+      "ae",
+      "ghz",
+      "graphstate",
+      "qft",
+      "qnn",
+      "random",
+      "qpeexact",
+      "qaoa",
+      "multiplier"
+    ],
+    "variants": [
+      "off",
+      "nat",
+      "b4",
+      "b8",
+      "sel",
+      "tgmax"
+    ],
+    "routed_by": "dSE + telegate (telegate_router.dSABRE_Telegate)",
+    "protocol": "default_layouts x3, fwd-bwd-fwd, best forward pass by EPR",
+    "epr_accounting": "1 EPR pair per teledata hop AND per telegate",
+    "mode": "score-only",
+    "budgets": {
+      "deadlock_limit": 100,
+      "max_backup_attempts": 100,
+      "max_iterations": 20000
+    }
+  },
+  "results": {
+    "ae": {
+      "off": {
+        "aborted": true,
+        "time_s": 2.6
+      },
+      "nat": {
+        "aborted": true,
+        "time_s": 2.06
+      },
+      "b4": {
+        "aborted": true,
+        "time_s": 2.35
+      },
+      "b8": {
+        "aborted": true,
+        "time_s": 1.87
+      },
+      "sel": {
+        "aborted": true,
+        "time_s": 3.26
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 2.16
+      }
+    },
+    "ghz": {
+      "off": {
+        "aborted": true,
+        "time_s": 0.32
+      },
+      "nat": {
+        "aborted": false,
+        "eprs": 27,
+        "ls": 134,
+        "telegates": 11,
+        "teledata": 16,
+        "time_s": 0.9,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 108,
+        "all_teledata": 786,
+        "front_inter": 10255,
+        "front_adj": 5081
+      },
+      "b4": {
+        "aborted": false,
+        "eprs": 27,
+        "ls": 134,
+        "telegates": 11,
+        "teledata": 16,
+        "time_s": 0.94,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 107,
+        "all_teledata": 794,
+        "front_inter": 10256,
+        "front_adj": 5081
+      },
+      "b8": {
+        "aborted": false,
+        "eprs": 27,
+        "ls": 134,
+        "telegates": 11,
+        "teledata": 16,
+        "time_s": 0.92,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 107,
+        "all_teledata": 794,
+        "front_inter": 10256,
+        "front_adj": 5081
+      },
+      "sel": {
+        "aborted": false,
+        "eprs": 27,
+        "ls": 134,
+        "telegates": 11,
+        "teledata": 16,
+        "time_s": 0.97,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 108,
+        "all_teledata": 786,
+        "front_inter": 10255,
+        "front_adj": 5081
+      },
+      "tgmax": {
+        "aborted": false,
+        "eprs": 27,
+        "ls": 134,
+        "telegates": 11,
+        "teledata": 16,
+        "time_s": 0.92,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 108,
+        "all_teledata": 786,
+        "front_inter": 10255,
+        "front_adj": 5081
+      }
+    },
+    "graphstate": {
+      "off": {
+        "aborted": false,
+        "eprs": 69,
+        "ls": 248,
+        "telegates": 0,
+        "teledata": 69,
+        "time_s": 1.0,
+        "backup_activations": 6,
+        "safe_routes": 0,
+        "all_telegates": 0,
+        "all_teledata": 507,
+        "front_inter": 0,
+        "front_adj": 0
+      },
+      "nat": {
+        "aborted": false,
+        "eprs": 31,
+        "ls": 108,
+        "telegates": 26,
+        "teledata": 5,
+        "time_s": 0.98,
+        "backup_activations": 1,
+        "safe_routes": 0,
+        "all_telegates": 174,
+        "all_teledata": 397,
+        "front_inter": 29217,
+        "front_adj": 23926
+      },
+      "b4": {
+        "aborted": false,
+        "eprs": 31,
+        "ls": 108,
+        "telegates": 26,
+        "teledata": 5,
+        "time_s": 0.98,
+        "backup_activations": 1,
+        "safe_routes": 0,
+        "all_telegates": 174,
+        "all_teledata": 397,
+        "front_inter": 29218,
+        "front_adj": 23928
+      },
+      "b8": {
+        "aborted": false,
+        "eprs": 31,
+        "ls": 108,
+        "telegates": 26,
+        "teledata": 5,
+        "time_s": 1.05,
+        "backup_activations": 1,
+        "safe_routes": 0,
+        "all_telegates": 173,
+        "all_teledata": 420,
+        "front_inter": 31145,
+        "front_adj": 24640
+      },
+      "sel": {
+        "aborted": false,
+        "eprs": 31,
+        "ls": 108,
+        "telegates": 26,
+        "teledata": 5,
+        "time_s": 0.84,
+        "backup_activations": 1,
+        "safe_routes": 0,
+        "all_telegates": 168,
+        "all_teledata": 384,
+        "front_inter": 23613,
+        "front_adj": 18989
+      },
+      "tgmax": {
+        "aborted": false,
+        "eprs": 31,
+        "ls": 108,
+        "telegates": 26,
+        "teledata": 5,
+        "time_s": 0.99,
+        "backup_activations": 1,
+        "safe_routes": 0,
+        "all_telegates": 173,
+        "all_teledata": 384,
+        "front_inter": 29605,
+        "front_adj": 24417
+      }
+    },
+    "qft": {
+      "off": {
+        "aborted": true,
+        "time_s": 4.1
+      },
+      "nat": {
+        "aborted": true,
+        "time_s": 2.83
+      },
+      "b4": {
+        "aborted": true,
+        "time_s": 2.91
+      },
+      "b8": {
+        "aborted": true,
+        "time_s": 3.68
+      },
+      "sel": {
+        "aborted": true,
+        "time_s": 6.57
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 3.55
+      }
+    },
+    "qnn": {
+      "off": {
+        "aborted": true,
+        "time_s": 10.02
+      },
+      "nat": {
+        "aborted": true,
+        "time_s": 6.71
+      },
+      "b4": {
+        "aborted": true,
+        "time_s": 9.85
+      },
+      "b8": {
+        "aborted": true,
+        "time_s": 5.98
+      },
+      "sel": {
+        "aborted": true,
+        "time_s": 10.07
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 7.99
+      }
+    },
+    "random": {
+      "off": {
+        "aborted": true,
+        "time_s": 3.29
+      },
+      "nat": {
+        "aborted": true,
+        "time_s": 4.45
+      },
+      "b4": {
+        "aborted": true,
+        "time_s": 4.45
+      },
+      "b8": {
+        "aborted": true,
+        "time_s": 4.22
+      },
+      "sel": {
+        "aborted": true,
+        "time_s": 3.18
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 5.76
+      }
+    },
+    "qpeexact": {
+      "off": {
+        "aborted": true,
+        "time_s": 1.28
+      },
+      "nat": {
+        "aborted": true,
+        "time_s": 4.32
+      },
+      "b4": {
+        "aborted": true,
+        "time_s": 2.66
+      },
+      "b8": {
+        "aborted": true,
+        "time_s": 3.62
+      },
+      "sel": {
+        "aborted": true,
+        "time_s": 1.9
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 3.69
+      }
+    },
+    "qaoa": {
+      "off": {
+        "aborted": true,
+        "time_s": 4.86
+      },
+      "nat": {
+        "aborted": true,
+        "time_s": 4.2
+      },
+      "b4": {
+        "aborted": true,
+        "time_s": 4.68
+      },
+      "b8": {
+        "aborted": true,
+        "time_s": 4.9
+      },
+      "sel": {
+        "aborted": true,
+        "time_s": 1.79
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 3.45
+      }
+    },
+    "multiplier": {
+      "off": {
+        "aborted": true,
+        "time_s": 5.36
+      },
+      "nat": {
+        "aborted": true,
+        "time_s": 5.51
+      },
+      "b4": {
+        "aborted": true,
+        "time_s": 4.11
+      },
+      "b8": {
+        "aborted": true,
+        "time_s": 4.37
+      },
+      "sel": {
+        "aborted": true,
+        "time_s": 4.64
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 5.51
+      }
+    }
+  },
+  "summary": {
+    "off": {
+      "gmean_ratio": 1.0,
+      "pct": 0.0,
+      "total_eprs": 69,
+      "telegates_all_passes": 0,
+      "complete": false
+    },
+    "nat": {
+      "gmean_ratio": 0.4493,
+      "pct": -55.07,
+      "total_eprs": 31,
+      "telegates_all_passes": 174,
+      "complete": false
+    },
+    "b4": {
+      "gmean_ratio": 0.4493,
+      "pct": -55.07,
+      "total_eprs": 31,
+      "telegates_all_passes": 174,
+      "complete": false
+    },
+    "b8": {
+      "gmean_ratio": 0.4493,
+      "pct": -55.07,
+      "total_eprs": 31,
+      "telegates_all_passes": 173,
+      "complete": false
+    },
+    "sel": {
+      "gmean_ratio": 0.4493,
+      "pct": -55.07,
+      "total_eprs": 31,
+      "telegates_all_passes": 168,
+      "complete": false
+    },
+    "tgmax": {
+      "gmean_ratio": 0.4493,
+      "pct": -55.07,
+      "total_eprs": 31,
+      "telegates_all_passes": 173,
+      "complete": false
+    }
+  }
+}

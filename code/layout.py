@@ -2,8 +2,11 @@
 Initial layout strategies and multi-pass routing for dSABRE.
 
 sabre_locked_boundary_layout — SabreLayout on arch graph with corner nodes removed.
+sabre_completed_boundary_layout — same, on a dist-k completed core graph, optionally
+                               repacked to even per-core occupancy (2026-07-30).
 locality_aware_layout        — partition circuit qubits by interaction graph
                                community, then assign within each core by centrality.
+repack_to_budgets            — force a layout to an exact per-core occupancy profile.
 run_passes                   — run up to N forward routing passes with early stopping.
 run_sabre_passes             — fwd → bwd (reversed DAG) → fwd; pick best of pass1/pass3.
 """
@@ -211,7 +214,8 @@ def _per_core_reserved_corner_nodes(arch: DistributedArchitecture, per_core: int
 
 
 def adaptive_corner_count(arch: DistributedArchitecture, num_qubits: int,
-                          max_fill: float = 0.80, k_max: int = 4) -> int:
+                          max_fill: float = 0.80, k_max: int = 4,
+                          reserve: int = 1) -> int:
     """Fill-adaptive per-core reservation count: the LARGEST k (0..k_max) that
     keeps the usable-slot fill nq/(ncores*(slots_per_core-k)) at or below
     max_fill.
@@ -222,14 +226,38 @@ def adaptive_corner_count(arch: DistributedArchitecture, num_qubits: int,
     k=4 -> 89% fill and ae/qft regress past k=2).  max_fill=0.80 reproduces
     the per-suite optima of the corner-count dose-response study:
     k=4 at 25/36/100/200q, k=2 at 64q.
+
+    k is floored at 1 -- guaranteeing every core at least one reserved escape
+    slot -- whenever that is physically feasible, i.e. whenever the spare
+    capacity P-n covers one slot per core (P-n >= K, P = ncores*spc).  Below
+    that floor a "full core" (zero free slots) is possible in the initial
+    layout SabreLayout produces, which is what k>=1 exists to prevent; the
+    80%-fill target is a performance tuning knob for k among {1..k_max}, not
+    a license to fall back to zero reservation when reservation is
+    affordable.  Only genuinely infeasible cases (P-n < K, e.g. the 25-qubit
+    3-core "F=2<K=3" stress architecture) still return k=0.
+
+    `reserve` raises that floor: `reserve=2` (what `config.safe_mode` needs --
+    see SAFE_DSABRE.md) makes every core start with >=2 free slots, so the
+    capacity invariant holds by construction rather than by coincidence.  It
+    changes no published suite -- the fill rule already returns 4 everywhere
+    except 64q, where it returns 2 -- but it stops a denser architecture from
+    silently starting unsafe.  The floor is applied only when affordable
+    (P-n >= reserve*K + 1), so callers must check the return value against
+    `reserve` rather than assume it.
     """
     ncores = arch.num_cores
     spc = len(arch.core_qubits(0))
-    for k in range(k_max, -1, -1):
+    physical = ncores * spc
+    if reserve > 1 and (physical - num_qubits) >= reserve * ncores + 1:
+        k_floor = reserve
+    else:
+        k_floor = 1 if (physical - num_qubits) >= ncores else 0
+    for k in range(k_max, k_floor - 1, -1):
         usable = ncores * (spc - k)
         if usable > 0 and num_qubits / usable <= max_fill:
             return k
-    return 0
+    return k_floor
 
 
 def sabre_locked_boundary_layout(qc, dag, arch: DistributedArchitecture, seed: int = 0):
@@ -286,6 +314,218 @@ def sabre_locked_boundary_layout(qc, dag, arch: DistributedArchitecture, seed: i
             for lq in dag.qubits:
                 if lq not in result:
                     result[lq] = next(fp)
+            layouts.append(result)
+        except Exception:
+            continue
+    return layouts
+
+
+# ── Dist-k completion + even repack (2026-07-30 ablation) ──────────────────────
+
+def _dist_k_intra_edges(arch: DistributedArchitecture, removed: set, k: int) -> list:
+    """Per-core edges among non-``removed`` qubits at intra-core distance
+    <= ``k``, plus the real inter-core links.  k=1 reproduces the bare grid
+    (exactly the edges ``arch.Gr`` already encodes); k>=2 adds edges
+    SabreLayout would not otherwise see.
+
+    Motivation: ``CouplingMap`` is unweighted, so SabreLayout cannot tell that
+    an inter-core hop costs ~10x an intra-core SWAP -- on the bare grid (k=1)
+    it minimises total SWAP count treating both the same.  Completing a core
+    towards a clique makes intra-core moves look relatively free, nudging the
+    objective toward what the router actually pays for: inter-core crossings.
+    """
+    edges = []
+    for c in range(arch.num_cores):
+        nodes = [p for p in arch.core_qubits(c) if p not in removed]
+        dist  = arch.intra_dist[c]
+        for i, u in enumerate(nodes):
+            for v in nodes[i + 1:]:
+                if dist[u][v] <= k:
+                    edges.append((u, v))
+    for u, v in arch.inter_core_links:
+        if u not in removed and v not in removed:
+            edges.append((u, v))
+    return edges
+
+
+def _even_core_budgets(arch: DistributedArchitecture, num_qubits: int) -> list:
+    """As-even-as-possible per-core occupancy target summing to ``num_qubits``.
+
+    Free slots split evenly (``F // num_cores`` each); any remainder goes to
+    the highest-betweenness cores first.  The 2026-07-30 free-slot study
+    found central/transit cores want slightly MORE head-room, never less --
+    every centre-vs-periphery contrast favoured keeping the busiest cores
+    less full, never more.
+    """
+    ncores = arch.num_cores
+    spc    = len(arch.core_qubits(0))
+    free_total = ncores * spc - num_qubits
+    base, rem  = divmod(free_total, ncores)
+    bc    = nx.betweenness_centrality(arch.core_graph)
+    order = sorted(range(ncores),
+                   key=lambda c: (-bc[c], -arch.core_graph.degree(c), c))
+    frees = [base] * ncores
+    for c in order[:rem]:
+        frees[c] += 1
+    return [spc - frees[c] for c in range(ncores)]
+
+
+def repack_to_budgets(layout: dict, dag, arch: DistributedArchitecture, budgets) -> dict:
+    """Re-map ``layout`` so core c holds exactly ``budgets[c]`` qubits.
+
+    Two stages, both deterministic given ``layout``:
+
+    1. *Core assignment.*  Starting from ``layout``'s core groups, repeatedly
+       take the most over-budget core and move out its least-affine qubit
+       (by interaction-graph weight) into the highest-affinity under-budget
+       core (ties broken by core distance, then core id).  This keeps as much
+       of the input's locality as the target profile allows.
+    2. *Within-core placement.*  Each core's final group is placed on that
+       core's physical slots by ``_topology_aware_core_assignment``, i.e. the
+       most-connected logical qubits go to the most-central physical slots --
+       which also tends to leave the LEAST-central slots (often exactly the
+       corners a caller may have reserved) the ones left unassigned when a
+       core is under budget.
+
+    ``sum(budgets)`` must equal ``len(layout)``.
+    """
+    n = len(layout)
+    if sum(budgets) != n:
+        raise ValueError(f"budgets sum to {sum(budgets)}, need {n}")
+
+    ig = _interaction_graph(dag)
+    groups = {c: [] for c in range(arch.num_cores)}
+    for lq, p in layout.items():
+        groups[arch.core_of(p)].append(lq)
+
+    def affinity(q, group):
+        if q not in ig:
+            return 0.0
+        gs = set(group)
+        return sum(ig[q][nb].get("weight", 1) for nb in ig.neighbors(q) if nb in gs)
+
+    guard = 0
+    while True:
+        over = [c for c in range(arch.num_cores) if len(groups[c]) > budgets[c]]
+        if not over:
+            break
+        guard += 1
+        if guard > 4 * n:                       # cannot happen; cheap insurance
+            raise RuntimeError("repack_to_budgets did not converge")
+        c_over = max(over, key=lambda c: (len(groups[c]) - budgets[c], -c))
+        victim = min(groups[c_over],
+                     key=lambda q: (affinity(q, groups[c_over]), id(q)))
+        under = [c for c in range(arch.num_cores) if len(groups[c]) < budgets[c]]
+        c_under = max(under, key=lambda c: (affinity(victim, groups[c]),
+                                            -arch.core_dist[c_over][c], -c))
+        groups[c_over].remove(victim)
+        groups[c_under].append(victim)
+
+    result = {}
+    for c in range(arch.num_cores):
+        result.update(_topology_aware_core_assignment(groups[c], ig, arch, c))
+    if len(result) != n:
+        raise RuntimeError(f"repack produced {len(result)} of {n} placements")
+    return result
+
+
+def sabre_completed_boundary_layout(qc, dag, arch: DistributedArchitecture,
+                                    seed: int = 0, dist_k: int = 2,
+                                    even_repack: bool = True):
+    """``sabre_locked_boundary_layout``, but SabreLayout runs on a dist-``dist_k``
+    completed core graph and (by default) the result is repacked to even
+    per-core occupancy.
+
+    Same corner reservation as ``sabre_locked_boundary_layout`` (adaptive k
+    corners removed per core); the only two changes:
+
+    1. SabreLayout sees ``_dist_k_intra_edges(..., dist_k)`` instead of the
+       bare grid -- see that function's docstring for why an unweighted
+       CouplingMap needs this to have any chance of favouring intra-core
+       SWAPs over inter-core teleports.
+    2. If ``even_repack``, each candidate layout is passed through
+       ``repack_to_budgets(..., _even_core_budgets(...))`` afterward.
+
+    IMPORTANT -- these two knobs were validated SEPARATELY, not together.
+    The 2026-07-30 ablation swept dist_k alone (no repack) and, on its own
+    high-fill arm, a full per-core CLIQUE with even_repack; it never tried
+    dist_k=2 stacked with even_repack, which is this function's default.
+    Checking that exact combination against ``sabre_locked_boundary_layout``
+    on the six-circuit ablation core, per suite (paired, both best-of-3):
+
+      25q  (~39% fill): NET REGRESSION.  ghz 1->4 EPR, graphstate 2->6 EPR;
+           ae/qft/random roughly tied.  even_repack forces balanced occupancy
+           onto circuits (chain-shaped ones especially) that route best
+           concentrated in one or two cores -- exactly the placement
+           ``sabre_locked_boundary_layout`` already finds unforced.
+      64q  (~67% fill): mixed, no clear net direction on the 4 circuits
+           checked (ae 242->164 better, qft 204->246 worse, ghz/graphstate
+           small losses/gains either way).
+      64q on a 9-core 3x3 grid (~79% fill): NET WIN.  5 of 6 circuits
+           improve, two of them (qft, graphstate) going from routing on only
+           1 of 3 SabreLayout seeds to all 3; qnn, which the production
+           layout cannot route AT ALL, routes on all 3 seeds at 3446 EPR.
+           Total successful layouts across the suite: 15/18 vs 9/18.  The
+           one exception is ae, which flips from marginal (1/3 seeds, 720
+           EPR) to a complete failure (0/3) -- the sole regression in an
+           otherwise clearly-better suite.
+
+    So this combination is a genuine, fill-dependent trade, not a strict
+    upgrade: worth it near/above ~75-80% fill, actively harmful below ~40%,
+    a wash in between.  A caller who does not know the target fill ahead of
+    time should probably pass ``even_repack=False`` (the more uniformly safe
+    ~0.96-0.98x win measured for dist_k=2 alone) and reserve
+    ``even_repack=True`` for the high-fill regime specifically.
+
+    This is NOT wired into ``benchmark.py`` or any other driver: the existing
+    paper tables are generated by ``sabre_locked_boundary_layout``, and
+    neither knob here has been validated beyond the 6-circuit ablation core.
+
+    Returns a list of up to 3 candidate layouts ({logical_qubit: physical_qubit}),
+    same contract as ``sabre_locked_boundary_layout``.
+    """
+    from qiskit.transpiler import PassManager, CouplingMap
+    from qiskit.transpiler.passes import SabreLayout
+
+    k = adaptive_corner_count(arch, qc.num_qubits)
+    corner_nodes = _per_core_reserved_corner_nodes(arch, per_core=k)
+
+    reduced_nodes = [n for n in arch.Gr.nodes() if n not in corner_nodes]
+    node_to_idx   = {n: i for i, n in enumerate(reduced_nodes)}
+    completed_edges = _dist_k_intra_edges(arch, corner_nodes, dist_k)
+    reduced_edges = [(node_to_idx[u], node_to_idx[v]) for u, v in completed_edges]
+    directed = reduced_edges + [(v, u) for u, v in reduced_edges]
+    cm = CouplingMap(couplinglist=directed,
+                     description=f"dsabre_{k}corners_dist{dist_k}_completed")
+
+    budgets = _even_core_budgets(arch, qc.num_qubits) if even_repack else None
+
+    layouts = []
+    for sd in [seed, seed + 1, seed + 2]:
+        try:
+            pm = PassManager([SabreLayout(cm, max_iterations=3, seed=sd, swap_trials=5)])
+            transpiled = pm.run(qc)
+            if transpiled.layout is None:
+                continue
+            tl = transpiled.layout
+            virt_layout = (tl.initial_virtual_layout(filter_ancillas=True)
+                           if hasattr(tl, "initial_virtual_layout") else tl.initial_layout)
+            result = {}
+            for virt_qubit, reduced_idx in virt_layout.get_virtual_bits().items():
+                try:
+                    bit_index = qc.find_bit(virt_qubit).index
+                except Exception:
+                    continue
+                result[dag.qubits[bit_index]] = reduced_nodes[reduced_idx]
+            assigned = set(result.values())
+            free = [p for p in arch.data_qubits if p not in assigned]
+            _random.Random(sd).shuffle(free)
+            fp = iter(free)
+            for lq in dag.qubits:
+                if lq not in result:
+                    result[lq] = next(fp)
+            if budgets is not None:
+                result = repack_to_budgets(result, dag, arch, budgets)
             layouts.append(result)
         except Exception:
             continue

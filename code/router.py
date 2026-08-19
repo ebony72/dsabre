@@ -1976,11 +1976,18 @@ class General_dSABRE_Router:
                           else self.config.max_iterations)
         # Safe mode: every recovery retires a gate, so the useful bound on
         # activations is the gate count, not a hand-tuned constant -- capping
-        # below it would abort a route the guarantee says must finish.
+        # below it would abort a route the guarantee says must finish.  In
+        # score-only mode there is no such theorem to derive a bound from, so
+        # None means "do not cap", exactly as it does for `max_iterations`:
+        # `max_backups` stays None, the test below is skipped, and the budget
+        # that ends a stuck route is `max_iterations` alone.  That is not a
+        # licence to run forever -- an activation costs `deadlock_limit`
+        # no-progress iterations, so activations are bounded by
+        # max_iterations / deadlock_limit whether or not this cap is set.
         max_backups = (max(self.config.max_backup_attempts or 0,
                            self._remaining + 1)
                        if self.config.safe_mode
-                       else self.config.max_backup_attempts)
+                       else self.config.max_backup_attempts)   # None = uncapped
         committed_nid    = None  # DAG node id of the gate the last teleport advanced
         extended_cache   = None
 
@@ -2156,7 +2163,7 @@ class General_dSABRE_Router:
                     break
                 backup_attempts += 1
                 elapsed = time.perf_counter() - _t_start
-                if backup_attempts > max_backups:
+                if max_backups is not None and backup_attempts > max_backups:
                     if (self.config.safe_mode
                             and self._safe_drain(wdag, l2p, p2l, metrics)):
                         failure_log.append(

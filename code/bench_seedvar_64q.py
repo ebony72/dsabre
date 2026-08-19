@@ -36,9 +36,10 @@ from config import HardwareConfig
 from dsabre_ext import dSABRE_BurstExt
 from layout import sabre_locked_boundary_layout, run_sabre_passes
 from benchmark import load_qasm, TS_BIN, _ts_config
+from circuit_paths import circuits_path
 
 _RESULTS_DIR = os.environ.get("DSABRE_OUT_DIR") or os.path.join(_HERE, "results")
-CIRCUIT_DIR = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64")
+CIRCUIT_DIR = circuits_path("qasm_64")
 DEVICE = os.path.expanduser("~/Documents/telesabre/devices/H_grid_2_3_4_4.json")
 
 ARCH = build_h_grid_architecture(2, 3, 4)

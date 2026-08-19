@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "date": "2026-08-12",
+    "suite": "64q",
+    "network_model": "C_physical (the model of tab:fair)",
+    "distributor": "per circuit, as recorded in results_pytket_fair_64q.json",
+    "seeds": 5,
+    "budget_s": 900.0,
+    "counter": "dmax_counter.cost_under_dmax"
+  },
+  "results": [
+    {
+      "circuit": "ghz",
+      "method": "CoverEmbeddingSteinerDetached",
+      "ebits_recorded": 9,
+      "ebits_rebuilt": 9,
+      "matches_fair": true,
+      "counter_reproduces_tool": true,
+      "n_bad_hyperedges": 0,
+      "dsabre_eprs": 6,
+      "dmax": {
+        "inf": 9,
+        "10": 9,
+        "5": 9,
+        "3": 9,
+        "1": 9
+      }
+    },
+    {
+      "circuit": "graphstate",
+      "method": "CoverEmbeddingSteinerDetached",
+      "ebits_recorded": 7,
+      "ebits_rebuilt": 7,
+      "matches_fair": true,
+      "counter_reproduces_tool": true,
+      "n_bad_hyperedges": 0,
+      "dsabre_eprs": 15,
+      "dmax": {
+        "inf": 7,
+        "10": 7,
+        "5": 7,
+        "3": 7,
+        "1": 8
+      }
+    }
+  ],
+  "problems": []
+}

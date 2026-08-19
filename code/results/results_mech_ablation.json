@@ -1,0 +1,270 @@
+{
+  "25q": {
+    "no_cap_penalty": {
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 558,
+          "eprs": 22,
+          "ls": 293,
+          "aborted": false,
+          "secs": 0.38
+        },
+        {
+          "circuit": "ghz",
+          "cx": 24,
+          "eprs": 1,
+          "ls": 4,
+          "aborted": false,
+          "secs": 0.01
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 25,
+          "eprs": 2,
+          "ls": 18,
+          "aborted": false,
+          "secs": 0.01
+        },
+        {
+          "circuit": "qft",
+          "cx": 580,
+          "eprs": 32,
+          "ls": 371,
+          "aborted": false,
+          "secs": 0.4
+        },
+        {
+          "circuit": "qnn",
+          "cx": 1223,
+          "eprs": 47,
+          "ls": 673,
+          "aborted": false,
+          "secs": 0.65
+        },
+        {
+          "circuit": "random",
+          "cx": 1124,
+          "eprs": 168,
+          "ls": 1239,
+          "aborted": false,
+          "secs": 1.26
+        }
+      ],
+      "gmean": 14.939462268289617,
+      "n_aborted": 0
+    },
+    "no_lookahead": {
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 558,
+          "eprs": 27,
+          "ls": 412,
+          "aborted": false,
+          "secs": 0.49
+        },
+        {
+          "circuit": "ghz",
+          "cx": 24,
+          "eprs": 1,
+          "ls": 21,
+          "aborted": false,
+          "secs": 0.01
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 25,
+          "eprs": 2,
+          "ls": 16,
+          "aborted": false,
+          "secs": 0.02
+        },
+        {
+          "circuit": "qft",
+          "cx": 580,
+          "eprs": 35,
+          "ls": 477,
+          "aborted": false,
+          "secs": 0.51
+        },
+        {
+          "circuit": "qnn",
+          "cx": 1223,
+          "eprs": 52,
+          "ls": 1014,
+          "aborted": false,
+          "secs": 0.93
+        },
+        {
+          "circuit": "random",
+          "cx": 1124,
+          "eprs": 251,
+          "ls": 1579,
+          "aborted": false,
+          "secs": 1.63
+        }
+      ],
+      "gmean": 17.061733137756075,
+      "n_aborted": 0
+    }
+  },
+  "64q": {
+    "no_cap_penalty": {
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 1962,
+          "eprs": 205,
+          "ls": 1637,
+          "aborted": false,
+          "secs": 2.32
+        },
+        {
+          "circuit": "ghz",
+          "cx": 63,
+          "eprs": 6,
+          "ls": 50,
+          "aborted": false,
+          "secs": 0.04
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 64,
+          "eprs": 19,
+          "ls": 98,
+          "aborted": false,
+          "secs": 0.14
+        },
+        {
+          "circuit": "multiplier",
+          "cx": 13040,
+          "eprs": 1230,
+          "ls": 9192,
+          "aborted": false,
+          "secs": 14.44
+        },
+        {
+          "circuit": "qaoa",
+          "cx": 3920,
+          "eprs": 537,
+          "ls": 3834,
+          "aborted": false,
+          "secs": 3.42
+        },
+        {
+          "circuit": "qft",
+          "cx": 1966,
+          "eprs": 239,
+          "ls": 1763,
+          "aborted": false,
+          "secs": 2.45
+        },
+        {
+          "circuit": "qnn",
+          "cx": 8126,
+          "eprs": 518,
+          "ls": 5366,
+          "aborted": false,
+          "secs": 6.43
+        },
+        {
+          "circuit": "qpeexact",
+          "cx": 2139,
+          "eprs": 231,
+          "ls": 1792,
+          "aborted": false,
+          "secs": 1.93
+        },
+        {
+          "circuit": "random",
+          "cx": 1627,
+          "eprs": 714,
+          "ls": 3930,
+          "aborted": false,
+          "secs": 4.65
+        }
+      ],
+      "gmean": 189.5045105065338,
+      "n_aborted": 0
+    },
+    "no_lookahead": {
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 1962,
+          "eprs": 220,
+          "ls": 2421,
+          "aborted": false,
+          "secs": 2.72
+        },
+        {
+          "circuit": "ghz",
+          "cx": 63,
+          "eprs": 7,
+          "ls": 72,
+          "aborted": false,
+          "secs": 0.07
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 64,
+          "eprs": 24,
+          "ls": 144,
+          "aborted": false,
+          "secs": 0.17
+        },
+        {
+          "circuit": "multiplier",
+          "cx": 13040,
+          "eprs": 2123,
+          "ls": 14147,
+          "aborted": false,
+          "secs": 17.58
+        },
+        {
+          "circuit": "qaoa",
+          "cx": 3920,
+          "eprs": 922,
+          "ls": 5747,
+          "aborted": false,
+          "secs": 5.31
+        },
+        {
+          "circuit": "qft",
+          "cx": 1966,
+          "eprs": 350,
+          "ls": 2897,
+          "aborted": false,
+          "secs": 3.14
+        },
+        {
+          "circuit": "qnn",
+          "cx": 8126,
+          "eprs": 518,
+          "ls": 8563,
+          "aborted": false,
+          "secs": 8.67
+        },
+        {
+          "circuit": "qpeexact",
+          "cx": 2139,
+          "eprs": 246,
+          "ls": 2451,
+          "aborted": false,
+          "secs": 2.17
+        },
+        {
+          "circuit": "random",
+          "cx": 1627,
+          "eprs": 985,
+          "ls": 4740,
+          "aborted": false,
+          "secs": 6.02
+        }
+      ],
+      "gmean": 244.9803977886943,
+      "n_aborted": 0
+    }
+  }
+}

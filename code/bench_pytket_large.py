@@ -34,6 +34,7 @@ from architecture import build_h_grid_architecture
 from config import HardwareConfig
 from dsabre_ext import dSABRE_BurstExt
 from layout import run_sabre_passes
+from circuit_paths import circuits_path
 
 logging.disable(logging.WARNING)
 
@@ -70,7 +71,7 @@ def _even_partition(n: int, k: int) -> list[list[int]]:
 
 SUITES = {
     "100q": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_100"),
+        circuit_dir = circuits_path("qasm_100"),
         suffix      = "_nativegates_ibm_qiskit_opt3_100.qasm",
         arch        = build_h_grid_architecture(r=2, s=3, m=5),
         num_cores   = 6,
@@ -78,7 +79,7 @@ SUITES = {
         circuits    = ["qft", "qpeexact"],
     ),
     "200q": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_200"),
+        circuit_dir = circuits_path("qasm_200"),
         suffix      = "_nativegates_ibm_qiskit_opt3_200.qasm",
         arch        = build_h_grid_architecture(r=4, s=3, m=5),
         num_cores   = 12,
@@ -86,7 +87,7 @@ SUITES = {
         circuits    = ["qft", "qpeexact"],
     ),
     "360q": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_360"),
+        circuit_dir = circuits_path("qasm_360"),
         suffix      = "_nativegates_ibm_qiskit_opt3_360.qasm",
         arch        = build_h_grid_architecture(r=2, s=3, m=9),
         num_cores   = 6,

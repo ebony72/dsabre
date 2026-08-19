@@ -1,0 +1,190 @@
+{
+ "meta": {
+  "date": "2026-07-28",
+  "arch": "H-grid 2x5 of 4x4 (160 physical, 10 cores, 13 links, core diameter 5)",
+  "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+  "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3",
+  "time_key_migration": "time_s migrated 2026-07-31: the legacy value (compile time of the winning seed) moved to time_seed_s.  time_s now means the whole-protocol cost and is present only where the run log recorded it; absent means the total was never measured for that row."
+ },
+ "results": [
+  {
+   "circuit": "ae",
+   "dsabre": {
+    "config": "dsabre",
+    "circuit": "ae",
+    "cx": 2780,
+    "eprs": 309,
+    "ls": 2212,
+    "teles": 309,
+    "hops_per_tele": 1.0,
+    "aborted": false,
+    "time_seed_s": 15.353
+   },
+   "telesabre": {
+    "eprs": 788,
+    "teledata": 776,
+    "telegate": 12,
+    "ls": 2814,
+    "seed": 0,
+    "time_seed_s": 4.13
+   }
+  },
+  {
+   "circuit": "ghz",
+   "dsabre": {
+    "config": "dsabre",
+    "circuit": "ghz",
+    "cx": 79,
+    "eprs": 10,
+    "ls": 61,
+    "teles": 10,
+    "hops_per_tele": 1.0,
+    "aborted": false,
+    "time_seed_s": 0.021
+   },
+   "telesabre": {
+    "eprs": 21,
+    "teledata": 21,
+    "telegate": 0,
+    "ls": 143,
+    "seed": 0,
+    "time_seed_s": 0.03
+   }
+  },
+  {
+   "circuit": "graphstate",
+   "dsabre": {
+    "config": "dsabre",
+    "circuit": "graphstate",
+    "cx": 80,
+    "eprs": 25,
+    "ls": 114,
+    "teles": 25,
+    "hops_per_tele": 1.0,
+    "aborted": false,
+    "time_seed_s": 0.084
+   },
+   "telesabre": {
+    "eprs": 158,
+    "teledata": 157,
+    "telegate": 1,
+    "ls": 499,
+    "seed": 0,
+    "time_seed_s": 2.92
+   }
+  },
+  {
+   "circuit": "qft",
+   "dsabre": {
+    "config": "dsabre",
+    "circuit": "qft",
+    "cx": 2660,
+    "eprs": 288,
+    "ls": 2130,
+    "teles": 288,
+    "hops_per_tele": 1.0,
+    "aborted": false,
+    "time_seed_s": 12.119
+   },
+   "telesabre": {
+    "eprs": 391,
+    "teledata": 389,
+    "telegate": 2,
+    "ls": 2165,
+    "seed": 0,
+    "time_seed_s": 4.58
+   }
+  },
+  {
+   "circuit": "qnn",
+   "dsabre": {
+    "config": "dsabre",
+    "circuit": "qnn",
+    "cx": 12718,
+    "eprs": 832,
+    "ls": 8290,
+    "teles": 832,
+    "hops_per_tele": 1.0,
+    "aborted": false,
+    "time_seed_s": 220.608
+   },
+   "telesabre": {
+    "eprs": 1286,
+    "teledata": 1194,
+    "telegate": 92,
+    "ls": 8338,
+    "seed": 0,
+    "time_seed_s": 26.37
+   }
+  },
+  {
+   "circuit": "random",
+   "dsabre": {
+    "config": "dsabre",
+    "circuit": "random",
+    "cx": 23381,
+    "aborted": true
+   },
+   "telesabre": null
+  },
+  {
+   "circuit": "qpeexact",
+   "dsabre": {
+    "config": "dsabre",
+    "circuit": "qpeexact",
+    "cx": 2779,
+    "eprs": 359,
+    "ls": 2261,
+    "teles": 359,
+    "hops_per_tele": 1.0,
+    "aborted": false,
+    "time_seed_s": 15.186
+   },
+   "telesabre": {
+    "eprs": 487,
+    "teledata": 469,
+    "telegate": 18,
+    "ls": 2244,
+    "seed": 0,
+    "time_seed_s": 2.75
+   }
+  },
+  {
+   "circuit": "qaoa",
+   "dsabre": {
+    "config": "dsabre",
+    "circuit": "qaoa",
+    "cx": 6096,
+    "eprs": 854,
+    "ls": 5791,
+    "teles": 854,
+    "hops_per_tele": 1.0,
+    "aborted": false,
+    "time_seed_s": 63.846
+   },
+   "telesabre": {
+    "eprs": 1494,
+    "teledata": 1425,
+    "telegate": 69,
+    "ls": 6188,
+    "seed": 0,
+    "time_seed_s": 15.43
+   }
+  },
+  {
+   "circuit": "multiplier",
+   "dsabre": {
+    "config": "dsabre",
+    "circuit": "multiplier",
+    "cx": 20378,
+    "eprs": 2502,
+    "ls": 16488,
+    "teles": 2502,
+    "hops_per_tele": 1.0,
+    "aborted": false,
+    "time_seed_s": 1004.261
+   },
+   "telesabre": null
+  }
+ ]
+}

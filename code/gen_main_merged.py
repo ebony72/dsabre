@@ -1,7 +1,7 @@
 r"""
 gen_main_merged.py — emit the merged three-panel main-results table.
 
-The TCAD revision merges the separate 25q / 36q / 64q main tables into one
+The revision merges the separate 25q / 36q / 64q main tables into one
 float to stay inside the page budget.  TeleSABRE and dSABRE columns are read
 from results_{25,36,64}q.json.
 
@@ -195,45 +195,48 @@ def panel(suite):
 
 
 def large_panel():
-    """The QFT scalability rows.
+    """The scalability rows of tab:main.
 
-    These come from results_scaling_b.json, the decomposed series: core size
-    held at 5x5 while the core count grows 2x3 -> 3x4 -> 4x5, so logical qubits
-    per core stay at 16.7/16.7/18.0 and the only variable is the core graph
-    (diameter 3 -> 5 -> 7).  The earlier series mixed both axes -- it doubled
-    the core count from 100q to 200q and then grew the cores at 360q, leaving
-    60 qubits per core against 17, which for a banded QFT of range 19 changes
-    the inherently-inter-core gate fraction from ~57% to 16.5% and made the
-    three rows incomparable.
+    Read from results_{100,200,360}q.json -- the 2026-08-10 series that the
+    manuscript's table reports, one file per size, each holding both scaled
+    families (QFT and QPEexact).  Core size is held at 5x5 while the core count
+    grows 6 -> 12 -> 20, so logical qubits per core stay near 17 and the only
+    variable is the core graph.
+
+    results_scaling_b.json is an earlier (2026-08-06/08) run of the same
+    configuration and is *not* the source of the published rows; it is kept
+    for the complexity-validation timings of Appendix B only.  Reading it here
+    was a defect -- it put QFT 100q at 236 EPR against the paper's 201.
     """
-    rows = [rf"\multicolumn{{{NCOL}}}{{@{{}}l}}{{\emph{{QFT scalability, "
-            r"$5{\times}5$ cores throughout, core count $6\to12\to20$}} \\",
+    rows = [rf"\multicolumn{{{NCOL}}}{{@{{}}l}}{{\emph{{Scalability, "
+            r"$5{\times}5$ cores throughout, core count $6\to12\to20$}}}} \\",
             r"\addlinespace[1pt]"]
-    de, tk = [], []
-    src = os.path.join(R, "results_scaling_b.json")
-    recs = {x["label"]: x for x in json.load(open(src))["results"]} \
-        if os.path.exists(src) else {}
-    for suite in ("100q", "200q", "360q"):
-        rec = recs.get(suite)
-        if rec is None:
-            continue
-        ts = rec.get("ts") or {}
-        dse = rec["routers"]["dSE"]
-        te, tl = ts.get("eprs"), ts.get("ls", ts.get("ts_ls"))
-        ee, el = dse.get("eprs"), dse.get("ls")
-        tks, tkv = tket_cell(suite, "qft")
-        label = suite + ("$^{\\ast}$" if te is None else "")
-        cells = [
-            label, str(rec["cx"]),
-            str(te) if te is not None else "---",
-            str(tl) if tl is not None else "---",
-            str(ee), str(el),
-        ]
-        cells += [tks, fmt_pct(ee, te), fmt_pct(ee, tkv)] if WITH_TKET \
-            else [fmt_pct(ee, te)]
-        rows.append(" & ".join(cells) + " \\\\")
-        if ee: de.append(ee)
-        if tkv: tk.append(tkv)
+    labels = {"qft": "QFT", "qpeexact": "QPEexact"}
+    for fam in ("qft", "qpeexact"):
+        for n in (100, 200, 360):
+            src = os.path.join(R, f"results_{n}q.json")
+            if not os.path.exists(src):
+                continue
+            recs = {x.get("circuit") or x.get("label"): x
+                    for x in json.load(open(src))["results"]}
+            rec = recs.get(fam)
+            if rec is None:
+                continue
+            ts = rec.get("ts") or {}
+            dse = rec["routers"]["dSE"]
+            te, tl = ts.get("eprs"), ts.get("ls", ts.get("ts_ls"))
+            ee, el = dse.get("eprs"), dse.get("ls")
+            tks, tkv = tket_cell(f"{n}q", fam)
+            label = f"{labels[fam]} {n}q" + ("$^{\\ast}$" if te is None else "")
+            cells = [
+                label, str(rec["cx"]),
+                str(te) if te is not None else "---",
+                str(tl) if tl is not None else "---",
+                str(ee), str(el),
+            ]
+            cells += [tks, fmt_pct(ee, te), fmt_pct(ee, tkv)] if WITH_TKET \
+                else [fmt_pct(ee, te)]
+            rows.append(" & ".join(cells) + " \\\\")
     return "\n".join(rows)
 
 

@@ -1,0 +1,89 @@
+{
+ "suite": 25,
+ "device": "B_grid_2_2_4_4",
+ "per_circuit": {
+  "ae": {
+   "iters": 319,
+   "intra_present": 309,
+   "comm_total": 26,
+   "intra_and_comm": 22,
+   "teleports": 26,
+   "splits_local_pair": 0
+  },
+  "ghz": {
+   "iters": 41,
+   "intra_present": 27,
+   "comm_total": 4,
+   "intra_and_comm": 0,
+   "teleports": 4,
+   "splits_local_pair": 0
+  },
+  "graphstate": {
+   "iters": 61,
+   "intra_present": 57,
+   "comm_total": 13,
+   "intra_and_comm": 12,
+   "teleports": 12,
+   "splits_local_pair": 0
+  },
+  "qft": {
+   "iters": 452,
+   "intra_present": 412,
+   "comm_total": 46,
+   "intra_and_comm": 37,
+   "teleports": 44,
+   "splits_local_pair": 0
+  },
+  "qnn": {
+   "iters": 714,
+   "intra_present": 699,
+   "comm_total": 54,
+   "intra_and_comm": 50,
+   "teleports": 54,
+   "splits_local_pair": 0
+  },
+  "random": {
+   "iters": 1520,
+   "intra_present": 1383,
+   "comm_total": 271,
+   "intra_and_comm": 227,
+   "teleports": 267,
+   "splits_local_pair": 0
+  }
+ },
+ "examples": {
+  "ae": [],
+  "ghz": [],
+  "graphstate": [],
+  "qft": [],
+  "qnn": [],
+  "random": []
+ },
+ "energy": {
+  "SWAP": {
+   "n": 55904,
+   "min": 0.0,
+   "median": 4.281,
+   "max": 25.507
+  },
+  "TELEPORT": {
+   "n": 530,
+   "min": -100.0,
+   "median": -97.224,
+   "max": -82.281
+  },
+  "TELEGATE": {
+   "n": 115,
+   "min": -98.311,
+   "median": -95.648,
+   "max": -82.697
+  }
+ },
+ "totals": {
+  "iters_with_intra_front": 2887,
+  "comm_while_intra": 348,
+  "comm_total": 414,
+  "teleports": 407,
+  "teleports_splitting_local_pair": 0
+ }
+}

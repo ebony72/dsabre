@@ -1,0 +1,101 @@
+
+=====================================================================================================================================
+64q  H-grid 2x3 of 4x4 (96 phys, 33% spare)   [safe mode]
+=====================================================================================================================================
+circuit          off     nat   nodst      b2      b4      b6      b8     b12     b16  am0.25   am0.5     am1     am2    ctrl prog0.5
+------------------------------------------------------------------------------------------------------------------------------------
+ae               165     666     791     397     522     233     195     163     196     265     177     175     175     666     204
+ghz                6       6       6       6       6       6       6       6       6       6       6       6       6       6       6
+graphstate        15      20      18      17      15      15      15      15      15      20      20      20      20      20      15
+qft              180     647     888     649     227     380     243     214     180     384     269     232     265     647     289
+qnn              539     746     977     859     739     606     743     523     538     523     507     507     503     746     502
+random           732     927    1159     751     795     739     733     750     702     869     946     800     816     927     771
+qpeexact         187     706     813     705     548     307     279     373     237     311     207     204     210     706     261
+qaoa             555     886    1319     700     630     648     565     565     549     614     638     581     585     886     566
+multiplier      1285    2386    2856    1966    1565    1939    1247    1322    1223    1885    1815    2252    1967    2386    1922
+------------------------------------------------------------------------------------------------------------------------------------
+gmean vs off   +0.0%  +93.5% +131.0%  +69.7%  +42.4%  +28.8%  +14.0%  +10.4%   +3.4%  +34.3%  +18.7%  +15.8%  +16.4%  +93.5%  +17.1%
+  n circuits       9       9       9       9       9       9       9       9       9       9       9       9       9       9       9
+  aborts           0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+
+=============================================
+64q  selective rule, same chip   [safe mode]
+=============================================
+circuit          off     sel  sel_b4   tgmax
+--------------------------------------------
+ae               165     171     173    1253
+ghz                6       6       6       6
+graphstate        15      20      15      20
+qft              180     261     188    1462
+qnn              539     503     501    6256
+random           732     821     731    1433
+qpeexact         187     232     206    1362
+qaoa             555     560     547    3051
+multiplier      1285    1724    1272    7440
+--------------------------------------------
+gmean vs off   +0.0%  +15.0%   +1.0% +323.0%
+  n circuits       9       9       9       9
+  aborts           0       0       0       0
+
+=============================================================
+64q  3x3 of 3x3 (81 phys, capacity binds)   [score-only mode]
+=============================================================
+circuit          off     nat      b4      b8     sel   tgmax
+------------------------------------------------------------
+ae               886   ABORT    1824    1485     864   ABORT
+ghz               33      16      17      17      16      16
+graphstate        25      29      24      24      29      29
+qft              708    1973    1801    1697     838    2087
+qnn             1099   ABORT   ABORT    5771    1275   ABORT
+random          1208    1945    1876    1850    1406    1981
+qpeexact         649    1949   ABORT    1703     799    2169
+qaoa            1177    3938    3661    3518    1605   ABORT
+multiplier     ABORT   ABORT   ABORT   ABORT   ABORT   ABORT
+------------------------------------------------------------
+gmean vs off   +0.0%  +71.4%  +52.4%  +82.9%   +4.9%  +55.5%
+  n circuits       8       6       6       8       8       5
+  aborts           1       3       3       1       1       4
+
+  circuits the published router ABORTS here: multiplier
+
+=============================================================
+64q  2x4 of 3x3 (72 phys, F = K)   [score-only mode]
+=============================================================
+circuit          off     nat      b4      b8     sel   tgmax
+------------------------------------------------------------
+ae             ABORT   ABORT   ABORT   ABORT   ABORT   ABORT
+ghz            ABORT      27      27      27      27      27
+graphstate        69      31      31      31      31      31
+qft            ABORT   ABORT   ABORT   ABORT   ABORT   ABORT
+qnn            ABORT   ABORT   ABORT   ABORT   ABORT   ABORT
+random         ABORT   ABORT   ABORT   ABORT   ABORT   ABORT
+qpeexact       ABORT   ABORT   ABORT   ABORT   ABORT   ABORT
+qaoa           ABORT   ABORT   ABORT   ABORT   ABORT   ABORT
+multiplier     ABORT   ABORT   ABORT   ABORT   ABORT   ABORT
+------------------------------------------------------------
+gmean vs off   +0.0%  -55.1%  -55.1%  -55.1%  -55.1%  -55.1%
+  n circuits       1       1       1       1       1       1
+  aborts           8       7       7       7       7       7
+
+  circuits the published router ABORTS here: ae, ghz, qft, qnn, random, qpeexact, qaoa, multiplier
+    ghz: completed by nat (27 EPR), b4 (27 EPR), b8 (27 EPR), sel (27 EPR), tgmax (27 EPR)
+
+================================================================
+What one teledata EPR pair buys (published router, 64q)
+================================================================
+circuit         EPR  gates/EPR  transit%  =1 gate%  >=2 gates%
+ae              165      18.39      3.0%      0.0%       97.0%
+ghz               6       0.83     16.7%     83.3%        0.0%
+graphstate       15       1.00      0.0%    100.0%        0.0%
+qft             180      17.49      3.3%      0.0%       96.7%
+qnn             539      27.43      0.9%      0.7%       98.3%
+random          732       3.97     20.2%      9.8%       69.9%
+qpeexact        187      18.16      5.3%      0.5%       94.1%
+qaoa            555      13.26      1.6%      0.0%       98.4%
+multiplier     1285      17.94      3.3%     22.3%       74.4%
+------------------------------------------------------------
+SUITE          3664      15.75      6.2%     10.5%       83.4%
+
+  A single-gate telegate serves exactly 1 gate per EPR pair.
+  Teledata serves 15.7 on this suite, so the telegate can only
+  compete on the 17% of hops that serve at most one gate.

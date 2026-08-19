@@ -1,0 +1,217 @@
+{
+  "meta": {
+    "study": "cancelable_pairs",
+    "suite": "64q",
+    "protocol": "fbf best-forward, 3 layouts",
+    "date": "2026-08-04"
+  },
+  "circuits": {
+    "ae": {
+      "eprs": 202,
+      "ls": 1506,
+      "teles": 202,
+      "n_cx": 1962,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 1962,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 200,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    },
+    "ghz": {
+      "eprs": 6,
+      "ls": 39,
+      "teles": 6,
+      "n_cx": 63,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 63,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 5,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    },
+    "graphstate": {
+      "eprs": 16,
+      "ls": 89,
+      "teles": 16,
+      "n_cx": 64,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 64,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 14,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    },
+    "qft": {
+      "eprs": 218,
+      "ls": 1622,
+      "teles": 218,
+      "n_cx": 1966,
+      "backup_activations": 1,
+      "force_make_room": 1,
+      "trace_reliable": false,
+      "n_gate": 1966,
+      "excess": {
+        "roundtrip": 2,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 2,
+      "windows": {
+        "total": 199,
+        "roundtrip": 1,
+        "detour": 0
+      },
+      "strict_pairs": 1,
+      "excess_bound_pct": 0.92
+    },
+    "qnn": {
+      "eprs": 501,
+      "ls": 5285,
+      "teles": 501,
+      "n_cx": 8126,
+      "backup_activations": 1,
+      "force_make_room": 1,
+      "trace_reliable": false,
+      "n_gate": 8126,
+      "excess": {
+        "roundtrip": 2,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 2,
+      "windows": {
+        "total": 499,
+        "roundtrip": 1,
+        "detour": 0
+      },
+      "strict_pairs": 1,
+      "excess_bound_pct": 0.4
+    },
+    "random": {
+      "eprs": 712,
+      "ls": 3635,
+      "teles": 712,
+      "n_cx": 1627,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 1627,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 587,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    },
+    "qpeexact": {
+      "eprs": 192,
+      "ls": 1564,
+      "teles": 192,
+      "n_cx": 2139,
+      "backup_activations": 3,
+      "force_make_room": 3,
+      "trace_reliable": false,
+      "n_gate": 2139,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 3
+      },
+      "excess_total": 3,
+      "windows": {
+        "total": 175,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 1.56
+    },
+    "qaoa": {
+      "eprs": 542,
+      "ls": 3775,
+      "teles": 542,
+      "n_cx": 3920,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 3920,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 539,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    },
+    "multiplier": {
+      "eprs": 1924,
+      "ls": 10790,
+      "teles": 1924,
+      "n_cx": 13040,
+      "backup_activations": 1,
+      "force_make_room": 1,
+      "trace_reliable": false,
+      "n_gate": 13040,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 1859,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    }
+  }
+}

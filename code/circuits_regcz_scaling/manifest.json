@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "date": "2026-07-29",
+    "construction": "L layers of (1q rotations, then CZ over every edge of a ring circulant of degree d)",
+    "basis": [
+      "rz",
+      "sx",
+      "x",
+      "cx"
+    ],
+    "opt_level": 1
+  },
+  "circuits": [
+    {
+      "name": "regcz_d3_n100",
+      "qubits": 100,
+      "degree": 3,
+      "layers": 23,
+      "interaction_edges": 150,
+      "cx": 3450,
+      "depth": 347,
+      "path": "circuits_regcz_scaling/regcz_d3_n100.qasm"
+    },
+    {
+      "name": "regcz_d3_n200",
+      "qubits": 200,
+      "degree": 3,
+      "layers": 23,
+      "interaction_edges": 300,
+      "cx": 6900,
+      "depth": 318,
+      "path": "circuits_regcz_scaling/regcz_d3_n200.qasm"
+    },
+    {
+      "name": "regcz_d3_n360",
+      "qubits": 360,
+      "degree": 3,
+      "layers": 23,
+      "interaction_edges": 540,
+      "cx": 12420,
+      "depth": 338,
+      "path": "circuits_regcz_scaling/regcz_d3_n360.qasm"
+    },
+    {
+      "name": "regcz_circ_d4_n100",
+      "qubits": 100,
+      "degree": 4,
+      "layers": 17,
+      "interaction_edges": 200,
+      "graph": "circulant",
+      "range": 2,
+      "cx": 3400,
+      "depth": 361,
+      "path": "circuits_regcz_scaling/regcz_circ_d4_n100.qasm"
+    },
+    {
+      "name": "regcz_circ_d4_n200",
+      "qubits": 200,
+      "degree": 4,
+      "layers": 17,
+      "interaction_edges": 400,
+      "graph": "circulant",
+      "range": 2,
+      "cx": 6800,
+      "depth": 361,
+      "path": "circuits_regcz_scaling/regcz_circ_d4_n200.qasm"
+    },
+    {
+      "name": "regcz_circ_d4_n360",
+      "qubits": 360,
+      "degree": 4,
+      "layers": 17,
+      "interaction_edges": 720,
+      "graph": "circulant",
+      "range": 2,
+      "cx": 12240,
+      "depth": 380,
+      "path": "circuits_regcz_scaling/regcz_circ_d4_n360.qasm"
+    }
+  ]
+}

@@ -32,6 +32,7 @@ from config import HardwareConfig
 from router import General_dSABRE_Router
 from dsabre_ext import dSABRE_BurstExt
 from layout import sabre_locked_boundary_layout, run_sabre_passes
+from circuit_paths import circuits_path
 
 _HERE        = os.path.dirname(os.path.abspath(__file__))
 TS_BIN       = os.path.expanduser("~/Documents/telesabre/telesabre")
@@ -62,14 +63,14 @@ _HW_LARGE = HardwareConfig(
 
 SUITES = {
     "25q": dict(
-        circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_25"),
+        circuit_dir=circuits_path("qasm_25"),
         suffix="_nativegates_ibm_qiskit_opt3_25.qasm",
         arch=build_b_grid_8links(),
         ts_dev=TS_DEV_8LINKS,
         hw=_HW_SMALL,
     ),
     "36q": dict(
-        circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_36"),
+        circuit_dir=circuits_path("qasm_36"),
         suffix="_nativegates_ibm_qiskit_opt3_36.qasm",
         arch=build_b_grid_8links(),
         ts_dev=TS_DEV_8LINKS,
@@ -204,10 +205,11 @@ def bench_suite(suite_name: str, s: dict) -> list:
                 router_results[k] = dict(
                     eprs=best_m["eprs"], ls=best_m["ls"],
                     time_s=round(best_m["compile_time"], 3), aborted=False,
-                    relief_candidates  = best_m.get("relief_candidates", 0),
-                    relief_picks       = best_m.get("relief_picks", 0),
                     backup_activations = best_m.get("backup_activations", 0),
                     force_make_room    = best_m.get("force_make_room", 0),
+                    safe_routes        = best_m.get("safe_routes", 0),
+                    safe_route_failed  = best_m.get("safe_route_failed", 0),
+                    relay_hops         = best_m.get("relay_hops", 0),
                 )
             else:
                 router_results[k] = {"aborted": True}

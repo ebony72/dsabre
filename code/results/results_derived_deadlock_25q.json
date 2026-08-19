@@ -1,0 +1,525 @@
+{
+ "meta": {
+  "date": "2026-08-11",
+  "what": "hand-tuned vs derived L_deadlock, per SabreLayout seed",
+  "router": "dSE (dSABRE_BurstExt), safe_mode default"
+ },
+ "results": [
+  {
+   "suite": "25q",
+   "circuit": "ae",
+   "cx": 558,
+   "derived_L": 10,
+   "published_L": 50,
+   "iterations_bound": 6138,
+   "arm_published": {
+    "per_seed": [
+     {
+      "eprs": 23,
+      "ls": 288,
+      "iterations": 404,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.137
+     },
+     {
+      "eprs": 23,
+      "ls": 272,
+      "iterations": 384,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.127
+     },
+     {
+      "eprs": 23,
+      "ls": 283,
+      "iterations": 396,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.13
+     }
+    ],
+    "best": 23,
+    "median": 23,
+    "aborts": 0,
+    "iterations": 1184,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 0.394
+   },
+   "arm_derived": {
+    "per_seed": [
+     {
+      "eprs": 23,
+      "ls": 288,
+      "iterations": 404,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.134
+     },
+     {
+      "eprs": 23,
+      "ls": 272,
+      "iterations": 384,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.127
+     },
+     {
+      "eprs": 23,
+      "ls": 283,
+      "iterations": 396,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.13
+     }
+    ],
+    "best": 23,
+    "median": 23,
+    "aborts": 0,
+    "iterations": 1184,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 0.391
+   }
+  },
+  {
+   "suite": "25q",
+   "circuit": "ghz",
+   "cx": 24,
+   "derived_L": 10,
+   "published_L": 50,
+   "iterations_bound": 264,
+   "arm_published": {
+    "per_seed": [
+     {
+      "eprs": 1,
+      "ls": 4,
+      "iterations": 8,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.003
+     },
+     {
+      "eprs": 1,
+      "ls": 10,
+      "iterations": 14,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.003
+     },
+     {
+      "eprs": 1,
+      "ls": 6,
+      "iterations": 9,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.002
+     }
+    ],
+    "best": 1,
+    "median": 1,
+    "aborts": 0,
+    "iterations": 31,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 0.008
+   },
+   "arm_derived": {
+    "per_seed": [
+     {
+      "eprs": 1,
+      "ls": 4,
+      "iterations": 8,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.002
+     },
+     {
+      "eprs": 1,
+      "ls": 10,
+      "iterations": 14,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.003
+     },
+     {
+      "eprs": 1,
+      "ls": 6,
+      "iterations": 9,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.002
+     }
+    ],
+    "best": 1,
+    "median": 1,
+    "aborts": 0,
+    "iterations": 31,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 0.007
+   }
+  },
+  {
+   "suite": "25q",
+   "circuit": "graphstate",
+   "cx": 25,
+   "derived_L": 10,
+   "published_L": 50,
+   "iterations_bound": 275,
+   "arm_published": {
+    "per_seed": [
+     {
+      "eprs": 2,
+      "ls": 15,
+      "iterations": 14,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.005
+     },
+     {
+      "eprs": 2,
+      "ls": 16,
+      "iterations": 14,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.005
+     },
+     {
+      "eprs": 2,
+      "ls": 17,
+      "iterations": 18,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.005
+     }
+    ],
+    "best": 2,
+    "median": 2,
+    "aborts": 0,
+    "iterations": 46,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 0.015
+   },
+   "arm_derived": {
+    "per_seed": [
+     {
+      "eprs": 2,
+      "ls": 15,
+      "iterations": 14,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.005
+     },
+     {
+      "eprs": 2,
+      "ls": 16,
+      "iterations": 14,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.005
+     },
+     {
+      "eprs": 2,
+      "ls": 17,
+      "iterations": 18,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.005
+     }
+    ],
+    "best": 2,
+    "median": 2,
+    "aborts": 0,
+    "iterations": 46,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 0.015
+   }
+  },
+  {
+   "suite": "25q",
+   "circuit": "qft",
+   "cx": 580,
+   "derived_L": 10,
+   "published_L": 50,
+   "iterations_bound": 6380,
+   "arm_published": {
+    "per_seed": [
+     {
+      "eprs": 33,
+      "ls": 332,
+      "iterations": 260,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.14
+     },
+     {
+      "eprs": 33,
+      "ls": 342,
+      "iterations": 264,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.138
+     },
+     {
+      "eprs": 33,
+      "ls": 315,
+      "iterations": 270,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.14
+     }
+    ],
+    "best": 33,
+    "median": 33,
+    "aborts": 0,
+    "iterations": 794,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 0.418
+   },
+   "arm_derived": {
+    "per_seed": [
+     {
+      "eprs": 33,
+      "ls": 332,
+      "iterations": 260,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.14
+     },
+     {
+      "eprs": 33,
+      "ls": 342,
+      "iterations": 264,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.137
+     },
+     {
+      "eprs": 33,
+      "ls": 315,
+      "iterations": 270,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.139
+     }
+    ],
+    "best": 33,
+    "median": 33,
+    "aborts": 0,
+    "iterations": 794,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 0.416
+   }
+  },
+  {
+   "suite": "25q",
+   "circuit": "qnn",
+   "cx": 1223,
+   "derived_L": 10,
+   "published_L": 50,
+   "iterations_bound": 13453,
+   "arm_published": {
+    "per_seed": [
+     {
+      "eprs": 47,
+      "ls": 661,
+      "iterations": 579,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.235
+     },
+     {
+      "eprs": 48,
+      "ls": 666,
+      "iterations": 563,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.234
+     },
+     {
+      "eprs": 51,
+      "ls": 686,
+      "iterations": 591,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.235
+     }
+    ],
+    "best": 47,
+    "median": 48,
+    "aborts": 0,
+    "iterations": 1733,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 0.704
+   },
+   "arm_derived": {
+    "per_seed": [
+     {
+      "eprs": 47,
+      "ls": 661,
+      "iterations": 579,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.236
+     },
+     {
+      "eprs": 48,
+      "ls": 666,
+      "iterations": 563,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.233
+     },
+     {
+      "eprs": 51,
+      "ls": 686,
+      "iterations": 591,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.236
+     }
+    ],
+    "best": 47,
+    "median": 48,
+    "aborts": 0,
+    "iterations": 1733,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 0.705
+   }
+  },
+  {
+   "suite": "25q",
+   "circuit": "random",
+   "cx": 1124,
+   "derived_L": 10,
+   "published_L": 50,
+   "iterations_bound": 12364,
+   "arm_published": {
+    "per_seed": [
+     {
+      "eprs": 181,
+      "ls": 1208,
+      "iterations": 853,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.453
+     },
+     {
+      "eprs": 188,
+      "ls": 1168,
+      "iterations": 851,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.459
+     },
+     {
+      "eprs": 197,
+      "ls": 1232,
+      "iterations": 870,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.47
+     }
+    ],
+    "best": 181,
+    "median": 188,
+    "aborts": 0,
+    "iterations": 2574,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 1.382
+   },
+   "arm_derived": {
+    "per_seed": [
+     {
+      "eprs": 181,
+      "ls": 1208,
+      "iterations": 853,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.454
+     },
+     {
+      "eprs": 188,
+      "ls": 1168,
+      "iterations": 851,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.465
+     },
+     {
+      "eprs": 197,
+      "ls": 1232,
+      "iterations": 870,
+      "safe_routes": 0,
+      "safe_route_failed": 0,
+      "force_make_room": 0,
+      "compile_time": 0.463
+     }
+    ],
+    "best": 181,
+    "median": 188,
+    "aborts": 0,
+    "iterations": 2574,
+    "safe_routes": 0,
+    "safe_route_failed": 0,
+    "force_make_room": 0,
+    "time_s": 1.382
+   }
+  }
+ ]
+}

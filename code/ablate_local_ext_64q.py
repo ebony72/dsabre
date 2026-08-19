@@ -40,8 +40,9 @@ from config import HardwareConfig
 from dsabre_local_bfs import (dSABRE_LocalBFS, dSABRE_LocalKahnLex,
                               dSABRE_LocalScanCounted)
 from layout import sabre_locked_boundary_layout, run_sabre_passes
+from circuit_paths import circuits_path
 
-CIRC_DIR = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64")
+CIRC_DIR = circuits_path("qasm_64")
 SUFFIX = "_nativegates_ibm_qiskit_opt3_64.qasm"
 OUT = os.path.join(_HERE, "results", "results_ablate_local_ext_64q.json")
 CANON = {"ae", "ghz", "graphstate", "qft", "qnn", "random",

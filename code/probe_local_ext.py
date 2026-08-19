@@ -35,13 +35,14 @@ from config import HardwareConfig
 from dsabre_ext import dSABRE_BFSExt
 from dsabre_local_bfs import dSABRE_LocalBFS, dSABRE_LocalKahnLex
 from layout import sabre_locked_boundary_layout, run_sabre_passes
+from circuit_paths import circuits_path
 
 SUITES = {
-    "25": dict(d=os.path.expanduser("~/Documents/telesabre/circuits/qasm_25"),
+    "25": dict(d=circuits_path("qasm_25"),
                suffix="_nativegates_ibm_qiskit_opt3_25.qasm",
                arch=lambda: build_b_grid_architecture(r=2, s=2, m=4),
                hw=lambda: HardwareConfig()),
-    "64": dict(d=os.path.expanduser("~/Documents/telesabre/circuits/qasm_64"),
+    "64": dict(d=circuits_path("qasm_64"),
                suffix="_nativegates_ibm_qiskit_opt3_64.qasm",
                arch=lambda: build_h_grid_architecture(r=2, s=3, m=4),
                hw=lambda: HardwareConfig(deadlock_limit=100,

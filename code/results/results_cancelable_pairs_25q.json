@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "study": "cancelable_pairs",
+    "suite": "25q",
+    "protocol": "fbf best-forward, 3 layouts",
+    "date": "2026-08-04"
+  },
+  "circuits": {
+    "ae": {
+      "eprs": 23,
+      "ls": 284,
+      "teles": 23,
+      "n_cx": 558,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 558,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 23,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    },
+    "ghz": {
+      "eprs": 1,
+      "ls": 6,
+      "teles": 1,
+      "n_cx": 24,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 24,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 1,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    },
+    "graphstate": {
+      "eprs": 2,
+      "ls": 15,
+      "teles": 2,
+      "n_cx": 25,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 25,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 2,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    },
+    "qft": {
+      "eprs": 33,
+      "ls": 334,
+      "teles": 33,
+      "n_cx": 580,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 580,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 33,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    },
+    "qnn": {
+      "eprs": 48,
+      "ls": 624,
+      "teles": 48,
+      "n_cx": 1223,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 1223,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 48,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    },
+    "random": {
+      "eprs": 178,
+      "ls": 1241,
+      "teles": 178,
+      "n_cx": 1124,
+      "backup_activations": 0,
+      "force_make_room": 0,
+      "trace_reliable": true,
+      "n_gate": 1124,
+      "excess": {
+        "roundtrip": 0,
+        "detour": 0,
+        "tail": 0
+      },
+      "excess_total": 0,
+      "windows": {
+        "total": 178,
+        "roundtrip": 0,
+        "detour": 0
+      },
+      "strict_pairs": 0,
+      "excess_bound_pct": 0.0
+    }
+  }
+}

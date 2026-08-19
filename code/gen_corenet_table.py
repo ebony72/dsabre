@@ -30,8 +30,10 @@ BLOCKS = [
      r"Star core graph: 3 inter-core links, core 0 a hub of degree 3"),
 ]
 
-# Suite order, matching every other table in the paper.
-ORDER = ["ae", "ghz", "graphstate", "qft", "qnn", "random"]
+# Suite order, matching the 64q block of tab:main: the six circuits common to
+# every suite first, then the three class-completion additions.
+ORDER = ["ae", "ghz", "graphstate", "qft", "qnn", "random",
+         "qpeexact", "qaoa", "multiplier"]
 
 
 def gmean(xs):

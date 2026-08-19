@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "date": "2026-08-02",
+    "suite": "heavyhex_ring",
+    "arch": "ring of 4 IBM 27q heavy-hex cores (108 physical, 4 links)",
+    "core_graph": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
+  },
+  "results": [
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "multiplier",
+      "qubits": 64,
+      "cx": 13040,
+      "ts": {
+        "eprs": 798,
+        "teledata": 794,
+        "telegate": 4,
+        "ls": 12712,
+        "seed": 0,
+        "time_seed_s": 36.74,
+        "time_s": 103.97
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 476,
+          "ls": 11612,
+          "time_s": 484.64,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "qaoa",
+      "qubits": 64,
+      "cx": 3920,
+      "ts": {
+        "eprs": 318,
+        "teledata": 304,
+        "telegate": 14,
+        "ls": 5466,
+        "seed": 0,
+        "time_seed_s": 3.3,
+        "time_s": 9.72
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 247,
+          "ls": 5665,
+          "time_s": 39.325,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "qpeexact",
+      "qubits": 64,
+      "cx": 2139,
+      "ts": {
+        "eprs": 131,
+        "teledata": 131,
+        "telegate": 0,
+        "ls": 2486,
+        "seed": 0,
+        "time_seed_s": 0.98,
+        "time_s": 2.95
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 98,
+          "ls": 2331,
+          "time_s": 10.418,
+          "aborted": false
+        }
+      }
+    }
+  ]
+}

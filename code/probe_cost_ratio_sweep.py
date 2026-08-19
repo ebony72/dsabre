@@ -1,6 +1,6 @@
 r"""
 probe_cost_ratio_sweep.py — sweep cost_teleport (c_tele) at fixed
-cost_local_swap (c_swap=3) across the three main suites, to check whether
+cost_local_swap (c_swap=1) across the three main suites, to check whether
 dSABRE's margin over TeleSABRE survives a cost model that prices EPR pairs
 less (or more) generously than the paper's own default (c_tele=10).
 
@@ -12,7 +12,7 @@ re-tuning both tools together.
 No producer script for this experiment survived in the repo (found while
 auditing Section IV currency, 2026-08-10); this is a fresh implementation
 of what dsabre.tex's sec:cost paragraph describes: "Sweeping c_tele from 10
-to 100 at fixed c_swap=3 ... dSABRE saves X% at the teleport-friendly end
+to 100 at fixed c_swap=1 ... dSABRE saves X% at the teleport-friendly end
 and Y% at the photonic-link end".
 
 Protocol matches benchmark.py: SabreLayout corners-removed, 3 seeds,
@@ -33,25 +33,26 @@ from config import HardwareConfig
 from dsabre_ext import dSABRE_BurstExt
 from layout import sabre_locked_boundary_layout, run_sabre_passes
 from benchmark import load_qasm, CANONICAL_CIRCUITS
+from circuit_paths import circuits_path
 
 _RESULTS_DIR = os.path.join(_HERE, "results")
 OUT = os.path.join(_RESULTS_DIR, "results_cost_ratio_sweep.json")
 
 SUITES = {
     "25q": dict(
-        circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_25"),
+        circuit_dir=circuits_path("qasm_25"),
         suffix="_nativegates_ibm_qiskit_opt3_25.qasm",
         arch=build_b_grid_architecture(r=2, s=2, m=4),
         hw=HardwareConfig(),
     ),
     "36q": dict(
-        circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_36"),
+        circuit_dir=circuits_path("qasm_36"),
         suffix="_nativegates_ibm_qiskit_opt3_36.qasm",
         arch=build_b_grid_architecture(r=2, s=2, m=4),
         hw=HardwareConfig(deadlock_limit=100, max_backup_attempts=100, max_iterations=20000),
     ),
     "64q": dict(
-        circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_64"),
+        circuit_dir=circuits_path("qasm_64"),
         suffix="_nativegates_ibm_qiskit_opt3_64.qasm",
         arch=build_h_grid_architecture(r=2, s=3, m=4),
         hw=HardwareConfig(deadlock_limit=100, max_backup_attempts=100, max_iterations=20000),
@@ -69,7 +70,7 @@ def gmean(xs):
 def main():
     payload = {"meta": {"date": time.strftime("%Y-%m-%d"),
                          "note": "dSABRE only, TS unchanged (read from results_{suite}q.json); "
-                                 "cost_local_swap fixed at 3.0"},
+                                 "cost_local_swap fixed at 1.0"},
                "results": {}}
     if os.path.exists(OUT):
         try:
@@ -90,7 +91,7 @@ def main():
         for c_tele in COST_TELE_VALUES:
             key = str(c_tele)
             row = suite_out.setdefault(key, {})
-            hw = replace(s["hw"], cost_teleport=c_tele, cost_local_swap=3.0)
+            hw = replace(s["hw"], cost_teleport=c_tele, cost_local_swap=1.0)
             for qf in qasm_files:
                 cname = os.path.basename(qf).replace(s["suffix"], "")
                 if cname in row:

@@ -1,0 +1,727 @@
+{
+  "meta": {
+    "date": "2026-08-17",
+    "study": "telegate macro-action (single gate, one hop)",
+    "suite": "64q_c33",
+    "arch": "3x3 grid of 3x3 cores (81 physical, 9 cores x 9, core diameter 4)",
+    "router": "dSE (dsabre_ext.dSABRE_BurstExt)",
+    "circuits": [
+      "ae",
+      "ghz",
+      "graphstate",
+      "qft",
+      "qnn",
+      "random",
+      "qpeexact",
+      "qaoa",
+      "multiplier"
+    ],
+    "variants": [
+      "off",
+      "nat",
+      "b4",
+      "b8",
+      "sel",
+      "tgmax"
+    ],
+    "routed_by": "dSE + telegate (telegate_router.dSABRE_Telegate)",
+    "protocol": "default_layouts x3, fwd-bwd-fwd, best forward pass by EPR",
+    "epr_accounting": "1 EPR pair per teledata hop AND per telegate",
+    "mode": "score-only",
+    "budgets": {
+      "deadlock_limit": 100,
+      "max_backup_attempts": 100,
+      "max_iterations": 20000
+    }
+  },
+  "results": {
+    "ae": {
+      "off": {
+        "aborted": false,
+        "eprs": 886,
+        "ls": 3091,
+        "telegates": 0,
+        "teledata": 886,
+        "time_s": 7.83,
+        "backup_activations": 66,
+        "safe_routes": 0,
+        "all_telegates": 0,
+        "all_teledata": 4721,
+        "front_inter": 0,
+        "front_adj": 0
+      },
+      "nat": {
+        "aborted": true,
+        "time_s": 5.76
+      },
+      "b4": {
+        "aborted": false,
+        "eprs": 1824,
+        "ls": 3683,
+        "telegates": 1246,
+        "teledata": 578,
+        "time_s": 6.0,
+        "backup_activations": 54,
+        "safe_routes": 0,
+        "all_telegates": 4396,
+        "all_teledata": 2163,
+        "front_inter": 59306,
+        "front_adj": 33556
+      },
+      "b8": {
+        "aborted": false,
+        "eprs": 1485,
+        "ls": 3203,
+        "telegates": 950,
+        "teledata": 535,
+        "time_s": 5.16,
+        "backup_activations": 46,
+        "safe_routes": 0,
+        "all_telegates": 4092,
+        "all_teledata": 2193,
+        "front_inter": 55701,
+        "front_adj": 35833
+      },
+      "sel": {
+        "aborted": false,
+        "eprs": 864,
+        "ls": 2494,
+        "telegates": 294,
+        "teledata": 570,
+        "time_s": 5.67,
+        "backup_activations": 37,
+        "safe_routes": 0,
+        "all_telegates": 1362,
+        "all_teledata": 3049,
+        "front_inter": 56432,
+        "front_adj": 41105
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 6.66
+      }
+    },
+    "ghz": {
+      "off": {
+        "aborted": false,
+        "eprs": 33,
+        "ls": 121,
+        "telegates": 0,
+        "teledata": 33,
+        "time_s": 0.39,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 0,
+        "all_teledata": 412,
+        "front_inter": 0,
+        "front_adj": 0
+      },
+      "nat": {
+        "aborted": false,
+        "eprs": 16,
+        "ls": 81,
+        "telegates": 7,
+        "teledata": 9,
+        "time_s": 0.14,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 122,
+        "all_teledata": 60,
+        "front_inter": 1243,
+        "front_adj": 475
+      },
+      "b4": {
+        "aborted": false,
+        "eprs": 17,
+        "ls": 85,
+        "telegates": 6,
+        "teledata": 11,
+        "time_s": 0.19,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 101,
+        "all_teledata": 129,
+        "front_inter": 1865,
+        "front_adj": 779
+      },
+      "b8": {
+        "aborted": false,
+        "eprs": 17,
+        "ls": 85,
+        "telegates": 6,
+        "teledata": 11,
+        "time_s": 0.23,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 101,
+        "all_teledata": 129,
+        "front_inter": 1865,
+        "front_adj": 779
+      },
+      "sel": {
+        "aborted": false,
+        "eprs": 16,
+        "ls": 81,
+        "telegates": 7,
+        "teledata": 9,
+        "time_s": 0.14,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 122,
+        "all_teledata": 60,
+        "front_inter": 1243,
+        "front_adj": 475
+      },
+      "tgmax": {
+        "aborted": false,
+        "eprs": 16,
+        "ls": 81,
+        "telegates": 7,
+        "teledata": 9,
+        "time_s": 0.14,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 125,
+        "all_teledata": 57,
+        "front_inter": 1243,
+        "front_adj": 475
+      }
+    },
+    "graphstate": {
+      "off": {
+        "aborted": false,
+        "eprs": 25,
+        "ls": 102,
+        "telegates": 0,
+        "teledata": 25,
+        "time_s": 0.3,
+        "backup_activations": 2,
+        "safe_routes": 0,
+        "all_telegates": 0,
+        "all_teledata": 346,
+        "front_inter": 0,
+        "front_adj": 0
+      },
+      "nat": {
+        "aborted": false,
+        "eprs": 29,
+        "ls": 114,
+        "telegates": 25,
+        "teledata": 4,
+        "time_s": 0.26,
+        "backup_activations": 1,
+        "safe_routes": 0,
+        "all_telegates": 250,
+        "all_teledata": 57,
+        "front_inter": 3335,
+        "front_adj": 2209
+      },
+      "b4": {
+        "aborted": false,
+        "eprs": 24,
+        "ls": 82,
+        "telegates": 21,
+        "teledata": 3,
+        "time_s": 0.21,
+        "backup_activations": 0,
+        "safe_routes": 0,
+        "all_telegates": 187,
+        "all_teledata": 118,
+        "front_inter": 2689,
+        "front_adj": 1697
+      },
+      "b8": {
+        "aborted": false,
+        "eprs": 24,
+        "ls": 82,
+        "telegates": 21,
+        "teledata": 3,
+        "time_s": 0.22,
+        "backup_activations": 0,
+        "safe_routes": 0,
+        "all_telegates": 181,
+        "all_teledata": 132,
+        "front_inter": 2654,
+        "front_adj": 1678
+      },
+      "sel": {
+        "aborted": false,
+        "eprs": 29,
+        "ls": 114,
+        "telegates": 25,
+        "teledata": 4,
+        "time_s": 0.27,
+        "backup_activations": 1,
+        "safe_routes": 0,
+        "all_telegates": 250,
+        "all_teledata": 57,
+        "front_inter": 3335,
+        "front_adj": 2209
+      },
+      "tgmax": {
+        "aborted": false,
+        "eprs": 29,
+        "ls": 119,
+        "telegates": 21,
+        "teledata": 8,
+        "time_s": 0.32,
+        "backup_activations": 1,
+        "safe_routes": 0,
+        "all_telegates": 245,
+        "all_teledata": 88,
+        "front_inter": 4835,
+        "front_adj": 3136
+      }
+    },
+    "qft": {
+      "off": {
+        "aborted": false,
+        "eprs": 708,
+        "ls": 2548,
+        "telegates": 0,
+        "teledata": 708,
+        "time_s": 5.06,
+        "backup_activations": 40,
+        "safe_routes": 0,
+        "all_telegates": 0,
+        "all_teledata": 3198,
+        "front_inter": 0,
+        "front_adj": 0
+      },
+      "nat": {
+        "aborted": false,
+        "eprs": 1973,
+        "ls": 3622,
+        "telegates": 1344,
+        "teledata": 629,
+        "time_s": 10.31,
+        "backup_activations": 60,
+        "safe_routes": 0,
+        "all_telegates": 7590,
+        "all_teledata": 3526,
+        "front_inter": 125465,
+        "front_adj": 70306
+      },
+      "b4": {
+        "aborted": false,
+        "eprs": 1801,
+        "ls": 3290,
+        "telegates": 1282,
+        "teledata": 519,
+        "time_s": 8.85,
+        "backup_activations": 52,
+        "safe_routes": 0,
+        "all_telegates": 6739,
+        "all_teledata": 3077,
+        "front_inter": 104798,
+        "front_adj": 60335
+      },
+      "b8": {
+        "aborted": false,
+        "eprs": 1697,
+        "ls": 3650,
+        "telegates": 1113,
+        "teledata": 584,
+        "time_s": 8.76,
+        "backup_activations": 49,
+        "safe_routes": 0,
+        "all_telegates": 6328,
+        "all_teledata": 3295,
+        "front_inter": 100231,
+        "front_adj": 56765
+      },
+      "sel": {
+        "aborted": false,
+        "eprs": 838,
+        "ls": 2509,
+        "telegates": 244,
+        "teledata": 594,
+        "time_s": 8.03,
+        "backup_activations": 42,
+        "safe_routes": 0,
+        "all_telegates": 2037,
+        "all_teledata": 4134,
+        "front_inter": 93338,
+        "front_adj": 66556
+      },
+      "tgmax": {
+        "aborted": false,
+        "eprs": 2087,
+        "ls": 4301,
+        "telegates": 1363,
+        "teledata": 724,
+        "time_s": 12.25,
+        "backup_activations": 83,
+        "safe_routes": 0,
+        "all_telegates": 8538,
+        "all_teledata": 3965,
+        "front_inter": 148838,
+        "front_adj": 81981
+      }
+    },
+    "qnn": {
+      "off": {
+        "aborted": false,
+        "eprs": 1099,
+        "ls": 6015,
+        "telegates": 0,
+        "teledata": 1099,
+        "time_s": 9.37,
+        "backup_activations": 5,
+        "safe_routes": 0,
+        "all_telegates": 0,
+        "all_teledata": 7902,
+        "front_inter": 0,
+        "front_adj": 0
+      },
+      "nat": {
+        "aborted": true,
+        "time_s": 32.79
+      },
+      "b4": {
+        "aborted": true,
+        "time_s": 24.23
+      },
+      "b8": {
+        "aborted": false,
+        "eprs": 5771,
+        "ls": 10391,
+        "telegates": 4306,
+        "teledata": 1465,
+        "time_s": 32.44,
+        "backup_activations": 55,
+        "safe_routes": 0,
+        "all_telegates": 31498,
+        "all_teledata": 11450,
+        "front_inter": 476973,
+        "front_adj": 255264
+      },
+      "sel": {
+        "aborted": false,
+        "eprs": 1275,
+        "ls": 6278,
+        "telegates": 231,
+        "teledata": 1044,
+        "time_s": 10.76,
+        "backup_activations": 7,
+        "safe_routes": 0,
+        "all_telegates": 1210,
+        "all_teledata": 8274,
+        "front_inter": 86476,
+        "front_adj": 77549
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 25.69
+      }
+    },
+    "random": {
+      "off": {
+        "aborted": false,
+        "eprs": 1208,
+        "ls": 4351,
+        "telegates": 0,
+        "teledata": 1208,
+        "time_s": 14.87,
+        "backup_activations": 13,
+        "safe_routes": 0,
+        "all_telegates": 0,
+        "all_teledata": 11785,
+        "front_inter": 0,
+        "front_adj": 0
+      },
+      "nat": {
+        "aborted": false,
+        "eprs": 1945,
+        "ls": 5107,
+        "telegates": 1099,
+        "teledata": 846,
+        "time_s": 20.21,
+        "backup_activations": 33,
+        "safe_routes": 0,
+        "all_telegates": 9329,
+        "all_teledata": 7600,
+        "front_inter": 366258,
+        "front_adj": 61643
+      },
+      "b4": {
+        "aborted": false,
+        "eprs": 1876,
+        "ls": 5025,
+        "telegates": 995,
+        "teledata": 881,
+        "time_s": 17.15,
+        "backup_activations": 42,
+        "safe_routes": 0,
+        "all_telegates": 8353,
+        "all_teledata": 7195,
+        "front_inter": 312447,
+        "front_adj": 58289
+      },
+      "b8": {
+        "aborted": false,
+        "eprs": 1850,
+        "ls": 4685,
+        "telegates": 1039,
+        "teledata": 811,
+        "time_s": 18.5,
+        "backup_activations": 37,
+        "safe_routes": 0,
+        "all_telegates": 8914,
+        "all_teledata": 7736,
+        "front_inter": 313045,
+        "front_adj": 48377
+      },
+      "sel": {
+        "aborted": false,
+        "eprs": 1406,
+        "ls": 4723,
+        "telegates": 450,
+        "teledata": 956,
+        "time_s": 17.43,
+        "backup_activations": 32,
+        "safe_routes": 0,
+        "all_telegates": 3796,
+        "all_teledata": 9020,
+        "front_inter": 298579,
+        "front_adj": 129131
+      },
+      "tgmax": {
+        "aborted": false,
+        "eprs": 1981,
+        "ls": 5105,
+        "telegates": 1210,
+        "teledata": 771,
+        "time_s": 22.03,
+        "backup_activations": 36,
+        "safe_routes": 0,
+        "all_telegates": 11007,
+        "all_teledata": 7573,
+        "front_inter": 411834,
+        "front_adj": 82881
+      }
+    },
+    "qpeexact": {
+      "off": {
+        "aborted": false,
+        "eprs": 649,
+        "ls": 2528,
+        "telegates": 0,
+        "teledata": 649,
+        "time_s": 5.41,
+        "backup_activations": 33,
+        "safe_routes": 0,
+        "all_telegates": 0,
+        "all_teledata": 4111,
+        "front_inter": 0,
+        "front_adj": 0
+      },
+      "nat": {
+        "aborted": false,
+        "eprs": 1949,
+        "ls": 3594,
+        "telegates": 1418,
+        "teledata": 531,
+        "time_s": 5.14,
+        "backup_activations": 56,
+        "safe_routes": 0,
+        "all_telegates": 5090,
+        "all_teledata": 1872,
+        "front_inter": 64673,
+        "front_adj": 38559
+      },
+      "b4": {
+        "aborted": true,
+        "time_s": 3.99
+      },
+      "b8": {
+        "aborted": false,
+        "eprs": 1703,
+        "ls": 3044,
+        "telegates": 1209,
+        "teledata": 494,
+        "time_s": 6.86,
+        "backup_activations": 42,
+        "safe_routes": 0,
+        "all_telegates": 5485,
+        "all_teledata": 2910,
+        "front_inter": 86790,
+        "front_adj": 54002
+      },
+      "sel": {
+        "aborted": false,
+        "eprs": 799,
+        "ls": 2513,
+        "telegates": 274,
+        "teledata": 525,
+        "time_s": 8.77,
+        "backup_activations": 29,
+        "safe_routes": 0,
+        "all_telegates": 2107,
+        "all_teledata": 5075,
+        "front_inter": 101578,
+        "front_adj": 76198
+      },
+      "tgmax": {
+        "aborted": false,
+        "eprs": 2169,
+        "ls": 4348,
+        "telegates": 1475,
+        "teledata": 694,
+        "time_s": 10.45,
+        "backup_activations": 81,
+        "safe_routes": 0,
+        "all_telegates": 8411,
+        "all_teledata": 3943,
+        "front_inter": 135084,
+        "front_adj": 75379
+      }
+    },
+    "qaoa": {
+      "off": {
+        "aborted": false,
+        "eprs": 1177,
+        "ls": 4919,
+        "telegates": 0,
+        "teledata": 1177,
+        "time_s": 8.67,
+        "backup_activations": 3,
+        "safe_routes": 0,
+        "all_telegates": 0,
+        "all_teledata": 10424,
+        "front_inter": 0,
+        "front_adj": 0
+      },
+      "nat": {
+        "aborted": false,
+        "eprs": 3938,
+        "ls": 8195,
+        "telegates": 2614,
+        "teledata": 1324,
+        "time_s": 28.34,
+        "backup_activations": 78,
+        "safe_routes": 0,
+        "all_telegates": 21183,
+        "all_teledata": 10574,
+        "front_inter": 533507,
+        "front_adj": 196384
+      },
+      "b4": {
+        "aborted": false,
+        "eprs": 3661,
+        "ls": 7645,
+        "telegates": 2492,
+        "teledata": 1169,
+        "time_s": 25.55,
+        "backup_activations": 61,
+        "safe_routes": 0,
+        "all_telegates": 20569,
+        "all_teledata": 10399,
+        "front_inter": 463784,
+        "front_adj": 154334
+      },
+      "b8": {
+        "aborted": false,
+        "eprs": 3518,
+        "ls": 7634,
+        "telegates": 2293,
+        "teledata": 1225,
+        "time_s": 27.55,
+        "backup_activations": 59,
+        "safe_routes": 0,
+        "all_telegates": 20168,
+        "all_teledata": 11487,
+        "front_inter": 512448,
+        "front_adj": 200550
+      },
+      "sel": {
+        "aborted": false,
+        "eprs": 1605,
+        "ls": 5556,
+        "telegates": 306,
+        "teledata": 1299,
+        "time_s": 10.95,
+        "backup_activations": 14,
+        "safe_routes": 0,
+        "all_telegates": 3019,
+        "all_teledata": 10123,
+        "front_inter": 156203,
+        "front_adj": 129030
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 32.6
+      }
+    },
+    "multiplier": {
+      "off": {
+        "aborted": true,
+        "time_s": 30.25
+      },
+      "nat": {
+        "aborted": true,
+        "time_s": 34.64
+      },
+      "b4": {
+        "aborted": true,
+        "time_s": 17.4
+      },
+      "b8": {
+        "aborted": true,
+        "time_s": 19.76
+      },
+      "sel": {
+        "aborted": true,
+        "time_s": 9.41
+      },
+      "tgmax": {
+        "aborted": true,
+        "time_s": 17.37
+      }
+    }
+  },
+  "summary": {
+    "off": {
+      "gmean_ratio": 1.0,
+      "pct": 0.0,
+      "total_eprs": 5785,
+      "telegates_all_passes": 0,
+      "complete": false
+    },
+    "nat": {
+      "gmean_ratio": 1.714,
+      "pct": 71.4,
+      "total_eprs": 9850,
+      "telegates_all_passes": 43564,
+      "complete": false
+    },
+    "b4": {
+      "gmean_ratio": 1.5236,
+      "pct": 52.36,
+      "total_eprs": 9203,
+      "telegates_all_passes": 40345,
+      "complete": false
+    },
+    "b8": {
+      "gmean_ratio": 1.8292,
+      "pct": 82.92,
+      "total_eprs": 16065,
+      "telegates_all_passes": 76767,
+      "complete": false
+    },
+    "sel": {
+      "gmean_ratio": 1.0495,
+      "pct": 4.95,
+      "total_eprs": 6832,
+      "telegates_all_passes": 13903,
+      "complete": false
+    },
+    "tgmax": {
+      "gmean_ratio": 1.5548,
+      "pct": 55.48,
+      "total_eprs": 6282,
+      "telegates_all_passes": 28326,
+      "complete": false
+    }
+  }
+}

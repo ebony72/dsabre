@@ -1,4 +1,5 @@
-"""Verify the optimised default router is output-identical to the baseline.
+"""Verify the optimised router's incremental rewrite is output-identical to
+the baseline, in the score-only mode the baseline implements.
 
 Runs both routers over the published 25q/36q/64q suites under the exact
 protocol `benchmark.py` uses -- 3 SabreLayout seeds x fwd->bwd->fwd -- and
@@ -11,6 +12,16 @@ compares, for EVERY pass of EVERY seed (not just the reported best):
     -- every SWAP, teleport, and gate execution in order
 
 Any difference is reported and the exit status is non-zero.
+
+Scope: this checks the incremental rewrite (maintained in-degrees, log-based
+checkpoints, composed phys_dist, etc.), not every behavioural change made
+since the baseline was frozen -- those are each deliberate and have their own
+check. See the `_BASELINE_MODE` comment below for why `local_ext_mode` and
+`safe_mode` are pinned rather than left on today's defaults. In particular,
+`safe_mode=True` (the shipped default since 2026-08-09) is NOT exercised by
+this script: safe mode's own correctness is covered by `test_safe_drain.py`
+and the termination/EPR-neutrality analysis in SAFE_DSABRE.md SS10, not by an
+identity diff against a baseline that predates the feature entirely.
 
 Coverage gap: `_get_local_extended` has a second call site, in
 `_fallback_local_swap`, which fires only when an inter-core front layer
@@ -45,42 +56,60 @@ from _baseline_architecture import (
     build_h_grid_architecture as _base_h_grid)
 from _baseline_dsabre_ext import dSABRE_BurstExt as _BaselineRouter
 from layout import sabre_locked_boundary_layout
+from circuit_paths import circuits_path
 
-# `local_ext_mode="taint"` throughout.  The baseline is the pre-optimisation
-# router, which builds E_c by the taint-propagated sweep; the default router
-# switched to the shared set on 2026-08-08, which changes routing *by design*
-# (-4.8% EPR over 38 circuits).  Running the verifier in taint mode keeps it
-# doing the job it exists for -- proving the incremental rewrite is
-# output-identical to the code that produced the published numbers -- rather
-# than reporting the deliberate change as a regression.  The shared set has its
-# own check: `verify_shared_ext.py`.
-_TAINT = dict(local_ext_mode="taint")
-_HW_SMALL = HardwareConfig(**_TAINT)
+# `local_ext_mode="taint"` and `safe_mode=False` throughout.  Both pin the
+# fast router into the mode the frozen baseline actually implements, rather
+# than trusting today's `HardwareConfig` defaults to stay where they were
+# when this comparison was written:
+#
+#   * The baseline builds E_c by the taint-propagated sweep; the default
+#     router switched to the shared set on 2026-08-08, which changes routing
+#     *by design* (-4.8% EPR over 38 circuits).  The shared set has its own
+#     check: `verify_shared_ext.py`.
+#   * `_baseline_router.py` / `_baseline_dsabre_ext.py` were frozen
+#     2026-08-07 and contain zero occurrences of `safe_mode` -- they only
+#     ever ran what is now called score-only mode.  `safe_mode` defaulted to
+#     False until it was promoted to the default (True) on 2026-08-09; this
+#     script relied on that default rather than setting it explicitly, so the
+#     flip silently turned every safe-mode-only mechanism (the legality
+#     floor, `_safe_route_gate` deadlock recovery, `_safe_drain`) into a
+#     reported diff -- the giveaway is `relay_hops: base=0 fast=1`.
+#     SAFE_DSABRE.md documents "safe_mode=False output is unchanged and
+#     checked by verify_router.py"; pinning it here is what keeps that claim
+#     actually true instead of true-by-accident-of-default.
+#
+# Running the verifier in this mode keeps it doing the one job it exists for
+# -- proving the incremental rewrite is output-identical to the code that
+# produced the published numbers -- rather than reporting a later, deliberate
+# behavioural change as a regression.
+_BASELINE_MODE = dict(local_ext_mode="taint", safe_mode=False)
+_HW_SMALL = HardwareConfig(**_BASELINE_MODE)
 _HW_LARGE = HardwareConfig(deadlock_limit=100, max_backup_attempts=100,
-                           max_iterations=20000, **_TAINT)
+                           max_iterations=20000, **_BASELINE_MODE)
 _HW_XL = HardwareConfig(deadlock_limit=200, max_backup_attempts=200,
-                        max_iterations=50000, **_TAINT)  # bench_large.py's config
+                        max_iterations=50000, **_BASELINE_MODE)  # bench_large.py's config
 
 # The builder is kept rather than a built instance so the fast side can be
 # given a HierarchicalArchitecture (item 4) while the baseline keeps the dense
 # phys_dist -- routing over both must agree.
 SUITES = {
-    "25q": dict(circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_25"),
+    "25q": dict(circuit_dir=circuits_path("qasm_25"),
                 suffix="_nativegates_ibm_qiskit_opt3_25.qasm",
                 builder=build_b_grid_architecture, kw=dict(r=2, s=2, m=4),
                 hw=_HW_SMALL),
-    "36q": dict(circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_36"),
+    "36q": dict(circuit_dir=circuits_path("qasm_36"),
                 suffix="_nativegates_ibm_qiskit_opt3_36.qasm",
                 builder=build_b_grid_architecture, kw=dict(r=2, s=2, m=4),
                 hw=_HW_LARGE),
-    "64q": dict(circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_64"),
+    "64q": dict(circuit_dir=circuits_path("qasm_64"),
                 suffix="_nativegates_ibm_qiskit_opt3_64.qasm",
                 builder=build_h_grid_architecture, kw=dict(r=2, s=3, m=4),
                 hw=_HW_LARGE),
     # 360 logical qubits on 486 physical, K=6, M=81 -- the regime where the
     # M factor in the intra bound (item 3) and the Theta(P^2) table (item 4)
     # actually bite.  bench_large.py's config, verbatim.
-    "360q": dict(circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_360"),
+    "360q": dict(circuit_dir=circuits_path("qasm_360"),
                  suffix="_nativegates_ibm_qiskit_opt3_360.qasm",
                  builder=build_h_grid_architecture, kw=dict(r=2, s=3, m=9),
                  hw=_HW_XL),

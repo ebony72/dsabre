@@ -1,0 +1,115 @@
+{
+ "meta": {
+  "date": "2026-07-31",
+  "suite": "64q",
+  "arch": "H-grid 2x3 of 4x4 (96 physical)",
+  "router": "dSE (dsabre_ext.dSABRE_BurstExt)",
+  "protocol": "best of 3 SabreLayout seeds, fwd->bwd->fwd",
+  "purpose": "extend Table V ablation from 6 to 9 circuits",
+  "note": "full/no_hop_gain on the other 6 circuits come from regen_final/ablation.log and nohop_regen/suites.log, same router generation (unchanged since 2026-07-27)"
+ },
+ "results": [
+  {
+   "circuit": "qpeexact",
+   "cx": 2139,
+   "config": "full",
+   "eprs": 271,
+   "ls": 1792,
+   "aborted": false,
+   "time_s": 23.0
+  },
+  {
+   "circuit": "qpeexact",
+   "cx": 2139,
+   "config": "no_lookahead",
+   "eprs": 308,
+   "ls": 2328,
+   "aborted": false,
+   "time_s": 35.3
+  },
+  {
+   "circuit": "qpeexact",
+   "cx": 2139,
+   "config": "no_cap_penalty",
+   "eprs": 414,
+   "ls": 2350,
+   "aborted": false,
+   "time_s": 28.3
+  },
+  {
+   "circuit": "qpeexact",
+   "cx": 2139,
+   "config": "no_relief",
+   "eprs": 192,
+   "ls": 1564,
+   "aborted": false,
+   "time_s": 29.1
+  },
+  {
+   "circuit": "qaoa",
+   "cx": 3920,
+   "config": "full",
+   "eprs": 529,
+   "ls": 3688,
+   "aborted": false,
+   "time_s": 79.3
+  },
+  {
+   "circuit": "qaoa",
+   "cx": 3920,
+   "config": "no_lookahead",
+   "eprs": 1159,
+   "ls": 6247,
+   "aborted": false,
+   "time_s": 128.3
+  },
+  {
+   "circuit": "qaoa",
+   "cx": 3920,
+   "config": "no_cap_penalty",
+   "eprs": 937,
+   "ls": 5272,
+   "aborted": false,
+   "time_s": 95.3
+  },
+  {
+   "circuit": "qaoa",
+   "cx": 3920,
+   "config": "no_relief",
+   "eprs": 542,
+   "ls": 3775,
+   "aborted": false,
+   "time_s": 86.9
+  },
+  {
+   "circuit": "multiplier",
+   "cx": 13040,
+   "config": "full",
+   "aborted": true,
+   "time_s": 479.5
+  },
+  {
+   "circuit": "multiplier",
+   "cx": 13040,
+   "config": "no_lookahead",
+   "aborted": true,
+   "time_s": 556.6
+  },
+  {
+   "circuit": "multiplier",
+   "cx": 13040,
+   "config": "no_cap_penalty",
+   "aborted": true,
+   "time_s": 433.2
+  },
+  {
+   "circuit": "multiplier",
+   "cx": 13040,
+   "config": "no_relief",
+   "eprs": 1924,
+   "ls": 10790,
+   "aborted": false,
+   "time_s": 721.9
+  }
+ ]
+}

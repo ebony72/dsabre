@@ -1,0 +1,83 @@
+{
+ "suite": 64,
+ "device": "H_grid_2_3_4_4",
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "per_circuit": {
+  "ae": {
+   "success": true,
+   "epr": 353,
+   "teledata": 259,
+   "telegate": 94,
+   "swaps": 1494,
+   "deadlocks": 2
+  },
+  "ghz": {
+   "success": true,
+   "epr": 16,
+   "teledata": 16,
+   "telegate": 0,
+   "swaps": 132,
+   "deadlocks": 0
+  },
+  "graphstate": {
+   "success": true,
+   "epr": 62,
+   "teledata": 60,
+   "telegate": 2,
+   "swaps": 281,
+   "deadlocks": 4
+  },
+  "qft": {
+   "success": true,
+   "epr": 312,
+   "teledata": 308,
+   "telegate": 4,
+   "swaps": 1711,
+   "deadlocks": 0
+  },
+  "qpeexact": {
+   "success": true,
+   "epr": 289,
+   "teledata": 281,
+   "telegate": 8,
+   "swaps": 1706,
+   "deadlocks": 0
+  },
+  "qaoa": {
+   "success": true,
+   "epr": 956,
+   "teledata": 824,
+   "telegate": 132,
+   "swaps": 4189,
+   "deadlocks": 6
+  },
+  "random": {
+   "success": false
+  },
+  "qnn": {
+   "success": true,
+   "epr": 889,
+   "teledata": 883,
+   "telegate": 6,
+   "swaps": 5471,
+   "deadlocks": 8
+  },
+  "multiplier": {
+   "success": true,
+   "epr": 1601,
+   "teledata": 1558,
+   "telegate": 43,
+   "swaps": 9654,
+   "deadlocks": 2
+  }
+ },
+ "totals": {
+  "epr": 4478,
+  "teledata": 4189,
+  "telegate": 289
+ }
+}

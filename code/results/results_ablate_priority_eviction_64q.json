@@ -1,0 +1,657 @@
+{
+  "date": "2026-08-03",
+  "study": "cheapest_first_weight / evict_distance_aware sweep",
+  "suite": "64q",
+  "arch": "H-grid 2x3 4x4 (96 physical, 6 cores x 16)",
+  "router": "dSE (dsabre_ext.dSABRE_BurstExt)",
+  "circuits": [
+    "ae",
+    "ghz",
+    "graphstate",
+    "qft",
+    "qnn",
+    "random",
+    "qpeexact",
+    "qaoa",
+    "multiplier"
+  ],
+  "conditions": [
+    "baseline",
+    "cheapest0.2",
+    "cheapest0.3",
+    "evict_aware",
+    "cheapest0.3+evict"
+  ],
+  "rows": {
+    "ae": {
+      "n_cx": 1962,
+      "by_cond": {
+        "baseline": {
+          "aborted": false,
+          "eprs": 202,
+          "ls": 1506,
+          "cost": 6538.0,
+          "time_s": 30.599,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "baseline",
+          "wall_s": 30.6,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.2": {
+          "aborted": false,
+          "eprs": 165,
+          "ls": 1409,
+          "cost": 5877.0,
+          "time_s": 25.902,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.2",
+          "wall_s": 25.9,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3": {
+          "aborted": false,
+          "eprs": 172,
+          "ls": 1402,
+          "cost": 5926.0,
+          "time_s": 27.504,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3",
+          "wall_s": 27.5,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "evict_aware": {
+          "aborted": false,
+          "eprs": 197,
+          "ls": 1505,
+          "cost": 6485.0,
+          "time_s": 37.589,
+          "backup_activations": 2,
+          "force_make_room": 3,
+          "condition": "evict_aware",
+          "wall_s": 37.59,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3+evict": {
+          "aborted": false,
+          "eprs": 180,
+          "ls": 1508,
+          "cost": 6324.0,
+          "time_s": 40.768,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3+evict",
+          "wall_s": 40.77,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "ghz": {
+      "n_cx": 63,
+      "by_cond": {
+        "baseline": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "cost": 177.0,
+          "time_s": 0.056,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "baseline",
+          "wall_s": 0.06,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.2": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "cost": 177.0,
+          "time_s": 0.056,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.2",
+          "wall_s": 0.06,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "cost": 177.0,
+          "time_s": 0.056,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3",
+          "wall_s": 0.06,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "evict_aware": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "cost": 177.0,
+          "time_s": 0.056,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "evict_aware",
+          "wall_s": 0.06,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3+evict": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "cost": 177.0,
+          "time_s": 0.058,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3+evict",
+          "wall_s": 0.06,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "graphstate": {
+      "n_cx": 64,
+      "by_cond": {
+        "baseline": {
+          "aborted": false,
+          "eprs": 16,
+          "ls": 89,
+          "cost": 427.0,
+          "time_s": 0.171,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "baseline",
+          "wall_s": 0.17,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.2": {
+          "aborted": false,
+          "eprs": 17,
+          "ls": 100,
+          "cost": 470.0,
+          "time_s": 0.168,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.2",
+          "wall_s": 0.17,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3": {
+          "aborted": false,
+          "eprs": 17,
+          "ls": 97,
+          "cost": 461.0,
+          "time_s": 0.16,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3",
+          "wall_s": 0.16,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "evict_aware": {
+          "aborted": false,
+          "eprs": 18,
+          "ls": 104,
+          "cost": 492.0,
+          "time_s": 0.171,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "evict_aware",
+          "wall_s": 0.17,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3+evict": {
+          "aborted": false,
+          "eprs": 16,
+          "ls": 89,
+          "cost": 427.0,
+          "time_s": 0.159,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3+evict",
+          "wall_s": 0.16,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "qft": {
+      "n_cx": 1966,
+      "by_cond": {
+        "baseline": {
+          "aborted": false,
+          "eprs": 218,
+          "ls": 1622,
+          "cost": 7046.0,
+          "time_s": 36.166,
+          "backup_activations": 1,
+          "force_make_room": 1,
+          "condition": "baseline",
+          "wall_s": 36.17,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.2": {
+          "aborted": false,
+          "eprs": 238,
+          "ls": 1657,
+          "cost": 7351.0,
+          "time_s": 38.221,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.2",
+          "wall_s": 38.22,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3": {
+          "aborted": false,
+          "eprs": 198,
+          "ls": 1545,
+          "cost": 6615.0,
+          "time_s": 25.968,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3",
+          "wall_s": 25.97,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "evict_aware": {
+          "aborted": false,
+          "eprs": 195,
+          "ls": 1685,
+          "cost": 7005.0,
+          "time_s": 24.376,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "evict_aware",
+          "wall_s": 24.38,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3+evict": {
+          "aborted": false,
+          "eprs": 182,
+          "ls": 1482,
+          "cost": 6266.0,
+          "time_s": 25.762,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3+evict",
+          "wall_s": 25.76,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "qnn": {
+      "n_cx": 8126,
+      "by_cond": {
+        "baseline": {
+          "aborted": false,
+          "eprs": 501,
+          "ls": 5285,
+          "cost": 20865.0,
+          "time_s": 281.22,
+          "backup_activations": 1,
+          "force_make_room": 1,
+          "condition": "baseline",
+          "wall_s": 281.22,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.2": {
+          "aborted": false,
+          "eprs": 497,
+          "ls": 5262,
+          "cost": 20756.0,
+          "time_s": 234.125,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.2",
+          "wall_s": 234.13,
+          "pass1_aborts": 1,
+          "layout_failures": 0
+        },
+        "cheapest0.3": {
+          "aborted": false,
+          "eprs": 492,
+          "ls": 5234,
+          "cost": 20622.0,
+          "time_s": 247.098,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3",
+          "wall_s": 247.1,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "evict_aware": {
+          "aborted": false,
+          "eprs": 498,
+          "ls": 5147,
+          "cost": 20421.0,
+          "time_s": 249.042,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "evict_aware",
+          "wall_s": 249.04,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3+evict": {
+          "aborted": false,
+          "eprs": 500,
+          "ls": 5242,
+          "cost": 20726.0,
+          "time_s": 246.448,
+          "backup_activations": 3,
+          "force_make_room": 3,
+          "condition": "cheapest0.3+evict",
+          "wall_s": 246.45,
+          "pass1_aborts": 1,
+          "layout_failures": 0
+        }
+      }
+    },
+    "random": {
+      "n_cx": 1627,
+      "by_cond": {
+        "baseline": {
+          "aborted": false,
+          "eprs": 712,
+          "ls": 3635,
+          "cost": 18025.0,
+          "time_s": 49.787,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "baseline",
+          "wall_s": 49.79,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.2": {
+          "aborted": false,
+          "eprs": 711,
+          "ls": 3651,
+          "cost": 18063.0,
+          "time_s": 48.235,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.2",
+          "wall_s": 48.24,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3": {
+          "aborted": false,
+          "eprs": 710,
+          "ls": 3607,
+          "cost": 17921.0,
+          "time_s": 49.17,
+          "backup_activations": 1,
+          "force_make_room": 1,
+          "condition": "cheapest0.3",
+          "wall_s": 49.17,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "evict_aware": {
+          "aborted": false,
+          "eprs": 705,
+          "ls": 3700,
+          "cost": 18150.0,
+          "time_s": 45.425,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "evict_aware",
+          "wall_s": 45.43,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3+evict": {
+          "aborted": false,
+          "eprs": 727,
+          "ls": 3781,
+          "cost": 18613.0,
+          "time_s": 46.308,
+          "backup_activations": 2,
+          "force_make_room": 3,
+          "condition": "cheapest0.3+evict",
+          "wall_s": 46.31,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "qpeexact": {
+      "n_cx": 2139,
+      "by_cond": {
+        "baseline": {
+          "aborted": false,
+          "eprs": 192,
+          "ls": 1564,
+          "cost": 6612.0,
+          "time_s": 33.889,
+          "backup_activations": 3,
+          "force_make_room": 3,
+          "condition": "baseline",
+          "wall_s": 33.89,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.2": {
+          "aborted": false,
+          "eprs": 195,
+          "ls": 1559,
+          "cost": 6627.0,
+          "time_s": 30.268,
+          "backup_activations": 2,
+          "force_make_room": 2,
+          "condition": "cheapest0.2",
+          "wall_s": 30.27,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3": {
+          "aborted": false,
+          "eprs": 204,
+          "ls": 1638,
+          "cost": 6954.0,
+          "time_s": 32.582,
+          "backup_activations": 3,
+          "force_make_room": 3,
+          "condition": "cheapest0.3",
+          "wall_s": 32.58,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "evict_aware": {
+          "aborted": false,
+          "eprs": 207,
+          "ls": 1606,
+          "cost": 6888.0,
+          "time_s": 30.494,
+          "backup_activations": 3,
+          "force_make_room": 5,
+          "condition": "evict_aware",
+          "wall_s": 30.49,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3+evict": {
+          "aborted": false,
+          "eprs": 203,
+          "ls": 1685,
+          "cost": 7085.0,
+          "time_s": 34.096,
+          "backup_activations": 1,
+          "force_make_room": 2,
+          "condition": "cheapest0.3+evict",
+          "wall_s": 34.1,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "qaoa": {
+      "n_cx": 3920,
+      "by_cond": {
+        "baseline": {
+          "aborted": false,
+          "eprs": 542,
+          "ls": 3775,
+          "cost": 16745.0,
+          "time_s": 92.257,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "baseline",
+          "wall_s": 92.26,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.2": {
+          "aborted": false,
+          "eprs": 553,
+          "ls": 3836,
+          "cost": 17038.0,
+          "time_s": 74.141,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.2",
+          "wall_s": 74.14,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3": {
+          "aborted": false,
+          "eprs": 532,
+          "ls": 3716,
+          "cost": 16468.0,
+          "time_s": 71.222,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3",
+          "wall_s": 71.22,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "evict_aware": {
+          "aborted": false,
+          "eprs": 516,
+          "ls": 3622,
+          "cost": 16026.0,
+          "time_s": 75.911,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "evict_aware",
+          "wall_s": 75.91,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3+evict": {
+          "aborted": false,
+          "eprs": 521,
+          "ls": 3597,
+          "cost": 16001.0,
+          "time_s": 82.656,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3+evict",
+          "wall_s": 82.66,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "multiplier": {
+      "n_cx": 13040,
+      "by_cond": {
+        "baseline": {
+          "aborted": false,
+          "eprs": 1924,
+          "ls": 10790,
+          "cost": 51610.0,
+          "time_s": 1430.072,
+          "backup_activations": 1,
+          "force_make_room": 1,
+          "condition": "baseline",
+          "wall_s": 1430.07,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.2": {
+          "aborted": false,
+          "eprs": 1376,
+          "ls": 9423,
+          "cost": 42029.0,
+          "time_s": 1315.423,
+          "backup_activations": 4,
+          "force_make_room": 4,
+          "condition": "cheapest0.2",
+          "wall_s": 1315.42,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3": {
+          "aborted": false,
+          "eprs": 1625,
+          "ls": 9947,
+          "cost": 46091.0,
+          "time_s": 1474.429,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3",
+          "wall_s": 1474.43,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "evict_aware": {
+          "aborted": false,
+          "eprs": 1924,
+          "ls": 10796,
+          "cost": 51628.0,
+          "time_s": 1463.974,
+          "backup_activations": 1,
+          "force_make_room": 1,
+          "condition": "evict_aware",
+          "wall_s": 1463.97,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "cheapest0.3+evict": {
+          "aborted": false,
+          "eprs": 1692,
+          "ls": 10357,
+          "cost": 47991.0,
+          "time_s": 1375.455,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "cheapest0.3+evict",
+          "wall_s": 1375.46,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    }
+  }
+}

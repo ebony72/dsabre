@@ -20,6 +20,7 @@ import os
 import sys
 import tempfile
 import time
+from circuit_paths import circuits_path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -28,7 +29,7 @@ os.makedirs(RESULTS, exist_ok=True)
 
 QFT_SIZES = [24, 36, 48, 56]   # fill ratios 37.5 / 56 / 75 / 87.5 % on 64-phys
 NUM_SEEDS = 5
-QASM_DIR = os.path.expanduser("~/Documents/telesabre/circuits/qasm_fill_sweep")
+QASM_DIR = circuits_path("qasm_fill_sweep")
 
 
 def make_qft_qasm(n: int, path: str):

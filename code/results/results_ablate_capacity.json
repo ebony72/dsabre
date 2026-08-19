@@ -1,0 +1,1052 @@
+{
+  "25q": {
+    "full": {
+      "config": {
+        "safe_mode": true,
+        "tier1_floor": 2,
+        "cap_penalty": 15.0
+      },
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 558,
+          "eprs": 23,
+          "ls": 288,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.37
+        },
+        {
+          "circuit": "ghz",
+          "cx": 24,
+          "eprs": 1,
+          "ls": 4,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.01
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 25,
+          "eprs": 2,
+          "ls": 15,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.01
+        },
+        {
+          "circuit": "qft",
+          "cx": 580,
+          "eprs": 33,
+          "ls": 332,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.39
+        },
+        {
+          "circuit": "qnn",
+          "cx": 1223,
+          "eprs": 47,
+          "ls": 661,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.68
+        },
+        {
+          "circuit": "random",
+          "cx": 1124,
+          "eprs": 181,
+          "ls": 1208,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 1.33
+        }
+      ],
+      "gmean_own": 15.317034858562613,
+      "n_aborted": 0,
+      "n_circuits": 6,
+      "gmean_matched": 15.317034858562613,
+      "n_matched": 6,
+      "delta_vs_full_pct": 0.0
+    },
+    "no_soft": {
+      "config": {
+        "safe_mode": true,
+        "tier1_floor": 2,
+        "cap_penalty": 0.0
+      },
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 558,
+          "eprs": 22,
+          "ls": 293,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.38
+        },
+        {
+          "circuit": "ghz",
+          "cx": 24,
+          "eprs": 1,
+          "ls": 4,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.01
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 25,
+          "eprs": 2,
+          "ls": 18,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.02
+        },
+        {
+          "circuit": "qft",
+          "cx": 580,
+          "eprs": 32,
+          "ls": 371,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.42
+        },
+        {
+          "circuit": "qnn",
+          "cx": 1223,
+          "eprs": 47,
+          "ls": 673,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.67
+        },
+        {
+          "circuit": "random",
+          "cx": 1124,
+          "eprs": 168,
+          "ls": 1239,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 1.28
+        }
+      ],
+      "gmean_own": 14.939462268289617,
+      "n_aborted": 0,
+      "n_circuits": 6,
+      "gmean_matched": 14.939462268289617,
+      "n_matched": 6,
+      "delta_vs_full_pct": -2.465050146843029
+    },
+    "no_legality": {
+      "config": {
+        "safe_mode": false,
+        "cap_penalty": 15.0
+      },
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 558,
+          "eprs": 22,
+          "ls": 253,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.37
+        },
+        {
+          "circuit": "ghz",
+          "cx": 24,
+          "eprs": 1,
+          "ls": 4,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.01
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 25,
+          "eprs": 2,
+          "ls": 15,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.01
+        },
+        {
+          "circuit": "qft",
+          "cx": 580,
+          "eprs": 33,
+          "ls": 332,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.4
+        },
+        {
+          "circuit": "qnn",
+          "cx": 1223,
+          "eprs": 46,
+          "ls": 649,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.68
+        },
+        {
+          "circuit": "random",
+          "cx": 1124,
+          "eprs": 181,
+          "ls": 1208,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 1.31
+        }
+      ],
+      "gmean_own": 15.149576895211954,
+      "n_aborted": 0,
+      "n_circuits": 6,
+      "gmean_matched": 15.149576895211954,
+      "n_matched": 6,
+      "delta_vs_full_pct": -1.0932792469101504
+    },
+    "neither": {
+      "config": {
+        "safe_mode": false,
+        "cap_penalty": 0.0
+      },
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 558,
+          "eprs": 75,
+          "ls": 394,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 10,
+          "secs": 0.94
+        },
+        {
+          "circuit": "ghz",
+          "cx": 24,
+          "eprs": 1,
+          "ls": 4,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.01
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 25,
+          "eprs": 2,
+          "ls": 18,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.02
+        },
+        {
+          "circuit": "qft",
+          "cx": 580,
+          "eprs": 62,
+          "ls": 441,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 7,
+          "secs": 1.06
+        },
+        {
+          "circuit": "qnn",
+          "cx": 1223,
+          "eprs": 107,
+          "ls": 873,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 9,
+          "secs": 1.61
+        },
+        {
+          "circuit": "random",
+          "cx": 1124,
+          "eprs": 289,
+          "ls": 1506,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 24,
+          "secs": 4.03
+        }
+      ],
+      "gmean_own": 25.69177410554927,
+      "n_aborted": 0,
+      "n_circuits": 6,
+      "gmean_matched": 25.69177410554927,
+      "n_matched": 6,
+      "delta_vs_full_pct": 67.73333966258433
+    },
+    "strict": {
+      "config": {
+        "safe_mode": true,
+        "tier1_floor": null,
+        "cap_penalty": 15.0
+      },
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 558,
+          "eprs": 23,
+          "ls": 285,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.37
+        },
+        {
+          "circuit": "ghz",
+          "cx": 24,
+          "eprs": 1,
+          "ls": 4,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.01
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 25,
+          "eprs": 2,
+          "ls": 15,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.01
+        },
+        {
+          "circuit": "qft",
+          "cx": 580,
+          "eprs": 33,
+          "ls": 332,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.39
+        },
+        {
+          "circuit": "qnn",
+          "cx": 1223,
+          "eprs": 48,
+          "ls": 614,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.68
+        },
+        {
+          "circuit": "random",
+          "cx": 1124,
+          "eprs": 181,
+          "ls": 1208,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 1.32
+        }
+      ],
+      "gmean_own": 15.370875230698616,
+      "n_aborted": 0,
+      "n_circuits": 6,
+      "gmean_matched": 15.370875230698616,
+      "n_matched": 6,
+      "delta_vs_full_pct": 0.3515064934771293
+    }
+  },
+  "64q": {
+    "full": {
+      "config": {
+        "safe_mode": true,
+        "tier1_floor": 2,
+        "cap_penalty": 15.0
+      },
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 1962,
+          "eprs": 165,
+          "ls": 1325,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 2.1
+        },
+        {
+          "circuit": "ghz",
+          "cx": 63,
+          "eprs": 6,
+          "ls": 39,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.04
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 64,
+          "eprs": 15,
+          "ls": 88,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.13
+        },
+        {
+          "circuit": "multiplier",
+          "cx": 13040,
+          "eprs": 1285,
+          "ls": 8969,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 13.14
+        },
+        {
+          "circuit": "qaoa",
+          "cx": 3920,
+          "eprs": 555,
+          "ls": 3734,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 4.02
+        },
+        {
+          "circuit": "qft",
+          "cx": 1966,
+          "eprs": 180,
+          "ls": 1480,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 2.28
+        },
+        {
+          "circuit": "qnn",
+          "cx": 8126,
+          "eprs": 539,
+          "ls": 5260,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 7.28
+        },
+        {
+          "circuit": "qpeexact",
+          "cx": 2139,
+          "eprs": 187,
+          "ls": 1576,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 1.72
+        },
+        {
+          "circuit": "random",
+          "cx": 1627,
+          "eprs": 732,
+          "ls": 3603,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 4.44
+        }
+      ],
+      "gmean_own": 173.25342779077246,
+      "n_aborted": 0,
+      "n_circuits": 9,
+      "gmean_matched": 110.64944318221109,
+      "n_matched": 7,
+      "delta_vs_full_pct": 0.0
+    },
+    "no_soft": {
+      "config": {
+        "safe_mode": true,
+        "tier1_floor": 2,
+        "cap_penalty": 0.0
+      },
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 1962,
+          "eprs": 205,
+          "ls": 1637,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 2,
+          "force_make_room": 0,
+          "secs": 2.38
+        },
+        {
+          "circuit": "ghz",
+          "cx": 63,
+          "eprs": 6,
+          "ls": 50,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.04
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 64,
+          "eprs": 19,
+          "ls": 98,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.14
+        },
+        {
+          "circuit": "multiplier",
+          "cx": 13040,
+          "eprs": 1230,
+          "ls": 9192,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 5,
+          "force_make_room": 0,
+          "secs": 15.13
+        },
+        {
+          "circuit": "qaoa",
+          "cx": 3920,
+          "eprs": 537,
+          "ls": 3834,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 3.6
+        },
+        {
+          "circuit": "qft",
+          "cx": 1966,
+          "eprs": 239,
+          "ls": 1763,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 2,
+          "force_make_room": 0,
+          "secs": 2.52
+        },
+        {
+          "circuit": "qnn",
+          "cx": 8126,
+          "eprs": 518,
+          "ls": 5366,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 1,
+          "force_make_room": 0,
+          "secs": 6.59
+        },
+        {
+          "circuit": "qpeexact",
+          "cx": 2139,
+          "eprs": 231,
+          "ls": 1792,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 2,
+          "force_make_room": 0,
+          "secs": 2.0
+        },
+        {
+          "circuit": "random",
+          "cx": 1627,
+          "eprs": 714,
+          "ls": 3930,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 4,
+          "force_make_room": 0,
+          "secs": 4.82
+        }
+      ],
+      "gmean_own": 189.5045105065338,
+      "n_aborted": 0,
+      "n_circuits": 9,
+      "gmean_matched": 125.65841701729481,
+      "n_matched": 7,
+      "delta_vs_full_pct": 13.564436840741996
+    },
+    "no_legality": {
+      "config": {
+        "safe_mode": false,
+        "cap_penalty": 15.0
+      },
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 1962,
+          "eprs": 200,
+          "ls": 1547,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 4,
+          "secs": 2.5
+        },
+        {
+          "circuit": "ghz",
+          "cx": 63,
+          "eprs": 6,
+          "ls": 39,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.04
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 64,
+          "eprs": 15,
+          "ls": 88,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.14
+        },
+        {
+          "circuit": "multiplier",
+          "cx": 13040,
+          "eprs": 1285,
+          "ls": 8969,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 13.64
+        },
+        {
+          "circuit": "qaoa",
+          "cx": 3920,
+          "eprs": 538,
+          "ls": 3759,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 2,
+          "secs": 4.0
+        },
+        {
+          "circuit": "qft",
+          "cx": 1966,
+          "eprs": 176,
+          "ls": 1397,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 2.6
+        },
+        {
+          "circuit": "qnn",
+          "cx": 8126,
+          "eprs": 495,
+          "ls": 5344,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 6.92
+        },
+        {
+          "circuit": "qpeexact",
+          "cx": 2139,
+          "eprs": 184,
+          "ls": 1565,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 1,
+          "secs": 2.21
+        },
+        {
+          "circuit": "random",
+          "cx": 1627,
+          "eprs": 718,
+          "ls": 3621,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 4.68
+        }
+      ],
+      "gmean_own": 173.60313367411342,
+      "n_aborted": 0,
+      "n_circuits": 9,
+      "gmean_matched": 112.29451165650647,
+      "n_matched": 7,
+      "delta_vs_full_pct": 1.4867390444851873
+    },
+    "neither": {
+      "config": {
+        "safe_mode": false,
+        "cap_penalty": 0.0
+      },
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 1962,
+          "eprs": 510,
+          "ls": 2434,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 76,
+          "secs": 12.2
+        },
+        {
+          "circuit": "ghz",
+          "cx": 63,
+          "eprs": 6,
+          "ls": 50,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.04
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 64,
+          "eprs": 15,
+          "ls": 76,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.41
+        },
+        {
+          "circuit": "multiplier",
+          "cx": 13040,
+          "eprs": null,
+          "ls": null,
+          "aborted": true,
+          "layout_aborts": 3,
+          "n_layouts": 3,
+          "safe_routes": null,
+          "force_make_room": null,
+          "secs": 12.62
+        },
+        {
+          "circuit": "qaoa",
+          "cx": 3920,
+          "eprs": 1085,
+          "ls": 5803,
+          "aborted": false,
+          "layout_aborts": 2,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 113,
+          "secs": 9.45
+        },
+        {
+          "circuit": "qft",
+          "cx": 1966,
+          "eprs": 567,
+          "ls": 2571,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 91,
+          "secs": 14.38
+        },
+        {
+          "circuit": "qnn",
+          "cx": 8126,
+          "eprs": null,
+          "ls": null,
+          "aborted": true,
+          "layout_aborts": 3,
+          "n_layouts": 3,
+          "safe_routes": null,
+          "force_make_room": null,
+          "secs": 8.84
+        },
+        {
+          "circuit": "qpeexact",
+          "cx": 2139,
+          "eprs": 562,
+          "ls": 2943,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 74,
+          "secs": 11.3
+        },
+        {
+          "circuit": "random",
+          "cx": 1627,
+          "eprs": 1056,
+          "ls": 4942,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 153,
+          "secs": 26.55
+        }
+      ],
+      "gmean_own": 207.84832592405937,
+      "n_aborted": 2,
+      "n_circuits": 9,
+      "gmean_matched": 207.84832592405937,
+      "n_matched": 7,
+      "delta_vs_full_pct": 87.84398723253112
+    },
+    "strict": {
+      "config": {
+        "safe_mode": true,
+        "tier1_floor": null,
+        "cap_penalty": 15.0
+      },
+      "rows": [
+        {
+          "circuit": "ae",
+          "cx": 1962,
+          "eprs": 227,
+          "ls": 1487,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 3,
+          "force_make_room": 0,
+          "secs": 3.15
+        },
+        {
+          "circuit": "ghz",
+          "cx": 63,
+          "eprs": 10,
+          "ls": 41,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.16
+        },
+        {
+          "circuit": "graphstate",
+          "cx": 64,
+          "eprs": 15,
+          "ls": 88,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 0,
+          "force_make_room": 0,
+          "secs": 0.16
+        },
+        {
+          "circuit": "multiplier",
+          "cx": 13040,
+          "eprs": 1273,
+          "ls": 8871,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 6,
+          "force_make_room": 0,
+          "secs": 22.67
+        },
+        {
+          "circuit": "qaoa",
+          "cx": 3920,
+          "eprs": 568,
+          "ls": 3899,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 2,
+          "force_make_room": 0,
+          "secs": 3.88
+        },
+        {
+          "circuit": "qft",
+          "cx": 1966,
+          "eprs": 232,
+          "ls": 1643,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 1,
+          "force_make_room": 0,
+          "secs": 3.21
+        },
+        {
+          "circuit": "qnn",
+          "cx": 8126,
+          "eprs": 540,
+          "ls": 5302,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 2,
+          "force_make_room": 0,
+          "secs": 6.86
+        },
+        {
+          "circuit": "qpeexact",
+          "cx": 2139,
+          "eprs": 236,
+          "ls": 1693,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 9,
+          "force_make_room": 0,
+          "secs": 2.27
+        },
+        {
+          "circuit": "random",
+          "cx": 1627,
+          "eprs": 751,
+          "ls": 3711,
+          "aborted": false,
+          "layout_aborts": 0,
+          "n_layouts": 3,
+          "safe_routes": 10,
+          "force_make_room": 0,
+          "secs": 4.71
+        }
+      ],
+      "gmean_own": 201.46144698582145,
+      "n_aborted": 0,
+      "n_circuits": 9,
+      "gmean_matched": 134.47564167088834,
+      "n_matched": 7,
+      "delta_vs_full_pct": 21.533048701783024
+    }
+  }
+}

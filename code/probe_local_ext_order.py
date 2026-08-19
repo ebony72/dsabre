@@ -23,6 +23,7 @@ from config import HardwareConfig
 from dsabre_ext import dSABRE_BFSExt
 from dsabre_local_bfs import dSABRE_LocalKahnLex
 from layout import sabre_locked_boundary_layout, run_sabre_passes
+from circuit_paths import circuits_path
 
 
 class Stop(Exception):
@@ -87,7 +88,7 @@ class OrderProbe(dSABRE_BFSExt):
 
 def main():
     name = sys.argv[1] if len(sys.argv) > 1 else "graphstate"
-    d = os.path.expanduser("~/Documents/telesabre/circuits/qasm_25")
+    d = circuits_path("qasm_25")
     path = os.path.join(d, f"{name}_nativegates_ibm_qiskit_opt3_25.qasm")
     qc = QuantumCircuit.from_qasm_file(path)
     qc = qc.remove_final_measurements(inplace=False)

@@ -17,7 +17,10 @@ class HardwareConfig:
     """
 
     # ── Operation costs ────────────────────────────────────────────────────────
-    cost_local_swap: float = 3.0
+    # One local SWAP is the unit of cost, matching the unit weight of an
+    # intra-core edge in the architecture graph, so cost_teleport reads
+    # directly as the teleport-to-SWAP cost ratio.
+    cost_local_swap: float = 1.0
     # Base EPR pairs consumed per teleportation (distance-independent).
     cost_teleport: float = 10.0
     # Additional EPR pairs per inter-core hop (set to 0 for flat cost model).
@@ -167,7 +170,12 @@ class HardwareConfig:
     # Maximum number of backup-plan activations before aborting.  In safe mode
     # this is already raised to the unrouted-gate count at route() entry --
     # every recovery retires a gate, so a smaller cap would abort a route the
-    # theorem says must finish -- and None simply leaves it there.
+    # theorem says must finish -- and None simply leaves it there.  In
+    # score-only mode there is no theorem and so no bound to derive, and None
+    # means "do not cap": recovery keeps firing and `max_iterations` is what
+    # ends a route that cannot finish.  (Until 2026-08-17 that combination --
+    # which is what the three-Nones convention above gives on an architecture
+    # too tight for safe mode -- raised TypeError from route()'s cap test.)
     max_backup_attempts: int | None = 50
     # When True, _backup_plan's cross-core hops use _relay_room_to (BFS relay
     # of a genuine free-slot surplus along the core graph) to guarantee every

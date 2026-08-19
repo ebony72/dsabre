@@ -46,9 +46,10 @@ from config import HardwareConfig
 from router import General_dSABRE_Router
 from dsabre_ext import dSABRE_BurstExt
 from layout import sabre_locked_boundary_layout, run_sabre_passes
+from circuit_paths import circuits_path
 
 CIRCUITS = ["qpeexact", "qaoa", "multiplier"]
-CIRC_DIR = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64")
+CIRC_DIR = circuits_path("qasm_64")
 SUFFIX = "_nativegates_ibm_qiskit_opt3_64.qasm"
 TS_BIN = os.path.expanduser("~/Documents/telesabre/telesabre")
 TS_DEV = os.path.expanduser("~/Documents/telesabre/devices/H_grid_2_3_4_4.json")

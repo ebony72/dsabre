@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "date": "2026-08-06",
+    "seeds": 5,
+    "models": {
+      "A_published": "even split of logical qubits, unbounded ebit memory",
+      "B_ports": "same data capacity, server_ebit_mem = deg(core)",
+      "C_physical": "data capacity M-deg(core), server_ebit_mem = deg(core)"
+    }
+  },
+  "results": [
+    {
+      "suite": "200q",
+      "circuit": "qft",
+      "n_logical": 200,
+      "cores": 12,
+      "qubits_per_core": 25,
+      "degree": {
+        "0": 2,
+        "1": 3,
+        "2": 3,
+        "3": 2,
+        "4": 3,
+        "5": 4,
+        "6": 4,
+        "7": 3,
+        "8": 2,
+        "9": 3,
+        "10": 3,
+        "11": 2
+      },
+      "phys_cap": [
+        23,
+        22,
+        22,
+        23,
+        22,
+        21,
+        21,
+        22,
+        23,
+        22,
+        22,
+        23
+      ],
+      "A_published": {
+        "ebits": 487,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 1503.7
+      },
+      "A_required_ebit_mem": -1,
+      "B_ports": {
+        "ebits": 487,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 1397.3
+      },
+      "C_physical": {
+        "ebits": 680,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 1453.4
+      },
+      "C_fits_port_bound": null
+    },
+    {
+      "suite": "360q",
+      "circuit": "qft",
+      "n_logical": 360,
+      "cores": 20,
+      "qubits_per_core": 25,
+      "degree": {
+        "0": 2,
+        "1": 3,
+        "2": 3,
+        "3": 3,
+        "4": 2,
+        "5": 3,
+        "6": 4,
+        "7": 4,
+        "8": 4,
+        "9": 3,
+        "10": 3,
+        "11": 4,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 2,
+        "16": 3,
+        "17": 3,
+        "18": 3,
+        "19": 2
+      },
+      "phys_cap": [
+        23,
+        22,
+        22,
+        22,
+        23,
+        22,
+        21,
+        21,
+        21,
+        22,
+        22,
+        21,
+        21,
+        21,
+        22,
+        23,
+        22,
+        22,
+        22,
+        23
+      ],
+      "A_published": {
+        "ebits": 736,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 2058.0
+      },
+      "A_required_ebit_mem": null,
+      "B_ports": {
+        "ebits": 736,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 2085.1
+      },
+      "C_physical": {
+        "ebits": 998,
+        "method": "PartitioningHeterogeneous",
+        "time_s": 2064.5
+      },
+      "C_fits_port_bound": null
+    }
+  ]
+}

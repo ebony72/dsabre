@@ -48,8 +48,9 @@ from dsabre_local_bfs import (dSABRE_LocalBFS, dSABRE_LocalKahnLex,
                               dSABRE_LocalScanCounted, dSABRE_SharedExt,
                               dSABRE_SharedExtK, dSABRE_SharedExt2Q)
 from layout import sabre_locked_boundary_layout, run_sabre_passes
+from circuit_paths import circuits_path
 
-_C = os.path.expanduser("~/Documents/telesabre/circuits")
+_C = circuits_path()
 _HW_SMALL = HardwareConfig()
 _HW_LARGE = HardwareConfig(deadlock_limit=100, max_backup_attempts=100,
                            max_iterations=20000)

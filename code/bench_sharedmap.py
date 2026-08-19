@@ -31,6 +31,7 @@ from dsabre_ext import dSABRE_BurstExt
 from layout import run_sabre_passes
 from benchmark import load_qasm, TS_BIN, _ts_config, NUM_TS_SEEDS
 from bench_large import p2v_to_layout
+from circuit_paths import circuits_path
 
 _RESULTS_DIR = os.environ.get("DSABRE_OUT_DIR") or os.path.join(_HERE, "results")
 
@@ -91,7 +92,7 @@ def main():
     for label, s in SUITES.items():
         arch, hw = s["arch"], s["hw"]
         dev = os.path.expanduser(f"~/Documents/telesabre/devices/{s['dev']}")
-        cdir = os.path.expanduser(f"~/Documents/telesabre/circuits/{s['d']}")
+        cdir = circuits_path(f"{s['d']}")
         router = dSABRE_BurstExt(arch, hw)
         print(f"\n== {label} (shared TeleSABRE layout) ==", flush=True)
         ts_e, ds_e = [], []

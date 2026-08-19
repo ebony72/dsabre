@@ -53,10 +53,11 @@ sys.path.insert(0, _DMAPS_SRC)
 
 # Quiet third-party noise
 import logging
+from circuit_paths import circuits_path
 logging.disable(logging.WARNING)
 
 
-CIRCUITS_ROOT = os.path.expanduser("~/Documents/telesabre/circuits")
+CIRCUITS_ROOT = circuits_path()
 RESULTS_PATH = os.path.join(
     os.environ.get("DSABRE_OUT_DIR") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "results"),
     "results_dmaps_bench.json")

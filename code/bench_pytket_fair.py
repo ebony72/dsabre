@@ -30,7 +30,7 @@ silently assumes.
 Output: code/results/results_pytket_fair.json
 """
 
-import sys, os, json, glob, time, argparse, signal, shutil
+import sys, os, json, glob, time, argparse, signal, shutil, gzip, subprocess
 from math import prod
 
 sys.setrecursionlimit(50000)
@@ -38,8 +38,10 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 
 from architecture import build_b_grid_architecture, build_h_grid_architecture
+from circuit_paths import circuits_path
 
 _RESULTS_DIR = os.environ.get("DSABRE_OUT_DIR") or os.path.join(_HERE, "results")
+_DIST_DIR = os.path.join(_RESULTS_DIR, "distributions")
 os.makedirs(_RESULTS_DIR, exist_ok=True)
 
 NUM_SEEDS = 5
@@ -47,27 +49,27 @@ ESD_TIMEOUT_NOTE = "CoverEmbeddingSteinerDetached"
 
 SUITES = {
     "25q": dict(arch=build_b_grid_architecture(2, 2, 4),
-                circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_25"),
+                circuit_dir=circuits_path("qasm_25"),
                 suffix="_nativegates_ibm_qiskit_opt3_25.qasm"),
     "36q": dict(arch=build_b_grid_architecture(2, 2, 4),
-                circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_36"),
+                circuit_dir=circuits_path("qasm_36"),
                 suffix="_nativegates_ibm_qiskit_opt3_36.qasm"),
     "64q": dict(arch=build_h_grid_architecture(2, 3, 4),
-                circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_64"),
+                circuit_dir=circuits_path("qasm_64"),
                 suffix="_nativegates_ibm_qiskit_opt3_64.qasm"),
     # Large-circuit scalability rows.  Only QFT is reported in the main table.
     "100q": dict(arch=build_h_grid_architecture(2, 3, 5),
-                 circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_100"),
+                 circuit_dir=circuits_path("qasm_100"),
                  suffix="_nativegates_ibm_qiskit_opt3_100.qasm"),
     # 2026-07-29: the two large rows moved to the decomposed scalability
     # series of bench_scaling.py --design b (core size fixed at 5x5, core
     # count 6 -> 12 -> 20), so the networks pytket-dqc is given must move
     # with them.  Previously 4x3 of 5x5 and 2x3 of 9x9.
     "200q": dict(arch=build_h_grid_architecture(3, 4, 5),
-                 circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_200"),
+                 circuit_dir=circuits_path("qasm_200"),
                  suffix="_nativegates_ibm_qiskit_opt3_200.qasm"),
     "360q": dict(arch=build_h_grid_architecture(4, 5, 5),
-                 circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_360"),
+                 circuit_dir=circuits_path("qasm_360"),
                  suffix="_nativegates_ibm_qiskit_opt3_360.qasm"),
 }
 
@@ -91,41 +93,69 @@ def gmean(v):
     return prod(v) ** (1 / len(v)) if v else float("nan")
 
 
-def even_split(n, capacities):
-    """Distribute n logical qubit ids over servers, respecting per-server caps."""
+def full_capacity(capacities):
+    """One server_qubits dict declaring each server's FULL capacity.
+
+    NISQNetwork's `server_qubits: dict[server, list[qubit_id]]` reads as a
+    placement, but every consumer in pytket-dqc -- HypergraphPartitioning's
+    `server_sizes = [len(network.server_qubits[s]) for s in server_list]`,
+    Placement.is_valid's `len(qubits) > len(network.server_qubits[server])`,
+    the Random allocator's fullness check -- dereferences only `len(...)`.
+    The specific ids are never compared against real circuit-qubit vertices
+    (confirmed by grep across the installed package), so a server's list only
+    has to be the right LENGTH; which ids fill it is immaterial as long as no
+    id repeats across servers (`NISQNetwork.__init__` rejects that).
+
+    The previous version of this function (`even_split`) filled ids up to
+    `n` logical qubits and left any remaining declared capacity empty, so a
+    network whose capacities summed to more than n silently declared FEWER
+    usable servers than intended -- e.g. the 64q physical model's
+    [14,13,14,14,13,14] (sum 82, 18 more than the 64 qubits routed) came out
+    as actual server sizes [14,13,14,14,9,1]: one core reduced to a single
+    slot, effectively a 5-core device.  This function instead gives every
+    server its full declared capacity regardless of `n`, so a distributor
+    sees the network capacities as intended and n is not involved at all.
+    """
     out, q = {}, 0
     for s, cap in enumerate(capacities):
-        take = min(cap, max(0, n - q))
-        out[s] = list(range(q, q + take))
-        q += take
-    if q < n:
-        raise SystemExit(f"capacity {sum(capacities)} cannot hold {n} qubits")
-    # NISQNetwork rejects empty servers; give any empty one a spare slot.
-    for s in out:
-        if not out[s]:
-            out[s] = [q]; q += 1
+        if cap <= 0:
+            raise SystemExit(f"server {s} has non-positive capacity {cap}")
+        out[s] = list(range(q, q + cap))
+        q += cap
     return out
 
 
 def build_networks(arch, n_logical):
-    """The three network models described in the module docstring."""
+    """The three network models described in the module docstring.
+
+    A_published now gives every server the FULL core (`M` qubits, the
+    server's total physical size) rather than an even split of the logical
+    count: the published convention is that server size is unrelated to the
+    circuit being routed, and a full core is the natural "unconstrained"
+    reading -- also what makes A strictly more permissive than C in BOTH
+    axes (capacity and server size), rather than more permissive in one and
+    tighter in the other.  See CHANGES_FROM_SUBMITTED.md.
+    """
     from pytket_dqc.networks import NISQNetwork
     K = arch.num_cores
     M = len(arch.core_qubits(0))
     deg = dict(arch.core_graph.degree())
     coupling = [[int(u), int(v)] for u, v in sorted(arch.core_graph.edges())]
 
-    even_cap = [n_logical // K + (1 if i < n_logical % K else 0) for i in range(K)]
+    full_cap = [M for _ in range(K)]
     phys_cap = [M - deg[c] for c in range(K)]
     ebit = {c: deg[c] for c in range(K)}
+    if n_logical > sum(phys_cap):
+        raise SystemExit(f"{n_logical} logical qubits exceed physical "
+                         f"capacity {sum(phys_cap)}={phys_cap}")
 
     return {
-        "A_published": NISQNetwork(coupling, even_split(n_logical, even_cap)),
-        "B_ports":     NISQNetwork(coupling, even_split(n_logical, even_cap),
+        "A_published": NISQNetwork(coupling, full_capacity(full_cap)),
+        "B_ports":     NISQNetwork(coupling, full_capacity(full_cap),
                                    server_ebit_mem=dict(ebit)),
-        "C_physical":  NISQNetwork(coupling, even_split(n_logical, phys_cap),
+        "C_physical":  NISQNetwork(coupling, full_capacity(phys_cap),
                                    server_ebit_mem=dict(ebit)),
-    }, dict(K=K, M=M, deg=deg, even_cap=even_cap, phys_cap=phys_cap)
+    }, dict(K=K, M=M, deg=deg, full_cap=full_cap, phys_cap=phys_cap)
 
 
 class _Timeout(Exception):
@@ -153,12 +183,18 @@ def _call_with_timeout(fn, seconds):
 
 
 def distribute(circ, network, budget_s):
-    """Best-of-NUM_SEEDS with the strongest distributor that completes."""
+    """Best-of-NUM_SEEDS with the strongest distributor that completes.
+
+    Also returns which seeds actually finished.  A seed loop cut short by
+    `budget_s` returns a worse best-of than a loop that ran to completion, and
+    an unrecorded truncation is indistinguishable from a converged search --
+    which is how tab:fair and the D_max sweep came to disagree on qft.
+    """
     from pytket_dqc.distributors import (CoverEmbeddingSteinerDetached,
                                          PartitioningHeterogeneous)
     for name, ctor in (("CoverEmbeddingSteinerDetached", CoverEmbeddingSteinerDetached),
                        ("PartitioningHeterogeneous", PartitioningHeterogeneous)):
-        best, t0 = None, time.perf_counter()
+        best, t0, completed = None, time.perf_counter(), []
         for seed in range(NUM_SEEDS):
             remaining = budget_s - (time.perf_counter() - t0)
             if remaining <= 1:
@@ -167,13 +203,53 @@ def distribute(circ, network, budget_s):
                 d = _call_with_timeout(
                     lambda: ctor().distribute(circ, network, seed=seed), remaining)
                 c = d.cost()
+                completed.append(seed)
                 if best is None or c < best[0]:
                     best = (c, d)
             except (_Timeout, Exception):
                 continue
         if best is not None:
-            return best[0], best[1], name
-    return None, None, None
+            return best[0], best[1], name, completed
+    return None, None, None, []
+
+
+def save_distribution(dist, suite, circuit, model):
+    """Persist a Distribution so it never has to be searched for again.
+
+    `Distribution.to_dict()` is the tool's own JSON form and round-trips
+    `cost()` exactly, including the hypergraph as the refiners left it -- a
+    placement alone does not (CoverEmbeddingSteinerDetached rewrites
+    hyperedges, and a fresh HypergraphCircuit re-scores differently).
+    """
+    os.makedirs(_DIST_DIR, exist_ok=True)
+    path = os.path.join(_DIST_DIR, f"{suite}_{circuit}_{model}.json.gz")
+    with gzip.open(path, "wt") as f:
+        json.dump(dist.to_dict(), f)
+    return os.path.relpath(path, _HERE)
+
+
+def _provenance(budget_s):
+    """Everything needed to say what produced these numbers."""
+    import platform
+    vers = {}
+    for mod in ("pytket", "pytket_dqc", "kahypar", "networkx"):
+        try:
+            vers[mod] = __import__(mod).__version__
+        except Exception:
+            try:
+                from importlib.metadata import version
+                vers[mod] = version(mod)
+            except Exception:
+                vers[mod] = "unknown"
+    try:
+        commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
+                                cwd=_HERE, capture_output=True, text=True,
+                                timeout=10).stdout.strip() or "unknown"
+    except Exception:
+        commit = "unknown"
+    return dict(date=time.strftime("%Y-%m-%d %H:%M:%S"), seeds=NUM_SEEDS,
+                budget_s=budget_s, python=platform.python_version(),
+                platform=platform.platform(), versions=vers, git_commit=commit)
 
 
 def required_ebit_mem(dist, cap_hint, max_try=64, budget_s=420.0):
@@ -249,13 +325,19 @@ def main():
     ap.add_argument("--suite", choices=list(SUITES) + ["all"], default="all")
     ap.add_argument("--budget", type=float, default=1200.0,
                     help="per-distributor seconds per circuit")
+    ap.add_argument("--out", default="results_pytket_fair.json",
+                    help="results filename under results/")
+    ap.add_argument("--no-save-distributions", dest="save_distributions",
+                    action="store_false",
+                    help="skip persisting each distribution (they are what "
+                         "lets a later re-scoring use this exact answer)")
     args = ap.parse_args()
     suites = list(SUITES) if args.suite == "all" else [args.suite]
 
     from pytket.qasm import circuit_from_qasm
     from pytket_dqc.utils import DQCPass
 
-    out_path = os.path.join(_RESULTS_DIR, "results_pytket_fair.json")
+    out_path = os.path.join(_RESULTS_DIR, args.out)
     done = set()
     if os.path.exists(out_path):
         try:
@@ -263,7 +345,7 @@ def main():
             done = {(r["suite"], r["circuit"]) for r in prev["results"]}
         except Exception:
             prev = None
-    payload = {"meta": {"date": time.strftime("%Y-%m-%d"), "seeds": NUM_SEEDS,
+    payload = {"meta": {**_provenance(args.budget),
                         "models": {
                             "A_published": "even split of logical qubits, unbounded ebit memory",
                             "B_ports": "same data capacity, server_ebit_mem = deg(core)",
@@ -300,16 +382,23 @@ def main():
             row = dict(suite=suite, circuit=cname, n_logical=n_log,
                        cores=info["K"], qubits_per_core=info["M"],
                        degree=info["deg"], phys_cap=info["phys_cap"])
-            print(f"  {cname}: n={n_log} caps even={info['even_cap']} "
+            print(f"  {cname}: n={n_log} caps full={info['full_cap']} "
                   f"phys={info['phys_cap']} ebit={info['deg']}", flush=True)
 
             for model, net in nets.items():
                 t0 = time.perf_counter()
-                cost, dist, method = distribute(circ, net, args.budget)
+                cost, dist, method, seeds = distribute(circ, net, args.budget)
                 row[model] = dict(ebits=cost, method=method,
-                                  time_s=round(time.perf_counter() - t0, 1))
+                                  time_s=round(time.perf_counter() - t0, 1),
+                                  seeds_completed=seeds,
+                                  seed_loop_truncated=(len(seeds) < NUM_SEEDS))
+                if dist is not None and args.save_distributions:
+                    row[model]["distribution"] = save_distribution(
+                        dist, suite, cname, model)
                 print(f"    {model:12s} ebits={cost} ({method}) "
-                      f"{row[model]['time_s']}s", flush=True)
+                      f"{row[model]['time_s']}s seeds={seeds}"
+                      f"{' TRUNCATED' if len(seeds) < NUM_SEEDS else ''}",
+                      flush=True)
                 if model == "A_published" and dist is not None:
                     need = required_ebit_mem(dist, info["deg"])
                     row["A_required_ebit_mem"] = need

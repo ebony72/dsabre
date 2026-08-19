@@ -1,0 +1,554 @@
+{
+  "meta": {
+    "date": "2026-07-30",
+    "study": "freeslots",
+    "suite": "25q_c133",
+    "arch": "B-grid 1x3 of 3x3 (27 physical, 3 cores x 9) \u2014 F=2<K=3",
+    "router": "dSE (dsabre_ext.dSABRE_BurstExt)",
+    "circuits": [
+      "ae",
+      "ghz",
+      "graphstate",
+      "qft",
+      "qnn",
+      "random"
+    ],
+    "K": 3,
+    "spc": 9,
+    "F": 2,
+    "core_priority": [
+      1,
+      0,
+      2
+    ],
+    "profiles": [
+      {
+        "name": "full1_center",
+        "frees": [
+          1,
+          0,
+          1
+        ],
+        "budgets": [
+          8,
+          9,
+          8
+        ]
+      },
+      {
+        "name": "full1_corner",
+        "frees": [
+          1,
+          1,
+          0
+        ],
+        "budgets": [
+          8,
+          8,
+          9
+        ]
+      },
+      {
+        "name": "conc_center",
+        "frees": [
+          0,
+          2,
+          0
+        ],
+        "budgets": [
+          9,
+          7,
+          9
+        ]
+      },
+      {
+        "name": "conc_corner",
+        "frees": [
+          0,
+          0,
+          2
+        ],
+        "budgets": [
+          9,
+          9,
+          7
+        ]
+      }
+    ],
+    "protocol": "repack to exact budgets from production corner-removed SabreLayout (3 seeds), fwd->bwd->fwd per layout, best EPR; p1ab = layouts whose first forward pass aborted, fail = layouts with no result"
+  },
+  "results": [
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "full1_center",
+      "frees": [
+        1,
+        0,
+        1
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "ae",
+      "cx": 558,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 15.5
+    },
+    {
+      "aborted": false,
+      "eprs": 23,
+      "ls": 41,
+      "cost": 353.0,
+      "time_s": 0.272,
+      "relief_candidates": 0,
+      "relief_picks": 0,
+      "backup_activations": 3,
+      "force_make_room": 165,
+      "suite": "25q_c133",
+      "profile": "full1_center",
+      "frees": [
+        1,
+        0,
+        1
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "ghz",
+      "cx": 24,
+      "pass1_aborts": 2,
+      "layout_failures": 2,
+      "n_layouts": 3,
+      "total_time": 0.3
+    },
+    {
+      "aborted": false,
+      "eprs": 11,
+      "ls": 29,
+      "cost": 197.0,
+      "time_s": 0.32,
+      "relief_candidates": 0,
+      "relief_picks": 0,
+      "backup_activations": 1,
+      "force_make_room": 58,
+      "suite": "25q_c133",
+      "profile": "full1_center",
+      "frees": [
+        1,
+        0,
+        1
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "graphstate",
+      "cx": 25,
+      "pass1_aborts": 2,
+      "layout_failures": 2,
+      "n_layouts": 3,
+      "total_time": 0.3
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "full1_center",
+      "frees": [
+        1,
+        0,
+        1
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "qft",
+      "cx": 580,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 56.0
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "full1_center",
+      "frees": [
+        1,
+        0,
+        1
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "qnn",
+      "cx": 1223,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 9.9
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "full1_center",
+      "frees": [
+        1,
+        0,
+        1
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "random",
+      "cx": 1124,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 234.0
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "full1_corner",
+      "frees": [
+        1,
+        1,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "ae",
+      "cx": 558,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 17.1
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "full1_corner",
+      "frees": [
+        1,
+        1,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "ghz",
+      "cx": 24,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 0.4
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "full1_corner",
+      "frees": [
+        1,
+        1,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "graphstate",
+      "cx": 25,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 7.0
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "full1_corner",
+      "frees": [
+        1,
+        1,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "qft",
+      "cx": 580,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 81.5
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "full1_corner",
+      "frees": [
+        1,
+        1,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "qnn",
+      "cx": 1223,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 15.5
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "full1_corner",
+      "frees": [
+        1,
+        1,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 1,
+      "circuit": "random",
+      "cx": 1124,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 390.2
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "conc_center",
+      "frees": [
+        0,
+        2,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "ae",
+      "cx": 558,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 3.8
+    },
+    {
+      "aborted": false,
+      "eprs": 18,
+      "ls": 32,
+      "cost": 276.0,
+      "time_s": 0.152,
+      "relief_candidates": 0,
+      "relief_picks": 0,
+      "backup_activations": 2,
+      "force_make_room": 111,
+      "suite": "25q_c133",
+      "profile": "conc_center",
+      "frees": [
+        0,
+        2,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "ghz",
+      "cx": 24,
+      "pass1_aborts": 1,
+      "layout_failures": 1,
+      "n_layouts": 3,
+      "total_time": 0.2
+    },
+    {
+      "aborted": false,
+      "eprs": 8,
+      "ls": 24,
+      "cost": 152.0,
+      "time_s": 0.099,
+      "relief_candidates": 0,
+      "relief_picks": 0,
+      "backup_activations": 0,
+      "force_make_room": 4,
+      "suite": "25q_c133",
+      "profile": "conc_center",
+      "frees": [
+        0,
+        2,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "graphstate",
+      "cx": 25,
+      "pass1_aborts": 1,
+      "layout_failures": 1,
+      "n_layouts": 3,
+      "total_time": 0.1
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "conc_center",
+      "frees": [
+        0,
+        2,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "qft",
+      "cx": 580,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 50.0
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "conc_center",
+      "frees": [
+        0,
+        2,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "qnn",
+      "cx": 1223,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 5.6
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "conc_center",
+      "frees": [
+        0,
+        2,
+        0
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "random",
+      "cx": 1124,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 322.6
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "conc_corner",
+      "frees": [
+        0,
+        0,
+        2
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "ae",
+      "cx": 558,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 5.3
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "conc_corner",
+      "frees": [
+        0,
+        0,
+        2
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "ghz",
+      "cx": 24,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 0.2
+    },
+    {
+      "aborted": false,
+      "eprs": 13,
+      "ls": 30,
+      "cost": 220.0,
+      "time_s": 1.269,
+      "relief_candidates": 0,
+      "relief_picks": 0,
+      "backup_activations": 1,
+      "force_make_room": 8,
+      "suite": "25q_c133",
+      "profile": "conc_corner",
+      "frees": [
+        0,
+        0,
+        2
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "graphstate",
+      "cx": 25,
+      "pass1_aborts": 2,
+      "layout_failures": 2,
+      "n_layouts": 3,
+      "total_time": 1.3
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "conc_corner",
+      "frees": [
+        0,
+        0,
+        2
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "qft",
+      "cx": 580,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 51.0
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "conc_corner",
+      "frees": [
+        0,
+        0,
+        2
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "qnn",
+      "cx": 1223,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 7.3
+    },
+    {
+      "aborted": true,
+      "suite": "25q_c133",
+      "profile": "conc_corner",
+      "frees": [
+        0,
+        0,
+        2
+      ],
+      "min_free": 0,
+      "zero_cores": 2,
+      "circuit": "random",
+      "cx": 1124,
+      "pass1_aborts": 3,
+      "layout_failures": 3,
+      "n_layouts": 3,
+      "total_time": 223.5
+    }
+  ]
+}

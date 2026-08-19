@@ -1,0 +1,421 @@
+{
+  "date": "2026-08-03",
+  "study": "commit_bonus / hard_lock sweep",
+  "suite": "64q",
+  "arch": "H-grid 2x3 4x4 (96 physical, 6 cores x 16)",
+  "router": "dSE (dsabre_ext.dSABRE_BurstExt)",
+  "circuits": [
+    "ae",
+    "ghz",
+    "graphstate",
+    "qft",
+    "qnn",
+    "random",
+    "qpeexact",
+    "qaoa",
+    "multiplier"
+  ],
+  "conditions": [
+    "0.0",
+    "8.0",
+    "hard"
+  ],
+  "rows": {
+    "ae": {
+      "n_cx": 1962,
+      "by_bonus": {
+        "0.0": {
+          "aborted": false,
+          "eprs": 202,
+          "ls": 1506,
+          "cost": 6538.0,
+          "time_s": 31.329,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "0.0",
+          "wall_s": 31.33,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "8.0": {
+          "aborted": false,
+          "eprs": 179,
+          "ls": 1490,
+          "cost": 6260.0,
+          "time_s": 35.424,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "8.0",
+          "wall_s": 35.42,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "hard": {
+          "aborted": false,
+          "eprs": 178,
+          "ls": 1423,
+          "cost": 6049.0,
+          "time_s": 37.11,
+          "backup_activations": 2,
+          "force_make_room": 2,
+          "condition": "hard",
+          "wall_s": 37.11,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "ghz": {
+      "n_cx": 63,
+      "by_bonus": {
+        "0.0": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "cost": 177.0,
+          "time_s": 0.056,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "0.0",
+          "wall_s": 0.06,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "8.0": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "cost": 177.0,
+          "time_s": 0.056,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "8.0",
+          "wall_s": 0.06,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "hard": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "cost": 177.0,
+          "time_s": 0.056,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "hard",
+          "wall_s": 0.06,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "graphstate": {
+      "n_cx": 64,
+      "by_bonus": {
+        "0.0": {
+          "aborted": false,
+          "eprs": 16,
+          "ls": 89,
+          "cost": 427.0,
+          "time_s": 0.17,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "0.0",
+          "wall_s": 0.17,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "8.0": {
+          "aborted": false,
+          "eprs": 18,
+          "ls": 111,
+          "cost": 513.0,
+          "time_s": 0.168,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "8.0",
+          "wall_s": 0.17,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "hard": {
+          "aborted": false,
+          "eprs": 18,
+          "ls": 111,
+          "cost": 513.0,
+          "time_s": 0.165,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "hard",
+          "wall_s": 0.16,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "qft": {
+      "n_cx": 1966,
+      "by_bonus": {
+        "0.0": {
+          "aborted": false,
+          "eprs": 218,
+          "ls": 1622,
+          "cost": 7046.0,
+          "time_s": 36.343,
+          "backup_activations": 1,
+          "force_make_room": 1,
+          "condition": "0.0",
+          "wall_s": 36.34,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "8.0": {
+          "aborted": false,
+          "eprs": 224,
+          "ls": 1672,
+          "cost": 7256.0,
+          "time_s": 37.434,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "8.0",
+          "wall_s": 37.43,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "hard": {
+          "aborted": false,
+          "eprs": 203,
+          "ls": 1565,
+          "cost": 6725.0,
+          "time_s": 24.387,
+          "backup_activations": 2,
+          "force_make_room": 2,
+          "condition": "hard",
+          "wall_s": 24.39,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "qnn": {
+      "n_cx": 8126,
+      "by_bonus": {
+        "0.0": {
+          "aborted": false,
+          "eprs": 501,
+          "ls": 5285,
+          "cost": 20865.0,
+          "time_s": 284.729,
+          "backup_activations": 1,
+          "force_make_room": 1,
+          "condition": "0.0",
+          "wall_s": 284.73,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "8.0": {
+          "aborted": false,
+          "eprs": 498,
+          "ls": 5321,
+          "cost": 20943.0,
+          "time_s": 245.983,
+          "backup_activations": 1,
+          "force_make_room": 1,
+          "condition": "8.0",
+          "wall_s": 245.98,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "hard": {
+          "aborted": false,
+          "eprs": 494,
+          "ls": 5229,
+          "cost": 20627.0,
+          "time_s": 248.272,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "hard",
+          "wall_s": 248.27,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "random": {
+      "n_cx": 1627,
+      "by_bonus": {
+        "0.0": {
+          "aborted": false,
+          "eprs": 712,
+          "ls": 3635,
+          "cost": 18025.0,
+          "time_s": 50.529,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "0.0",
+          "wall_s": 50.53,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "8.0": {
+          "aborted": false,
+          "eprs": 745,
+          "ls": 3920,
+          "cost": 19210.0,
+          "time_s": 55.576,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "8.0",
+          "wall_s": 55.58,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "hard": {
+          "aborted": false,
+          "eprs": 759,
+          "ls": 3833,
+          "cost": 19089.0,
+          "time_s": 63.149,
+          "backup_activations": 1,
+          "force_make_room": 1,
+          "condition": "hard",
+          "wall_s": 63.15,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "qpeexact": {
+      "n_cx": 2139,
+      "by_bonus": {
+        "0.0": {
+          "aborted": false,
+          "eprs": 192,
+          "ls": 1564,
+          "cost": 6612.0,
+          "time_s": 35.249,
+          "backup_activations": 3,
+          "force_make_room": 3,
+          "condition": "0.0",
+          "wall_s": 35.25,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "8.0": {
+          "aborted": false,
+          "eprs": 196,
+          "ls": 1567,
+          "cost": 6661.0,
+          "time_s": 32.612,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "8.0",
+          "wall_s": 32.61,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "hard": {
+          "aborted": false,
+          "eprs": 223,
+          "ls": 1784,
+          "cost": 7582.0,
+          "time_s": 39.112,
+          "backup_activations": 4,
+          "force_make_room": 5,
+          "condition": "hard",
+          "wall_s": 39.11,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "qaoa": {
+      "n_cx": 3920,
+      "by_bonus": {
+        "0.0": {
+          "aborted": false,
+          "eprs": 542,
+          "ls": 3775,
+          "cost": 16745.0,
+          "time_s": 94.101,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "0.0",
+          "wall_s": 94.1,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "8.0": {
+          "aborted": false,
+          "eprs": 516,
+          "ls": 3570,
+          "cost": 15870.0,
+          "time_s": 78.521,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "8.0",
+          "wall_s": 78.52,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "hard": {
+          "aborted": false,
+          "eprs": 521,
+          "ls": 3561,
+          "cost": 15893.0,
+          "time_s": 71.282,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "hard",
+          "wall_s": 71.28,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    },
+    "multiplier": {
+      "n_cx": 13040,
+      "by_bonus": {
+        "0.0": {
+          "aborted": false,
+          "eprs": 1924,
+          "ls": 10790,
+          "cost": 51610.0,
+          "time_s": 1440.684,
+          "backup_activations": 1,
+          "force_make_room": 1,
+          "condition": "0.0",
+          "wall_s": 1440.68,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "8.0": {
+          "aborted": false,
+          "eprs": 1253,
+          "ls": 9021,
+          "cost": 39593.0,
+          "time_s": 1259.086,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "8.0",
+          "wall_s": 1259.09,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        },
+        "hard": {
+          "aborted": false,
+          "eprs": 1123,
+          "ls": 8511,
+          "cost": 36763.0,
+          "time_s": 1267.387,
+          "backup_activations": 0,
+          "force_make_room": 0,
+          "condition": "hard",
+          "wall_s": 1267.39,
+          "pass1_aborts": 0,
+          "layout_failures": 0
+        }
+      }
+    }
+  }
+}

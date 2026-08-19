@@ -1,0 +1,413 @@
+{
+ "meta": {
+  "date": "2026-08-11",
+  "what": "TeleSABRE seeds 0/1/2 under optimize_initial + hungarian"
+ },
+ "results": [
+  {
+   "suite": "25q",
+   "circuit": "ae",
+   "eprs": [
+    26,
+    26,
+    26
+   ],
+   "ls": [
+    292,
+    292,
+    292
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "25q",
+   "circuit": "ghz",
+   "eprs": [
+    4,
+    4,
+    4
+   ],
+   "ls": [
+    36,
+    36,
+    36
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "25q",
+   "circuit": "graphstate",
+   "eprs": [
+    13,
+    13,
+    13
+   ],
+   "ls": [
+    47,
+    47,
+    47
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "25q",
+   "circuit": "qft",
+   "eprs": [
+    46,
+    46,
+    46
+   ],
+   "ls": [
+    405,
+    405,
+    405
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "25q",
+   "circuit": "qnn",
+   "eprs": [
+    54,
+    54,
+    54
+   ],
+   "ls": [
+    659,
+    659,
+    659
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "25q",
+   "circuit": "random",
+   "eprs": [
+    271,
+    271,
+    271
+   ],
+   "ls": [
+    1248,
+    1248,
+    1248
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "36q",
+   "circuit": "bv",
+   "eprs": [
+    6,
+    6,
+    6
+   ],
+   "ls": [
+    39,
+    39,
+    39
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "36q",
+   "circuit": "dj",
+   "eprs": [
+    4,
+    4,
+    4
+   ],
+   "ls": [
+    63,
+    63,
+    63
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "36q",
+   "circuit": "qaoa",
+   "eprs": [
+    268,
+    268,
+    268
+   ],
+   "ls": [
+    1165,
+    1165,
+    1165
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "36q",
+   "circuit": "qpeexact",
+   "eprs": [
+    190,
+    190,
+    190
+   ],
+   "ls": [
+    883,
+    883,
+    883
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "36q",
+   "circuit": "vqe_su2",
+   "eprs": [
+    28,
+    28,
+    28
+   ],
+   "ls": [
+    134,
+    134,
+    134
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "36q",
+   "circuit": "wstate",
+   "eprs": [
+    13,
+    13,
+    13
+   ],
+   "ls": [
+    79,
+    79,
+    79
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "64q",
+   "circuit": "ae",
+   "eprs": [
+    353,
+    353,
+    353
+   ],
+   "ls": [
+    1494,
+    1494,
+    1494
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "64q",
+   "circuit": "ghz",
+   "eprs": [
+    16,
+    16,
+    16
+   ],
+   "ls": [
+    132,
+    132,
+    132
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "64q",
+   "circuit": "graphstate",
+   "eprs": [
+    62,
+    62,
+    62
+   ],
+   "ls": [
+    281,
+    281,
+    281
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "64q",
+   "circuit": "qft",
+   "eprs": [
+    312,
+    312,
+    312
+   ],
+   "ls": [
+    1711,
+    1711,
+    1711
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "64q",
+   "circuit": "qnn",
+   "eprs": [
+    889,
+    889,
+    889
+   ],
+   "ls": [
+    5471,
+    5471,
+    5471
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "64q",
+   "circuit": "random",
+   "eprs": [
+    null,
+    null,
+    null
+   ],
+   "ls": [
+    null,
+    null,
+    null
+   ],
+   "verdict": "all fail"
+  },
+  {
+   "suite": "64q",
+   "circuit": "qpeexact",
+   "eprs": [
+    289,
+    289,
+    289
+   ],
+   "ls": [
+    1706,
+    1706,
+    1706
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "64q",
+   "circuit": "qaoa",
+   "eprs": [
+    956,
+    956,
+    956
+   ],
+   "ls": [
+    4189,
+    4189,
+    4189
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "64q",
+   "circuit": "multiplier",
+   "eprs": [
+    1601,
+    1601,
+    1601
+   ],
+   "ls": [
+    9654,
+    9654,
+    9654
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "100q",
+   "circuit": "qft",
+   "eprs": [
+    248,
+    248,
+    248
+   ],
+   "ls": [
+    2414,
+    2414,
+    2414
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "100q",
+   "circuit": "qpeexact",
+   "eprs": [
+    586,
+    586,
+    586
+   ],
+   "ls": [
+    3485,
+    3485,
+    3485
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "200q",
+   "circuit": "qft",
+   "eprs": [
+    1232,
+    1232,
+    1232
+   ],
+   "ls": [
+    7089,
+    7089,
+    7089
+   ],
+   "verdict": "IDENTICAL"
+  },
+  {
+   "suite": "200q",
+   "circuit": "qpeexact",
+   "eprs": [
+    null,
+    null,
+    null
+   ],
+   "ls": [
+    null,
+    null,
+    null
+   ],
+   "verdict": "all fail"
+  },
+  {
+   "suite": "360q",
+   "circuit": "qft",
+   "eprs": [
+    null,
+    null,
+    null
+   ],
+   "ls": [
+    null,
+    null,
+    null
+   ],
+   "verdict": "all fail"
+  },
+  {
+   "suite": "360q",
+   "circuit": "qpeexact",
+   "eprs": [
+    null,
+    null,
+    null
+   ],
+   "ls": [
+    null,
+    null,
+    null
+   ],
+   "verdict": "all fail"
+  }
+ ]
+}

@@ -1,0 +1,389 @@
+{
+  "meta": {
+    "date": "2026-08-13 07:25:45",
+    "seeds": 5,
+    "budget_s": 900.0,
+    "python": "3.13.9",
+    "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "versions": {
+      "pytket": "2.16.0",
+      "pytket_dqc": "0.0.1",
+      "kahypar": "1.3.5",
+      "networkx": "3.5"
+    },
+    "git_commit": "b576b12",
+    "models": {
+      "A_published": "even split of logical qubits, unbounded ebit memory",
+      "B_ports": "same data capacity, server_ebit_mem = deg(core)",
+      "C_physical": "data capacity M-deg(core), server_ebit_mem = deg(core)"
+    }
+  },
+  "results": [
+    {
+      "suite": "25q",
+      "circuit": "ae",
+      "n_logical": 25,
+      "cores": 4,
+      "qubits_per_core": 16,
+      "degree": {
+        "0": 2,
+        "1": 2,
+        "2": 2,
+        "3": 2
+      },
+      "phys_cap": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "A_published": {
+        "ebits": 48,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 17.6,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_ae_A_published.json.gz"
+      },
+      "A_required_ebit_mem": 20,
+      "B_ports": {
+        "ebits": 48,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 19.0,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_ae_B_ports.json.gz"
+      },
+      "C_physical": {
+        "ebits": 48,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 19.0,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_ae_C_physical.json.gz"
+      },
+      "C_fits_port_bound": false
+    },
+    {
+      "suite": "25q",
+      "circuit": "ghz",
+      "n_logical": 25,
+      "cores": 4,
+      "qubits_per_core": 16,
+      "degree": {
+        "0": 2,
+        "1": 2,
+        "2": 2,
+        "3": 2
+      },
+      "phys_cap": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "A_published": {
+        "ebits": 3,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 0.1,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_ghz_A_published.json.gz"
+      },
+      "A_required_ebit_mem": 1,
+      "B_ports": {
+        "ebits": 3,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 0.1,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_ghz_B_ports.json.gz"
+      },
+      "C_physical": {
+        "ebits": 3,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 0.1,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_ghz_C_physical.json.gz"
+      },
+      "C_fits_port_bound": true
+    },
+    {
+      "suite": "25q",
+      "circuit": "graphstate",
+      "n_logical": 25,
+      "cores": 4,
+      "qubits_per_core": 16,
+      "degree": {
+        "0": 2,
+        "1": 2,
+        "2": 2,
+        "3": 2
+      },
+      "phys_cap": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "A_published": {
+        "ebits": 4,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 0.3,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_graphstate_A_published.json.gz"
+      },
+      "A_required_ebit_mem": 1,
+      "B_ports": {
+        "ebits": 4,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 0.1,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_graphstate_B_ports.json.gz"
+      },
+      "C_physical": {
+        "ebits": 4,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 0.1,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_graphstate_C_physical.json.gz"
+      },
+      "C_fits_port_bound": true
+    },
+    {
+      "suite": "25q",
+      "circuit": "qft",
+      "n_logical": 25,
+      "cores": 4,
+      "qubits_per_core": 16,
+      "degree": {
+        "0": 2,
+        "1": 2,
+        "2": 2,
+        "3": 2
+      },
+      "phys_cap": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "A_published": {
+        "ebits": 59,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 31.5,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_qft_A_published.json.gz"
+      },
+      "A_required_ebit_mem": 7,
+      "B_ports": {
+        "ebits": 59,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 30.2,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_qft_B_ports.json.gz"
+      },
+      "C_physical": {
+        "ebits": 57,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 29.7,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_qft_C_physical.json.gz"
+      },
+      "C_fits_port_bound": false
+    },
+    {
+      "suite": "25q",
+      "circuit": "qnn",
+      "n_logical": 25,
+      "cores": 4,
+      "qubits_per_core": 16,
+      "degree": {
+        "0": 2,
+        "1": 2,
+        "2": 2,
+        "3": 2
+      },
+      "phys_cap": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "A_published": {
+        "ebits": 114,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 127.8,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_qnn_A_published.json.gz"
+      },
+      "A_required_ebit_mem": -12,
+      "B_ports": {
+        "ebits": 114,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 127.7,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_qnn_B_ports.json.gz"
+      },
+      "C_physical": {
+        "ebits": 111,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 119.9,
+        "seeds_completed": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_loop_truncated": false,
+        "distribution": "results/distributions/25q_qnn_C_physical.json.gz"
+      },
+      "C_fits_port_bound": false
+    },
+    {
+      "suite": "25q",
+      "circuit": "random",
+      "n_logical": 25,
+      "cores": 4,
+      "qubits_per_core": 16,
+      "degree": {
+        "0": 2,
+        "1": 2,
+        "2": 2,
+        "3": 2
+      },
+      "phys_cap": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "A_published": {
+        "ebits": 468,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 86.0,
+        "seeds_completed": [
+          4
+        ],
+        "seed_loop_truncated": true,
+        "distribution": "results/distributions/25q_random_A_published.json.gz"
+      },
+      "A_required_ebit_mem": -7,
+      "B_ports": {
+        "ebits": 468,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 86.1,
+        "seeds_completed": [
+          4
+        ],
+        "seed_loop_truncated": true,
+        "distribution": "results/distributions/25q_random_B_ports.json.gz"
+      },
+      "C_physical": {
+        "ebits": 468,
+        "method": "CoverEmbeddingSteinerDetached",
+        "time_s": 86.2,
+        "seeds_completed": [
+          4
+        ],
+        "seed_loop_truncated": true,
+        "distribution": "results/distributions/25q_random_C_physical.json.gz"
+      },
+      "C_fits_port_bound": false
+    }
+  ]
+}

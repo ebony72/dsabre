@@ -35,6 +35,7 @@ from config import HardwareConfig
 from router import General_dSABRE_Router
 from dsabre_ext import dSABRE_BurstExt
 from layout import sabre_locked_boundary_layout, run_sabre_passes
+from circuit_paths import circuits_path
 
 
 def p2v_to_layout(p2v, dag):
@@ -47,11 +48,14 @@ TS_BIN       = os.path.expanduser("~/Documents/telesabre/telesabre")
 _RESULTS_DIR = os.environ.get("DSABRE_OUT_DIR") or os.path.join(os.path.dirname(__file__), "results")
 os.makedirs(_RESULTS_DIR, exist_ok=True)
 
-_HW = HardwareConfig(deadlock_limit=200, max_backup_attempts=200, max_iterations=50000)
+# Recovery budgets derived per architecture at route() entry, not tuned per
+# suite -- see benchmark.py's _HW and probe_derived_deadlock.py.
+_HW = HardwareConfig(deadlock_limit=None, max_backup_attempts=None,
+                     max_iterations=None)
 
 SUITES = {
     "100q": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_100"),
+        circuit_dir = circuits_path("qasm_100"),
         suffix      = "_nativegates_ibm_qiskit_opt3_100.qasm",
         arch        = build_h_grid_architecture(r=2, s=3, m=5),
         ts_dev      = os.path.expanduser("~/Documents/telesabre/devices/H_grid_2_3_5_5.json"),
@@ -59,7 +63,7 @@ SUITES = {
         circuits    = ["qft", "qpeexact"],
     ),
     "200q": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_200"),
+        circuit_dir = circuits_path("qasm_200"),
         suffix      = "_nativegates_ibm_qiskit_opt3_200.qasm",
         # r=3,s=4 (not r=4,s=3): build_h_grid_architecture's link placement is
         # not symmetric under row/column swap -- same core count, size and
@@ -77,7 +81,7 @@ SUITES = {
         circuits    = ["qft", "qpeexact"],
     ),
     "360q": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_360"),
+        circuit_dir = circuits_path("qasm_360"),
         suffix      = "_nativegates_ibm_qiskit_opt3_360.qasm",
         # 4x5 of 5x5 cores (20 cores, 500 physical, diam=7) -- matches the
         # paper's stated scalability series (sec:largecircuits: "core size
@@ -203,8 +207,13 @@ def run_dsabre(router_key, router, qc, dag, rev_dag, arch, label):
                             time_s=round(elapsed, 2), aborted=False,
                             backup_activations=m.get("backup_activations", 0),
                             force_make_room=m.get("force_make_room", 0),
-                            relief_candidates=m.get("relief_candidates", 0),
-                            relief_picks=m.get("relief_picks", 0))
+                            # `backup_activations` counts only the deadlock
+                            # path and so undercounts the guaranteed
+                            # transaction; `safe_routes` is the gate count it
+                            # actually retired.
+                            safe_routes=m.get("safe_routes", 0),
+                            safe_route_failed=m.get("safe_route_failed", 0),
+                            relay_hops=m.get("relay_hops", 0))
         else:
             print(f"    {label} sl_seed{i}: ABORTED ({elapsed:.1f}s)", flush=True)
     if best is None:

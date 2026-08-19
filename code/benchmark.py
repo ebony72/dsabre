@@ -46,40 +46,44 @@ from config import HardwareConfig
 from router import General_dSABRE_Router
 from dsabre_ext import dSABRE_BurstExt
 from layout import sabre_locked_boundary_layout, run_sabre_passes
+from circuit_paths import circuits_path
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 TS_BIN       = os.path.expanduser("~/Documents/telesabre/telesabre")
 _RESULTS_DIR = os.environ.get("DSABRE_OUT_DIR") or os.path.join(os.path.dirname(__file__), "results")
 os.makedirs(_RESULTS_DIR, exist_ok=True)
 
-# ── Hardware configs ───────────────────────────────────────────────────────────
-_HW_SMALL = HardwareConfig()
-_HW_LARGE = HardwareConfig(
-    deadlock_limit=100, max_backup_attempts=100, max_iterations=20000
-)
+# ── Hardware config ────────────────────────────────────────────────────────────
+# One config for every suite.  The three recovery budgets are None, i.e.
+# derived per architecture at route() entry (deadlock_limit_for /
+# iterations_bound), which is what replaced the hand-tuned 50/100/200 that
+# used to differ by suite -- measured to reproduce every published EPR count
+# exactly, see probe_derived_deadlock.py.  No per-suite parameter remains.
+_HW = HardwareConfig(deadlock_limit=None, max_backup_attempts=None,
+                     max_iterations=None)
 
 # ── Suite definitions ──────────────────────────────────────────────────────────
 SUITES = {
     "25q": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_25"),
+        circuit_dir = circuits_path("qasm_25"),
         suffix      = "_nativegates_ibm_qiskit_opt3_25.qasm",
         arch        = build_b_grid_architecture(r=2, s=2, m=4),
         ts_dev      = os.path.expanduser("~/Documents/telesabre/devices/B_grid_2_2_4_4.json"),
-        hw          = _HW_SMALL,
+        hw          = _HW,
     ),
     "36q": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_36"),
+        circuit_dir = circuits_path("qasm_36"),
         suffix      = "_nativegates_ibm_qiskit_opt3_36.qasm",
         arch        = build_b_grid_architecture(r=2, s=2, m=4),
         ts_dev      = os.path.expanduser("~/Documents/telesabre/devices/B_grid_2_2_4_4.json"),
-        hw          = _HW_LARGE,
+        hw          = _HW,
     ),
     "64q": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64"),
+        circuit_dir = circuits_path("qasm_64"),
         suffix      = "_nativegates_ibm_qiskit_opt3_64.qasm",
         arch        = build_h_grid_architecture(r=2, s=3, m=4),
         ts_dev      = os.path.expanduser("~/Documents/telesabre/devices/H_grid_2_3_4_4.json"),
-        hw          = _HW_LARGE,
+        hw          = _HW,
     ),
 }
 
@@ -257,10 +261,19 @@ def bench_suite(suite_name: str, s: dict) -> list:
                     eprs=best_m["eprs"], ls=best_m["ls"],
                     time_s=round(protocol_s, 3),
                     time_seed_s=round(best_m["compile_time"], 3), aborted=False,
-                    relief_candidates  = best_m.get("relief_candidates", 0),
-                    relief_picks       = best_m.get("relief_picks", 0),
                     backup_activations = best_m.get("backup_activations", 0),
                     force_make_room    = best_m.get("force_make_room", 0),
+                    # Safe-mode instrumentation.  `backup_activations` counts
+                    # only the deadlock path, so on its own it UNDERCOUNTS the
+                    # guaranteed transaction, which route() also reaches when
+                    # the candidate list comes back empty and when every
+                    # candidate is rejected at execution time.  `safe_routes`
+                    # is the gate count actually retired by it and is the
+                    # figure the paper reports; `safe_route_failed` must stay
+                    # 0 while the theorem's hypotheses hold.
+                    safe_routes        = best_m.get("safe_routes", 0),
+                    safe_route_failed  = best_m.get("safe_route_failed", 0),
+                    relay_hops         = best_m.get("relay_hops", 0),
                 )
             else:
                 router_results[k] = {"aborted": True}

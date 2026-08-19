@@ -1,66 +1,66 @@
 {
   "meta": {
-    "date": "2026-05-20",
+    "date": "2026-08-05",
     "circuit": "qft",
     "qubits": 360,
     "cx": 13300,
     "arch": "H-grid 2x3 9x9 (486 phys)",
     "protocol": "best of 3 SabreLayout seeds, fwd-bwd-fwd",
-    "total_wall_s": 5549.0
+    "total_wall_s": 3829.8
   },
   "hop_gain_on": {
     "best": {
-      "eprs": 670,
-      "ls": 29831,
-      "layout": "sl_seed0",
-      "time_s": 986.63
+      "eprs": 529,
+      "ls": 12942,
+      "layout": "sl_seed1",
+      "time_s": 614.42
     },
     "seeds": [
       {
         "seed": 0,
-        "eprs": 670,
-        "ls": 29831,
-        "time_s": 986.63
+        "eprs": 623,
+        "ls": 13030,
+        "time_s": 677.86
       },
       {
         "seed": 1,
-        "eprs": 691,
-        "ls": 30175,
-        "time_s": 816.87
+        "eprs": 529,
+        "ls": 12942,
+        "time_s": 614.42
       },
       {
         "seed": 2,
-        "eprs": 1059,
-        "ls": 36588,
-        "time_s": 1131.64
+        "eprs": 559,
+        "ls": 12924,
+        "time_s": 496.73
       }
     ]
   },
   "hop_gain_off": {
     "best": {
-      "eprs": 625,
-      "ls": 28989,
+      "eprs": 472,
+      "ls": 12718,
       "layout": "sl_seed1",
-      "time_s": 812.05
+      "time_s": 714.59
     },
     "seeds": [
       {
         "seed": 0,
-        "eprs": 728,
-        "ls": 26451,
-        "time_s": 995.59
+        "eprs": 623,
+        "ls": 13030,
+        "time_s": 682.02
       },
       {
         "seed": 1,
-        "eprs": 625,
-        "ls": 28989,
-        "time_s": 812.05
+        "eprs": 472,
+        "ls": 12718,
+        "time_s": 714.59
       },
       {
         "seed": 2,
-        "eprs": 1031,
-        "ls": 30553,
-        "time_s": 804.35
+        "eprs": 559,
+        "ls": 12924,
+        "time_s": 642.07
       }
     ]
   }

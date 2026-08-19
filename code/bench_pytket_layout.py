@@ -39,6 +39,7 @@ from config import HardwareConfig
 from router import General_dSABRE_Router
 from dsabre_ext import dSABRE_BurstExt
 from layout import run_sabre_passes
+from circuit_paths import circuits_path
 
 logging.disable(logging.WARNING)
 
@@ -62,7 +63,7 @@ def _even_partition(n: int, k: int) -> list[list[int]]:
 
 SUITES = {
     "25": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_25"),
+        circuit_dir = circuits_path("qasm_25"),
         suffix      = "_nativegates_ibm_qiskit_opt3_25.qasm",
         arch_fn     = lambda: build_b_grid_architecture(r=2, s=2, m=4),
         network_fn  = lambda n: NISQNetwork(
@@ -71,7 +72,7 @@ SUITES = {
         ),
     ),
     "36": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_36"),
+        circuit_dir = circuits_path("qasm_36"),
         suffix      = "_nativegates_ibm_qiskit_opt3_36.qasm",
         arch_fn     = lambda: build_b_grid_architecture(r=2, s=2, m=4),
         network_fn  = lambda n: NISQNetwork(
@@ -80,7 +81,7 @@ SUITES = {
         ),
     ),
     "64": dict(
-        circuit_dir = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64"),
+        circuit_dir = circuits_path("qasm_64"),
         suffix      = "_nativegates_ibm_qiskit_opt3_64.qasm",
         arch_fn     = lambda: build_h_grid_architecture(r=2, s=3, m=4),
         network_fn  = lambda n: NISQNetwork(

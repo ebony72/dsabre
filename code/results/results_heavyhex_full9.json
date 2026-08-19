@@ -1,0 +1,236 @@
+{
+  "meta": {
+    "date": "2026-08-12",
+    "suite": "heavyhex_ring",
+    "arch": "ring of 4 IBM 27q heavy-hex cores (108 physical, 4 links)",
+    "core_graph": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "layout": "SabreLayout per-core adaptive corner reservation, best of 3",
+    "pass_strategy": "fwd -> bwd (reversed DAG) -> fwd; best of pass1/pass3"
+  },
+  "results": [
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "ae",
+      "qubits": 64,
+      "cx": 1962,
+      "ts": {
+        "eprs": 161,
+        "teledata": 145,
+        "telegate": 16,
+        "ls": 2651,
+        "seed": 0,
+        "time_seed_s": 1.02,
+        "time_s": 3.33
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 86,
+          "ls": 2023,
+          "time_s": 0.889,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "ghz",
+      "qubits": 64,
+      "cx": 63,
+      "ts": {
+        "eprs": 5,
+        "teledata": 5,
+        "telegate": 0,
+        "ls": 218,
+        "seed": 0,
+        "time_seed_s": 0.02,
+        "time_s": 0.07
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 2,
+          "ls": 43,
+          "time_s": 0.014,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "graphstate",
+      "qubits": 64,
+      "cx": 64,
+      "ts": {
+        "eprs": 46,
+        "teledata": 46,
+        "telegate": 0,
+        "ls": 497,
+        "seed": 0,
+        "time_seed_s": 0.45,
+        "time_s": 1.3
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 12,
+          "ls": 161,
+          "time_s": 0.047,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "multiplier",
+      "qubits": 64,
+      "cx": 13040,
+      "ts": {
+        "eprs": 798,
+        "teledata": 794,
+        "telegate": 4,
+        "ls": 12712,
+        "seed": 0,
+        "time_seed_s": 96.92,
+        "time_s": 207.13
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 451,
+          "ls": 11450,
+          "time_s": 4.911,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "qaoa",
+      "qubits": 64,
+      "cx": 3920,
+      "ts": {
+        "eprs": 318,
+        "teledata": 304,
+        "telegate": 14,
+        "ls": 5466,
+        "seed": 0,
+        "time_seed_s": 5.51,
+        "time_s": 14.85
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 249,
+          "ls": 5331,
+          "time_s": 1.299,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "qft",
+      "qubits": 64,
+      "cx": 1966,
+      "ts": {
+        "eprs": 153,
+        "teledata": 153,
+        "telegate": 0,
+        "ls": 2869,
+        "seed": 0,
+        "time_seed_s": 1.77,
+        "time_s": 5.18
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 110,
+          "ls": 2461,
+          "time_s": 1.194,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "qnn",
+      "qubits": 64,
+      "cx": 8126,
+      "ts": {
+        "eprs": 1289,
+        "teledata": 351,
+        "telegate": 938,
+        "ls": 11514,
+        "seed": 0,
+        "time_seed_s": 19.96,
+        "time_s": 61.54
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 249,
+          "ls": 7669,
+          "time_s": 2.566,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "qpeexact",
+      "qubits": 64,
+      "cx": 2139,
+      "ts": {
+        "eprs": 131,
+        "teledata": 131,
+        "telegate": 0,
+        "ls": 2486,
+        "seed": 0,
+        "time_seed_s": 1.24,
+        "time_s": 3.91
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 80,
+          "ls": 2001,
+          "time_s": 0.648,
+          "aborted": false
+        }
+      }
+    },
+    {
+      "suite": "heavyhex_ring",
+      "circuit": "random",
+      "qubits": 64,
+      "cx": 1627,
+      "ts": {
+        "eprs": 715,
+        "teledata": 663,
+        "telegate": 52,
+        "ls": 7511,
+        "seed": 0,
+        "time_seed_s": 9.72,
+        "time_s": 28.57
+      },
+      "routers": {
+        "dSE": {
+          "eprs": 465,
+          "ls": 5716,
+          "time_s": 1.539,
+          "aborted": false
+        }
+      }
+    }
+  ]
+}

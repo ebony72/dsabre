@@ -1,95 +1,103 @@
 {
-  "meta": {
-    "date": "2026-07-20",
-    "description": "64q suite extension: qpeexact/qaoa/multiplier",
-    "protocols": "identical to Table VI rows; see module docstring"
-  },
-  "results": [
-    {
-      "circuit": "qpeexact",
-      "suite": "64q",
-      "cx": 2139,
-      "ts": {
-        "eprs": 310,
-        "teledata": 308,
-        "telegate": 2,
-        "ls": 1624,
-        "seed": 0,
-        "time_s": 4.87
-      },
-      "routers": {
-        "dS": {
-          "eprs": 244,
-          "ls": 1681,
-          "time_s": 7.011,
-          "aborted": false
-        },
-        "dSE": {
-          "eprs": 271,
-          "ls": 1792,
-          "time_s": 8.576,
-          "aborted": false
-        }
-      },
-      "esd": 96,
-      "php": 97,
-      "py_ebits": 96,
-      "py_method": "CoverEmbeddingSteinerDetached"
+ "meta": {
+  "date": "2026-07-29",
+  "description": "64q suite extension: qpeexact/qaoa/multiplier",
+  "protocols": "identical to Table VI rows; see module docstring",
+  "time_key_migration": "time_s migrated 2026-07-31: the legacy value (compile time of the winning seed) moved to time_seed_s.  time_s now means the whole-protocol cost and is present only where the run log recorded it; absent means the total was never measured for that row."
+ },
+ "results": [
+  {
+   "circuit": "qpeexact",
+   "suite": "64q",
+   "cx": 2139,
+   "ts": {
+    "eprs": 289,
+    "teledata": 281,
+    "telegate": 8,
+    "ls": 1706,
+    "seed": 0,
+    "time_seed_s": 1.18
+   },
+   "routers": {
+    "dS": {
+     "eprs": 244,
+     "ls": 1681,
+     "aborted": false,
+     "time_seed_s": 7.996
     },
-    {
-      "circuit": "qaoa",
-      "suite": "64q",
-      "cx": 3920,
-      "ts": null,
-      "routers": {
-        "dS": {
-          "eprs": 812,
-          "ls": 4593,
-          "time_s": 25.0,
-          "aborted": false
-        },
-        "dSE": {
-          "eprs": 529,
-          "ls": 3688,
-          "time_s": 26.629,
-          "aborted": false
-        }
-      },
-      "esd": 472,
-      "php": 511,
-      "py_ebits": 472,
-      "py_method": "CoverEmbeddingSteinerDetached"
-    },
-    {
-      "circuit": "multiplier",
-      "suite": "64q",
-      "cx": 13040,
-      "ts": {
-        "eprs": 2202,
-        "teledata": 2155,
-        "telegate": 47,
-        "ls": 11232,
-        "seed": 0,
-        "time_s": 85.69
-      },
-      "routers": {
-        "dS": {
-          "eprs": 1332,
-          "ls": 9074,
-          "time_s": 384.039,
-          "aborted": false
-        },
-        "dSE": {
-          "eprs": 1514,
-          "ls": 10109,
-          "time_s": 462.437,
-          "aborted": false
-        }
-      },
-      "esd": null,
-      "php": 2957,
-      "py_ebits": 2957,
-      "py_method": "PartitioningHeterogeneous"
+    "dSE": {
+     "eprs": 271,
+     "ls": 1792,
+     "aborted": false,
+     "time_seed_s": 8.257
     }
-  ]
+   },
+   "esd": 96,
+   "php": 97,
+   "py_ebits": 96,
+   "py_method": "CoverEmbeddingSteinerDetached"
+  },
+  {
+   "circuit": "qaoa",
+   "suite": "64q",
+   "cx": 3920,
+   "ts": {
+    "eprs": 956,
+    "teledata": 824,
+    "telegate": 132,
+    "ls": 4189,
+    "seed": 0,
+    "time_seed_s": 39.59
+   },
+   "routers": {
+    "dS": {
+     "eprs": 812,
+     "ls": 4593,
+     "aborted": false,
+     "time_seed_s": 28.752
+    },
+    "dSE": {
+     "eprs": 529,
+     "ls": 3688,
+     "aborted": false,
+     "time_seed_s": 29.812
+    }
+   },
+   "esd": 472,
+   "php": 511,
+   "py_ebits": 472,
+   "py_method": "CoverEmbeddingSteinerDetached"
+  },
+  {
+   "circuit": "multiplier",
+   "suite": "64q",
+   "cx": 13040,
+   "ts": {
+    "eprs": 1601,
+    "teledata": 1558,
+    "telegate": 43,
+    "ls": 9654,
+    "seed": 0,
+    "time_seed_s": 110.41
+   },
+   "routers": {
+    "dS": {
+     "eprs": 1332,
+     "ls": 9074,
+     "aborted": false,
+     "time_seed_s": 398.75
+    },
+    "dSE": {
+     "eprs": 1514,
+     "ls": 10109,
+     "aborted": false,
+     "time_seed_s": 474.842
+    }
+   },
+   "esd": null,
+   "php": 2957,
+   "py_ebits": 2957,
+   "py_method": "PartitioningHeterogeneous"
+  }
+ ]
 }

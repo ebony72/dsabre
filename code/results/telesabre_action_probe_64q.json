@@ -1,0 +1,126 @@
+{
+ "suite": 64,
+ "device": "H_grid_2_3_4_4",
+ "per_circuit": {
+  "ae": {
+   "iters": 1949,
+   "intra_present": 1632,
+   "comm_total": 353,
+   "intra_and_comm": 280,
+   "teleports": 259,
+   "telegates": 94,
+   "splits_local_pair": 0
+  },
+  "ghz": {
+   "iters": 149,
+   "intra_present": 71,
+   "comm_total": 16,
+   "intra_and_comm": 0,
+   "teleports": 16,
+   "telegates": 0,
+   "splits_local_pair": 0
+  },
+  "graphstate": {
+   "iters": 2295,
+   "intra_present": 194,
+   "comm_total": 34,
+   "intra_and_comm": 34,
+   "teleports": 32,
+   "telegates": 2,
+   "splits_local_pair": 0
+  },
+  "qft": {
+   "iters": 4660,
+   "intra_present": 1903,
+   "comm_total": 374,
+   "intra_and_comm": 271,
+   "teleports": 307,
+   "telegates": 67,
+   "splits_local_pair": 0
+  },
+  "qpeexact": {
+   "iters": 1996,
+   "intra_present": 1733,
+   "comm_total": 289,
+   "intra_and_comm": 217,
+   "teleports": 281,
+   "telegates": 8,
+   "splits_local_pair": 0
+  },
+  "qaoa": {
+   "iters": 5340,
+   "intra_present": 1994,
+   "comm_total": 330,
+   "intra_and_comm": 267,
+   "teleports": 280,
+   "telegates": 50,
+   "splits_local_pair": 0
+  },
+  "random": {
+   "iters": 3277,
+   "intra_present": 1016,
+   "comm_total": 213,
+   "intra_and_comm": 193,
+   "teleports": 203,
+   "telegates": 10,
+   "splits_local_pair": 0
+  },
+  "qnn": {
+   "iters": 6765,
+   "intra_present": 6228,
+   "comm_total": 889,
+   "intra_and_comm": 840,
+   "teleports": 883,
+   "telegates": 6,
+   "splits_local_pair": 0
+  },
+  "multiplier": {
+   "iters": 13239,
+   "intra_present": 7738,
+   "comm_total": 1484,
+   "intra_and_comm": 266,
+   "teleports": 1464,
+   "telegates": 20,
+   "splits_local_pair": 0
+  }
+ },
+ "examples": {
+  "ae": [],
+  "ghz": [],
+  "graphstate": [],
+  "qft": [],
+  "qpeexact": [],
+  "qaoa": [],
+  "random": [],
+  "qnn": [],
+  "multiplier": []
+ },
+ "energy": {
+  "SWAP": {
+   "n": 829530,
+   "min": 0.0,
+   "median": 12.553,
+   "max": 49.757
+  },
+  "TELEPORT": {
+   "n": 4829,
+   "min": -100.0,
+   "median": -96.718,
+   "max": -58.053
+  },
+  "TELEGATE": {
+   "n": 1700,
+   "min": -98.299,
+   "median": -87.50800000000001,
+   "max": -55.533
+  }
+ },
+ "totals": {
+  "iters_with_intra_front": 22509,
+  "comm_while_intra": 2368,
+  "comm_total": 3982,
+  "teleports": 3725,
+  "telegates": 257,
+  "teleports_splitting_local_pair": 0
+ }
+}

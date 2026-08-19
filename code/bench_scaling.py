@@ -60,8 +60,10 @@ _RESULTS_DIR = os.environ.get("DSABRE_OUT_DIR") or os.path.join(_HERE, "results"
 os.makedirs(_RESULTS_DIR, exist_ok=True)
 DEVICE_DIR = os.path.expanduser("~/Documents/telesabre/devices")
 
-HW = HardwareConfig(deadlock_limit=200, max_backup_attempts=200,
-                    max_iterations=200_000)
+# Recovery budgets derived per architecture at route() entry, not tuned per
+# suite -- see benchmark.py's _HW and probe_derived_deadlock.py.
+HW = HardwareConfig(deadlock_limit=None, max_backup_attempts=None,
+                    max_iterations=None)
 
 # TeleSABRE comes from bench_large.py, not benchmark.py.  The two drivers ship
 # different config templates: benchmark.py spells the Hungarian layout

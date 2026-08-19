@@ -40,6 +40,7 @@ from config import HardwareConfig
 from dsabre_ext import dSABRE_BurstExt
 from layout import sabre_locked_boundary_layout, run_sabre_passes
 from router import General_dSABRE_Router
+from circuit_paths import circuits_path
 
 ROUTERS = {"dS": General_dSABRE_Router, "dSE": dSABRE_BurstExt}
 
@@ -48,7 +49,7 @@ ROUTERS = {"dS": General_dSABRE_Router, "dSE": dSABRE_BurstExt}
 # would rerun TeleSABRE, which the adoption did not change.
 _HW_HH = HardwareConfig(deadlock_limit=100, max_backup_attempts=100,
                         max_iterations=20000)
-_C64 = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64")
+_C64 = circuits_path("qasm_64")
 _SFX64 = "_nativegates_ibm_qiskit_opt3_64.qasm"
 
 TARGETS = {
@@ -89,8 +90,13 @@ def run_dsabre(router, qc, dag, rev_dag, arch, label):
                             time_s=round(elapsed, 2), aborted=False,
                             backup_activations=m.get("backup_activations", 0),
                             force_make_room=m.get("force_make_room", 0),
-                            relief_candidates=m.get("relief_candidates", 0),
-                            relief_picks=m.get("relief_picks", 0))
+                            # `backup_activations` counts only the deadlock
+                            # path and so undercounts the guaranteed
+                            # transaction; `safe_routes` is the gate count it
+                            # actually retired.
+                            safe_routes=m.get("safe_routes", 0),
+                            safe_route_failed=m.get("safe_route_failed", 0),
+                            relay_hops=m.get("relay_hops", 0))
         else:
             print(f"    {label} sl_seed{i}: ABORTED ({elapsed:.1f}s)", flush=True)
     return best if best is not None else dict(aborted=True)

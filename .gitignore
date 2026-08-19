@@ -18,3 +18,21 @@ results.json
 legacy/
 interaction_graph_figures/
 .claude/worktrees/
+
+# Local graveyard for superseded drafts and dead experiments — never published.
+todel/
+
+# Local-only working notes (kept on disk, not in the public repo).
+EXPERIMENTS.md
+SAFE_DSABRE.md
+TELEGATE.md
+SESSIONS.md
+TODO.md
+
+# The paper's LaTeX sources stay local; only the compiled PDFs are published
+# (force-added, since *.pdf is ignored above).
+paper/*.tex
+paper/*.bib
+paper/fig/
+paper/*.md
+paper/submission/

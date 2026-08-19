@@ -46,8 +46,9 @@ from architecture import build_h_grid_architecture
 from config import HardwareConfig
 from dsabre_ext import dSABRE_BurstExt
 from layout import sabre_locked_boundary_layout, run_sabre_passes
+from circuit_paths import circuits_path
 
-CIRCUIT_DIR = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64")
+CIRCUIT_DIR = circuits_path("qasm_64")
 SUFFIX = "_nativegates_ibm_qiskit_opt3_64.qasm"
 OUT = os.path.join(_HERE, "results", "results_ablate_mech_64q_rest8.json")
 

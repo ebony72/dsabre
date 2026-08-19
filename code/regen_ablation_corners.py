@@ -35,18 +35,19 @@ from architecture import build_b_grid_architecture, build_h_grid_architecture
 from config import HardwareConfig
 from dsabre_ext import dSABRE_BurstExt
 from layout import sabre_locked_boundary_layout, run_passes, run_sabre_passes
+from circuit_paths import circuits_path
 
 
 # ── Suites ────────────────────────────────────────────────────────────────────
 SUITES = {
     "25q": dict(
         arch=build_b_grid_architecture(r=2, s=2, m=4),
-        circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_25"),
+        circuit_dir=circuits_path("qasm_25"),
         suffix="_nativegates_ibm_qiskit_opt3_25.qasm",
     ),
     "64q": dict(
         arch=build_h_grid_architecture(r=2, s=3, m=4),
-        circuit_dir=os.path.expanduser("~/Documents/telesabre/circuits/qasm_64"),
+        circuit_dir=circuits_path("qasm_64"),
         suffix="_nativegates_ibm_qiskit_opt3_64.qasm",
     ),
 }

@@ -1,0 +1,181 @@
+{
+  "meta": {
+    "date": "2026-07-28",
+    "construction": "L layers of (1q rotations, then CZ over every edge of one fixed random d-regular graph)",
+    "basis": [
+      "rz",
+      "sx",
+      "x",
+      "cx"
+    ],
+    "opt_level": 1,
+    "target_cx": 2000
+  },
+  "circuits": [
+    {
+      "name": "regcz_d2_s0_64",
+      "degree": 2,
+      "seed": 0,
+      "qubits": 64,
+      "layers": 31,
+      "interaction_edges": 64,
+      "cx": 1984,
+      "depth": 261,
+      "path": "circuits_regcz/regcz_d2_s0_64.qasm"
+    },
+    {
+      "name": "regcz_d2_s1_64",
+      "degree": 2,
+      "seed": 1,
+      "qubits": 64,
+      "layers": 31,
+      "interaction_edges": 64,
+      "cx": 1984,
+      "depth": 264,
+      "path": "circuits_regcz/regcz_d2_s1_64.qasm"
+    },
+    {
+      "name": "regcz_d2_s2_64",
+      "degree": 2,
+      "seed": 2,
+      "qubits": 64,
+      "layers": 31,
+      "interaction_edges": 64,
+      "cx": 1984,
+      "depth": 304,
+      "path": "circuits_regcz/regcz_d2_s2_64.qasm"
+    },
+    {
+      "name": "regcz_d3_s0_64",
+      "degree": 3,
+      "seed": 0,
+      "qubits": 64,
+      "layers": 21,
+      "interaction_edges": 96,
+      "cx": 2016,
+      "depth": 290,
+      "path": "circuits_regcz/regcz_d3_s0_64.qasm"
+    },
+    {
+      "name": "regcz_d3_s1_64",
+      "degree": 3,
+      "seed": 1,
+      "qubits": 64,
+      "layers": 21,
+      "interaction_edges": 96,
+      "cx": 2016,
+      "depth": 363,
+      "path": "circuits_regcz/regcz_d3_s1_64.qasm"
+    },
+    {
+      "name": "regcz_d3_s2_64",
+      "degree": 3,
+      "seed": 2,
+      "qubits": 64,
+      "layers": 21,
+      "interaction_edges": 96,
+      "cx": 2016,
+      "depth": 262,
+      "path": "circuits_regcz/regcz_d3_s2_64.qasm"
+    },
+    {
+      "name": "regcz_d4_s0_64",
+      "degree": 4,
+      "seed": 0,
+      "qubits": 64,
+      "layers": 16,
+      "interaction_edges": 128,
+      "cx": 2048,
+      "depth": 274,
+      "path": "circuits_regcz/regcz_d4_s0_64.qasm"
+    },
+    {
+      "name": "regcz_d4_s1_64",
+      "degree": 4,
+      "seed": 1,
+      "qubits": 64,
+      "layers": 16,
+      "interaction_edges": 128,
+      "cx": 2048,
+      "depth": 285,
+      "path": "circuits_regcz/regcz_d4_s1_64.qasm"
+    },
+    {
+      "name": "regcz_d4_s2_64",
+      "degree": 4,
+      "seed": 2,
+      "qubits": 64,
+      "layers": 16,
+      "interaction_edges": 128,
+      "cx": 2048,
+      "depth": 291,
+      "path": "circuits_regcz/regcz_d4_s2_64.qasm"
+    },
+    {
+      "name": "regcz_d6_s0_64",
+      "degree": 6,
+      "seed": 0,
+      "qubits": 64,
+      "layers": 10,
+      "interaction_edges": 192,
+      "cx": 1920,
+      "depth": 348,
+      "path": "circuits_regcz/regcz_d6_s0_64.qasm"
+    },
+    {
+      "name": "regcz_d6_s1_64",
+      "degree": 6,
+      "seed": 1,
+      "qubits": 64,
+      "layers": 10,
+      "interaction_edges": 192,
+      "cx": 1920,
+      "depth": 281,
+      "path": "circuits_regcz/regcz_d6_s1_64.qasm"
+    },
+    {
+      "name": "regcz_d6_s2_64",
+      "degree": 6,
+      "seed": 2,
+      "qubits": 64,
+      "layers": 10,
+      "interaction_edges": 192,
+      "cx": 1920,
+      "depth": 294,
+      "path": "circuits_regcz/regcz_d6_s2_64.qasm"
+    },
+    {
+      "name": "regcz_d8_s0_64",
+      "degree": 8,
+      "seed": 0,
+      "qubits": 64,
+      "layers": 8,
+      "interaction_edges": 256,
+      "cx": 2048,
+      "depth": 404,
+      "path": "circuits_regcz/regcz_d8_s0_64.qasm"
+    },
+    {
+      "name": "regcz_d8_s1_64",
+      "degree": 8,
+      "seed": 1,
+      "qubits": 64,
+      "layers": 8,
+      "interaction_edges": 256,
+      "cx": 2048,
+      "depth": 272,
+      "path": "circuits_regcz/regcz_d8_s1_64.qasm"
+    },
+    {
+      "name": "regcz_d8_s2_64",
+      "degree": 8,
+      "seed": 2,
+      "qubits": 64,
+      "layers": 8,
+      "interaction_edges": 256,
+      "cx": 2048,
+      "depth": 275,
+      "path": "circuits_regcz/regcz_d8_s2_64.qasm"
+    }
+  ]
+}

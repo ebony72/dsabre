@@ -1,0 +1,74 @@
+{
+ "meta": {
+  "date": "2026-07-31",
+  "suite": "25q",
+  "budget_s": 300.0,
+  "note": "repair = to_pytket_circuit(satisfy_bound=True, allow_update=True) against server_ebit_mem = deg(core); reported_ebits captured BEFORE the repair, which mutates the Distribution in place"
+ },
+ "results": [
+  {
+   "suite": "25q",
+   "circuit": "ae",
+   "n_logical": 25,
+   "gates": 2218,
+   "cores": 4,
+   "reported_ebits": 50,
+   "repair": "timeout",
+   "repair_s": 300.0
+  },
+  {
+   "suite": "25q",
+   "circuit": "ghz",
+   "n_logical": 25,
+   "gates": 99,
+   "cores": 4,
+   "reported_ebits": 4,
+   "repair": "ok",
+   "repair_s": 0.1,
+   "repaired_ebits": 4,
+   "inflation": 1.0
+  },
+  {
+   "suite": "25q",
+   "circuit": "graphstate",
+   "n_logical": 25,
+   "gates": 144,
+   "cores": 4,
+   "reported_ebits": 4,
+   "repair": "ok",
+   "repair_s": 0.1,
+   "repaired_ebits": 4,
+   "inflation": 1.0
+  },
+  {
+   "suite": "25q",
+   "circuit": "qft",
+   "n_logical": 25,
+   "gates": 2325,
+   "cores": 4,
+   "reported_ebits": 56,
+   "repair": "timeout",
+   "repair_s": 300.0
+  },
+  {
+   "suite": "25q",
+   "circuit": "qnn",
+   "n_logical": 25,
+   "gates": 3558,
+   "cores": 4,
+   "reported_ebits": 114,
+   "repair": "timeout",
+   "repair_s": 300.0
+  },
+  {
+   "suite": "25q",
+   "circuit": "random",
+   "n_logical": 25,
+   "gates": 5939,
+   "cores": 4,
+   "reported_ebits": 457,
+   "repair": "timeout",
+   "repair_s": 300.0
+  }
+ ]
+}

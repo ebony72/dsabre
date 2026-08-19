@@ -1,0 +1,565 @@
+{
+  "meta": {
+    "date": "2026-08-08",
+    "suite": "64q",
+    "arch": "H-grid 2x3 4x4 (96 qubits)",
+    "router": "dSABRE_BFSExt (dSE)",
+    "protocol": "3 SabreLayout seeds, fwd->bwd->fwd, best EPR",
+    "arms": [
+      "full",
+      "strip_route",
+      "strip_all"
+    ]
+  },
+  "results": [
+    {
+      "circuit": "ae",
+      "qubits": 64,
+      "cx": 1962,
+      "ops": 4616,
+      "one_q": 2654,
+      "layouts_equal": false,
+      "arms": {
+        "full": {
+          "aborted": false,
+          "eprs": 200,
+          "ls": 1547,
+          "teles": 200,
+          "catcomms": 0,
+          "one_q_drained": 2654,
+          "time_s": 2.274,
+          "time_seed_s": 0.712,
+          "per_seed_eprs": [
+            246,
+            222,
+            200
+          ],
+          "backup_activations": 3,
+          "force_make_room": 4
+        },
+        "strip_route": {
+          "aborted": false,
+          "eprs": 162,
+          "ls": 1411,
+          "teles": 162,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 2.058,
+          "time_seed_s": 0.549,
+          "per_seed_eprs": [
+            162,
+            250,
+            218
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "strip_all": {
+          "aborted": false,
+          "eprs": 208,
+          "ls": 1572,
+          "teles": 208,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 2.711,
+          "time_seed_s": 0.939,
+          "per_seed_eprs": [
+            222,
+            246,
+            208
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "circuit": "ghz",
+      "qubits": 64,
+      "cx": 63,
+      "ops": 66,
+      "one_q": 3,
+      "layouts_equal": true,
+      "arms": {
+        "full": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "teles": 6,
+          "catcomms": 0,
+          "one_q_drained": 3,
+          "time_s": 0.038,
+          "time_seed_s": 0.013,
+          "per_seed_eprs": [
+            6,
+            6,
+            6
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "strip_route": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "teles": 6,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 0.038,
+          "time_seed_s": 0.012,
+          "per_seed_eprs": [
+            6,
+            6,
+            6
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "strip_all": {
+          "aborted": false,
+          "eprs": 6,
+          "ls": 39,
+          "teles": 6,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 0.038,
+          "time_seed_s": 0.012,
+          "per_seed_eprs": [
+            6,
+            6,
+            6
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "circuit": "graphstate",
+      "qubits": 64,
+      "cx": 64,
+      "ops": 256,
+      "one_q": 192,
+      "layouts_equal": true,
+      "arms": {
+        "full": {
+          "aborted": false,
+          "eprs": 15,
+          "ls": 88,
+          "teles": 15,
+          "catcomms": 0,
+          "one_q_drained": 192,
+          "time_s": 0.124,
+          "time_seed_s": 0.038,
+          "per_seed_eprs": [
+            20,
+            24,
+            15
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "strip_route": {
+          "aborted": false,
+          "eprs": 15,
+          "ls": 98,
+          "teles": 15,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 0.083,
+          "time_seed_s": 0.026,
+          "per_seed_eprs": [
+            18,
+            22,
+            15
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "strip_all": {
+          "aborted": false,
+          "eprs": 15,
+          "ls": 98,
+          "teles": 15,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 0.083,
+          "time_seed_s": 0.026,
+          "per_seed_eprs": [
+            18,
+            22,
+            15
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        }
+      }
+    },
+    {
+      "circuit": "multiplier",
+      "qubits": 64,
+      "cx": 13040,
+      "ops": 32207,
+      "one_q": 19167,
+      "layouts_equal": false,
+      "arms": {
+        "full": {
+          "aborted": false,
+          "eprs": 1285,
+          "ls": 8969,
+          "teles": 1285,
+          "catcomms": 0,
+          "one_q_drained": 19167,
+          "time_s": 13.101,
+          "time_seed_s": 4.157,
+          "per_seed_eprs": [
+            1285,
+            2047,
+            1293
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "strip_route": {
+          "aborted": false,
+          "eprs": 1162,
+          "ls": 8797,
+          "teles": 1162,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 12.053,
+          "time_seed_s": 4.428,
+          "per_seed_eprs": [
+            1162,
+            1671,
+            1453
+          ],
+          "backup_activations": 4,
+          "force_make_room": 3
+        },
+        "strip_all": {
+          "aborted": false,
+          "eprs": 1285,
+          "ls": 8963,
+          "teles": 1285,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 10.239,
+          "time_seed_s": 3.329,
+          "per_seed_eprs": [
+            1287,
+            1285,
+            1319
+          ],
+          "backup_activations": 4,
+          "force_make_room": 2
+        }
+      }
+    },
+    {
+      "circuit": "qaoa",
+      "qubits": 64,
+      "cx": 3920,
+      "ops": 6708,
+      "one_q": 2788,
+      "layouts_equal": false,
+      "arms": {
+        "full": {
+          "aborted": false,
+          "eprs": 538,
+          "ls": 3759,
+          "teles": 538,
+          "catcomms": 0,
+          "one_q_drained": 2788,
+          "time_s": 3.946,
+          "time_seed_s": 1.284,
+          "per_seed_eprs": [
+            568,
+            538,
+            555
+          ],
+          "backup_activations": 2,
+          "force_make_room": 2
+        },
+        "strip_route": {
+          "aborted": false,
+          "eprs": 552,
+          "ls": 3868,
+          "teles": 552,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 3.805,
+          "time_seed_s": 1.277,
+          "per_seed_eprs": [
+            557,
+            554,
+            552
+          ],
+          "backup_activations": 1,
+          "force_make_room": 1
+        },
+        "strip_all": {
+          "aborted": false,
+          "eprs": 541,
+          "ls": 3750,
+          "teles": 541,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 3.804,
+          "time_seed_s": 1.246,
+          "per_seed_eprs": [
+            577,
+            561,
+            541
+          ],
+          "backup_activations": 1,
+          "force_make_room": 1
+        }
+      }
+    },
+    {
+      "circuit": "qft",
+      "qubits": 64,
+      "cx": 1966,
+      "ops": 3965,
+      "one_q": 1999,
+      "layouts_equal": true,
+      "arms": {
+        "full": {
+          "aborted": false,
+          "eprs": 176,
+          "ls": 1397,
+          "teles": 176,
+          "catcomms": 0,
+          "one_q_drained": 1999,
+          "time_s": 2.497,
+          "time_seed_s": 0.721,
+          "per_seed_eprs": [
+            176,
+            236,
+            243
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "strip_route": {
+          "aborted": false,
+          "eprs": 218,
+          "ls": 1648,
+          "teles": 218,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 2.368,
+          "time_seed_s": 0.831,
+          "per_seed_eprs": [
+            248,
+            260,
+            218
+          ],
+          "backup_activations": 6,
+          "force_make_room": 6
+        },
+        "strip_all": {
+          "aborted": false,
+          "eprs": 218,
+          "ls": 1648,
+          "teles": 218,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 2.291,
+          "time_seed_s": 0.757,
+          "per_seed_eprs": [
+            248,
+            260,
+            218
+          ],
+          "backup_activations": 6,
+          "force_make_room": 6
+        }
+      }
+    },
+    {
+      "circuit": "qnn",
+      "qubits": 64,
+      "cx": 8126,
+      "ops": 13061,
+      "one_q": 4935,
+      "layouts_equal": false,
+      "arms": {
+        "full": {
+          "aborted": false,
+          "eprs": 495,
+          "ls": 5344,
+          "teles": 495,
+          "catcomms": 0,
+          "one_q_drained": 4935,
+          "time_s": 6.716,
+          "time_seed_s": 2.233,
+          "per_seed_eprs": [
+            495,
+            504,
+            499
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "strip_route": {
+          "aborted": false,
+          "eprs": 497,
+          "ls": 5136,
+          "teles": 497,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 12.176,
+          "time_seed_s": 3.989,
+          "per_seed_eprs": [
+            497,
+            641,
+            503
+          ],
+          "backup_activations": 2,
+          "force_make_room": 2
+        },
+        "strip_all": {
+          "aborted": false,
+          "eprs": 501,
+          "ls": 5145,
+          "teles": 501,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 11.772,
+          "time_seed_s": 3.88,
+          "per_seed_eprs": [
+            501,
+            506,
+            505
+          ],
+          "backup_activations": 2,
+          "force_make_room": 2
+        }
+      }
+    },
+    {
+      "circuit": "qpeexact",
+      "qubits": 64,
+      "cx": 2139,
+      "ops": 4597,
+      "one_q": 2458,
+      "layouts_equal": false,
+      "arms": {
+        "full": {
+          "aborted": false,
+          "eprs": 184,
+          "ls": 1565,
+          "teles": 184,
+          "catcomms": 0,
+          "one_q_drained": 2458,
+          "time_s": 2.065,
+          "time_seed_s": 0.66,
+          "per_seed_eprs": [
+            210,
+            292,
+            184
+          ],
+          "backup_activations": 1,
+          "force_make_room": 1
+        },
+        "strip_route": {
+          "aborted": false,
+          "eprs": 199,
+          "ls": 1503,
+          "teles": 199,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 2.011,
+          "time_seed_s": 0.613,
+          "per_seed_eprs": [
+            199,
+            229,
+            297
+          ],
+          "backup_activations": 3,
+          "force_make_room": 4
+        },
+        "strip_all": {
+          "aborted": false,
+          "eprs": 208,
+          "ls": 1702,
+          "teles": 208,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 1.813,
+          "time_seed_s": 0.57,
+          "per_seed_eprs": [
+            290,
+            208,
+            209
+          ],
+          "backup_activations": 6,
+          "force_make_room": 6
+        }
+      }
+    },
+    {
+      "circuit": "random",
+      "qubits": 64,
+      "cx": 1627,
+      "ops": 5446,
+      "one_q": 3819,
+      "layouts_equal": false,
+      "arms": {
+        "full": {
+          "aborted": false,
+          "eprs": 718,
+          "ls": 3621,
+          "teles": 718,
+          "catcomms": 0,
+          "one_q_drained": 3819,
+          "time_s": 4.463,
+          "time_seed_s": 1.422,
+          "per_seed_eprs": [
+            721,
+            720,
+            718
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "strip_route": {
+          "aborted": false,
+          "eprs": 713,
+          "ls": 3566,
+          "teles": 713,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 3.744,
+          "time_seed_s": 1.114,
+          "per_seed_eprs": [
+            740,
+            724,
+            713
+          ],
+          "backup_activations": 0,
+          "force_make_room": 0
+        },
+        "strip_all": {
+          "aborted": false,
+          "eprs": 695,
+          "ls": 3532,
+          "teles": 695,
+          "catcomms": 0,
+          "one_q_drained": 0,
+          "time_s": 3.401,
+          "time_seed_s": 1.128,
+          "per_seed_eprs": [
+            695,
+            712,
+            709
+          ],
+          "backup_activations": 1,
+          "force_make_room": 0
+        }
+      }
+    }
+  ]
+}

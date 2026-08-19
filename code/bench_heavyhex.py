@@ -1,10 +1,10 @@
 """
 bench_heavyhex.py — architecture-independence check on a non-grid topology.
 
-Runs the 64-qubit suite on four IBM 27-qubit heavy-hex cores (108 physical
-qubits) instead of the H-grid of 4x4 grid cores used in the main evaluation.
-Same circuits, same protocol, same hyperparameters as benchmark.py — only the
-architecture changes.
+Runs the full nine-circuit 64-qubit suite on four IBM 27-qubit heavy-hex cores
+(108 physical qubits) instead of the H-grid of 4x4 grid cores used in the main
+evaluation.  Same circuits, same protocol, same hyperparameters as
+benchmark.py — only the architecture changes.
 
 Two axes vary independently of the main evaluation.  The core itself: a
 heavy-hex tile is irregular (degree 1-3, diameter 12 vs 6 for a 4x4 grid).  And
@@ -36,24 +36,28 @@ from router import General_dSABRE_Router
 from dsabre_ext import dSABRE_BurstExt
 from layout import sabre_locked_boundary_layout, run_sabre_passes
 from benchmark import run_telesabre, load_qasm
+from circuit_paths import circuits_path
 
 _RESULTS_DIR = os.environ.get("DSABRE_OUT_DIR") or os.path.join(_HERE, "results")
 os.makedirs(_RESULTS_DIR, exist_ok=True)
 
-CIRCUIT_DIR = os.path.expanduser("~/Documents/telesabre/circuits/qasm_64")
+CIRCUIT_DIR = circuits_path("qasm_64")
 SUFFIX      = "_nativegates_ibm_qiskit_opt3_64.qasm"
 DEVICE_DIR  = os.path.expanduser("~/Documents/telesabre/devices")
 
 NUM_CORES = 4
-HW = HardwareConfig(deadlock_limit=100, max_backup_attempts=100,
-                    max_iterations=20000)
+# Recovery budgets derived per architecture at route() entry, not tuned per
+# suite -- see benchmark.py's _HW and probe_derived_deadlock.py.
+HW = HardwareConfig(deadlock_limit=None, max_backup_attempts=None,
+                    max_iterations=None)
 
-# Default: the six circuits common to every suite, spanning dense (QNN,
-# Random), structured (AE, QFT) and sparse (GHZ, Graphstate) interaction
-# graphs.  The 64q suite of the main table is nine circuits; pass --circuits
-# to run the three class-completion additions so this experiment shares the
-# main table's basis rather than a subset of it.
-CIRCUITS = ["ae", "ghz", "graphstate", "qft", "qnn", "random"]
+# The full 64q suite of the main table, so this experiment shares that table's
+# basis rather than a subset of it: the six circuits common to every suite --
+# dense (QNN, Random), structured (AE, QFT), sparse (GHZ, Graphstate) -- plus
+# the three class-completion additions.  Multiplier dominates the runtime
+# (~4 min per topology); pass --circuits to cut the suite down.
+CIRCUITS = ["ae", "ghz", "graphstate", "qft", "qnn", "random",
+            "qpeexact", "qaoa", "multiplier"]
 
 # CX counts the main-text 64q table reports, used as a preflight check.  The
 # qnn entry was replaced on 2026-07-09 by a 63-CX circuit and restored from its
@@ -111,9 +115,8 @@ def main():
     ap.add_argument("--topology", choices=("ring", "star"), default="ring",
                     help="core graph wiring the four heavy-hex cores")
     ap.add_argument("--circuits", default=",".join(CIRCUITS),
-                    help="comma-separated circuit names (default: the six "
-                         "common circuits; add qpeexact,qaoa,multiplier for "
-                         "the full nine-circuit 64q suite)")
+                    help="comma-separated circuit names (default: the full "
+                         "nine-circuit 64q suite of the main table)")
     ap.add_argument("--out-tag", default="",
                     help="suffix for the results filename; use it so a partial "
                          "run cannot overwrite a completed one")
