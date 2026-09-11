@@ -1,0 +1,69 @@
+\begin{tikzpicture}[
+  chip/.style={rounded corners=3pt, draw=black!55, fill=blue!4, line width=0.8pt},
+  qb/.style={circle, fill=gray!22, draw=gray!45, minimum size=3.6mm, inner sep=0pt},
+  occ/.style={circle, fill=gray!62, draw=gray!75, minimum size=3.6mm, inner sep=0pt},
+  free/.style={circle, draw=green!45!black, dashed, fill=white, minimum size=3.8mm,
+               inner sep=0pt, line width=0.7pt},
+  port/.style={circle, fill=teal!45, draw=teal!85, minimum size=4.2mm, inner sep=0pt,
+               line width=0.8pt},
+  dq/.style={circle, fill=blue!50, draw=blue!80, minimum size=4.8mm, inner sep=0pt,
+             line width=0.8pt, font=\tiny\color{white}},
+  swaparr/.style={{Stealth[length=2.0mm]}-{Stealth[length=2.0mm]}, blue!65, line width=1.0pt},
+  telearr/.style={-{Stealth[length=2.6mm]}, purple!70, line width=1.3pt, dashed},
+  stage/.style={-{Stealth[length=2.4mm]}, purple!70, line width=1.2pt},
+  ttl/.style={font=\bfseries, black!80},
+  note/.style={font=\footnotesize, black!65, anchor=west},
+  good/.style={font=\footnotesize, green!30!black, anchor=west},
+  bad/.style={font=\footnotesize, red!62!black, anchor=west},
+]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%  LEFT: SWAP  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{scope}
+  \draw[chip] (-0.60,-0.70) rectangle (2.70,1.50);
+  \node[font=\footnotesize\itshape, black!50] at (1.05,-0.45) {one core};
+  \foreach \x in {0,0.65,1.3,1.95,2.6} \foreach \y in {0,0.65,1.3} {
+    \node[qb] at (\x-0.15,\y) {};
+  }
+  \node[dq]  (a) at (0.50,0.65) {$q$};
+  \node[occ] (b) at (1.15,0.65) {};
+  \draw[swaparr] (0.50,0.98) to[bend left=55] (1.15,0.98);
+  \draw[swaparr] (1.15,0.32) to[bend left=55] (0.50,0.32);
+  \node[ttl] at (1.05,2.25) {A local SWAP};
+  \node[good] at (-0.60,-1.25) {reversible --- swap back at the same price};
+  \node[good] at (-0.60,-1.72) {the core's seat count is unchanged};
+  \node[note] at (-0.60,-2.19) {costs 3 CX gates};
+\end{scope}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%  RIGHT: TELEPORT  %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{scope}[xshift=6.6cm]
+  \draw[chip] (-0.60,-0.70) rectangle (2.70,1.50);
+  \draw[chip] (4.20,-0.70) rectangle (7.50,1.50);
+  \node[font=\footnotesize\itshape, black!50] at (1.05,-0.45) {core A};
+  \node[font=\footnotesize\itshape, black!50] at (5.85,-0.45) {core B \ (nearly full)};
+
+  \foreach \x in {0,0.65,1.3,1.95} \foreach \y in {0,0.65,1.3} {
+    \node[qb] at (\x-0.15,\y) {};
+  }
+  \node[dq]   (src)  at (-0.15,1.30) {$q$};
+  \node[port] (ps)   at (2.45,0.65) {};
+  \node[font=\scriptsize, black!58] at (2.05,1.86) {comm.\ port};
+  \draw[black!45, line width=0.6pt] (2.32,1.72) -- (2.45,0.90);
+
+  \foreach \x in {0,0.65,1.3,1.95} \foreach \y in {0,0.65,1.3} {
+    \node[occ] at (\x+4.65,\y) {};
+  }
+  \node[port] (pd)  at (4.45,0.65) {};
+  \node[free] (fr)  at (6.60,1.30) {};
+  \node[font=\scriptsize, green!28!black] at (5.85,1.86) {one free seat left};
+  \draw[green!45!black, line width=0.6pt] (6.30,1.72) -- (6.55,1.45);
+
+  \draw[stage] (0.05,1.14) -- node[below=0pt, font=\scriptsize, black!58, pos=0.46]
+        {local SWAPs} (2.24,0.82);
+  \draw[telearr] (ps) -- node[above=1pt, font=\scriptsize, purple!65] {1 EPR} (pd);
+
+  \node[ttl] at (3.45,2.25) {An inter-core teleport};
+  \node[bad] at (-0.60,-1.25) {one-way --- coming back costs another EPR pair};
+  \node[bad] at (-0.60,-1.72) {legal only once $q$ has reached a communication port};
+  \node[bad] at (-0.60,-2.19) {consumes a free seat in core B --- and may strand it};
+\end{scope}
+\end{tikzpicture}

@@ -1,0 +1,46 @@
+\begin{tikzpicture}[
+  chip/.style={rounded corners=3pt, draw=black!55, fill=blue!4, line width=0.8pt},
+  qb/.style={circle, fill=gray!22, draw=gray!45, minimum size=4.0mm, inner sep=0pt},
+  qa/.style={circle, fill=blue!50, draw=blue!80, minimum size=5.2mm, inner sep=0pt,
+             line width=0.8pt, font=\tiny\color{white}},
+  qbb/.style={circle, fill=red!45, draw=red!75, minimum size=5.2mm, inner sep=0pt,
+              line width=0.8pt, font=\tiny\color{white}},
+  wire/.style={gray!45, line width=0.6pt},
+  mv/.style={-{Stealth[length=2.4mm]}, blue!70, line width=1.3pt},
+  ttl/.style={font=\bfseries, black!80},
+  bad/.style={font=\footnotesize, red!58!black},
+  ok/.style={font=\footnotesize, green!28!black},
+]
+
+\newcommand{\gridcore}{%
+  \draw[chip] (-0.55,-0.55) rectangle (2.95,2.95);
+  \foreach \x in {0,0.8,1.6} \foreach \y in {0,0.8,1.6,2.4} {\draw[wire] (\x,\y) -- ++(0.8,0);}
+  \foreach \x in {0,0.8,1.6,2.4} \foreach \y in {0,0.8,1.6} {\draw[wire] (\x,\y) -- ++(0,0.8);}
+  \foreach \x in {0,0.8,1.6,2.4} \foreach \y in {0,0.8,1.6,2.4} {\node[qb] at (\x,\y) {};}
+}
+
+%% ── panel (a) ────────────────────────────────────────────────────────
+\begin{scope}
+  \gridcore
+  \node[qa]  at (0,1.6)   {$q_a$};
+  \node[qbb] at (2.4,1.6) {$q_b$};
+  \draw[red!60, dashed, line width=1.1pt] (0.22,1.6) -- (2.18,1.6);
+  \node[ttl] at (1.20,3.60) {The gate CX$(q_a,q_b)$ is waiting};
+  \node[bad] at (1.20,-1.05) {$q_a$ and $q_b$ are three hops apart,};
+  \node[bad] at (1.20,-1.50) {so the hardware cannot run the gate};
+\end{scope}
+
+%% ── panel (b) ────────────────────────────────────────────────────────
+\begin{scope}[xshift=6.4cm]
+  \gridcore
+  \draw[mv] (0.05,2.00) -- node[above=-1pt, font=\scriptsize, blue!65] {1} (0.72,2.00);
+  \draw[mv] (0.88,2.00) -- node[above=-1pt, font=\scriptsize, blue!65] {2} (1.52,2.00);
+  \node[qa]  at (1.6,1.6) {$q_a$};
+  \node[qbb] at (2.4,1.6) {$q_b$};
+  \draw[green!45!black, line width=1.6pt] (1.80,1.6) -- (2.20,1.6);
+  \node[font=\scriptsize, green!28!black] at (2.00,1.25) {now adjacent};
+  \node[ttl] at (1.20,3.60) {After two SWAPs, it can run};
+  \node[ok] at (1.20,-1.05) {\emph{routing} is the compiler inserting those SWAPs ---};
+  \node[ok] at (1.20,-1.50) {each one costs 3 CX gates and adds noise};
+\end{scope}
+\end{tikzpicture}

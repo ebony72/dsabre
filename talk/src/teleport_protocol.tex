@@ -1,0 +1,56 @@
+\begin{tikzpicture}[
+  chip/.style={rounded corners=3pt, draw=black!55, fill=blue!4, line width=0.8pt},
+  qb/.style={circle, fill=gray!22, draw=gray!42, minimum size=3.6mm, inner sep=0pt},
+  data/.style={circle, fill=blue!50, draw=blue!80, minimum size=5.0mm, inner sep=0pt,
+               line width=0.8pt, font=\scriptsize\color{white}},
+  gone/.style={circle, fill=white, draw=blue!40, dashed, minimum size=5.0mm, inner sep=0pt},
+  epr/.style={circle, fill=teal!45, draw=teal!85, minimum size=4.6mm, inner sep=0pt,
+              line width=0.8pt},
+  ent/.style={teal!80, line width=1.2pt, decorate,
+              decoration={snake, amplitude=0.55pt, segment length=3.4pt}},
+  cbit/.style={-{Stealth[length=2.4mm]}, orange!85!black, line width=1.1pt, dashed},
+  stitle/.style={font=\bfseries, black!80},
+]
+
+\foreach \dx in {0, 6.2, 12.4} {
+  \begin{scope}[xshift=\dx cm]
+    \draw[chip] (-0.60,-0.85) rectangle (1.20,0.85);
+    \draw[chip] (3.10,-0.85) rectangle (4.90,0.85);
+    \node[font=\footnotesize\itshape, black!50] at (0.30,-0.62) {core A};
+    \node[font=\footnotesize\itshape, black!50] at (4.00,-0.62) {core B};
+  \end{scope}
+}
+
+%% ── Step 1 ───────────────────────────────────────────────────────────
+\node[data]  (s1q) at (0.05,0.30) {$\psi$};
+\node[epr]   (s1a) at (0.95,0.30) {};
+\node[epr]   (s1b) at (3.35,0.30) {};
+\draw[ent] (s1a) -- (s1b);
+\node[stitle] at (2.15,1.55) {1.\ Share an EPR pair};
+
+%% ── Step 2 ───────────────────────────────────────────────────────────
+\begin{scope}[xshift=6.2cm]
+  \node[gone] (s2q) at (0.05,0.30) {};
+  \node[epr]  (s2a) at (0.95,0.30) {};
+  \node[epr]  (s2b) at (3.35,0.30) {};
+  \draw[ent] (s2a) -- (s2b);
+  \draw[red!70, line width=0.9pt, rounded corners=2.5pt]
+        (-0.28,-0.02) rectangle (1.28,0.66);
+  \node[font=\footnotesize\color{red!75!black}] at (0.50,-0.28) {measure};
+  \draw[cbit] (1.50,0.62) to[bend left=22]
+        node[above=1pt, font=\footnotesize\color{orange!58!black}] {2 classical bits} (3.25,0.62);
+  \node[stitle] at (2.15,1.55) {2.\ Measure, then phone ahead};
+\end{scope}
+
+%% ── Step 3 ───────────────────────────────────────────────────────────
+\begin{scope}[xshift=12.4cm]
+  \node[qb]   at (0.05,0.30) {};
+  \node[qb]   at (0.95,0.30) {};
+  \node[data] (s3b) at (3.35,0.30) {$\psi$};
+  \draw[green!45!black, line width=0.9pt, rounded corners=2.5pt]
+        (3.05,-0.02) rectangle (3.65,0.66);
+  \node[font=\footnotesize\color{green!32!black}] at (3.35,-0.28) {fix-up};
+  \node[stitle] at (2.15,1.55) {3.\ Rebuild at the far end};
+\end{scope}
+
+\end{tikzpicture}
