@@ -1,0 +1,108 @@
+DMapS patches (1)-(4) used for the DMapS comparison in the online appendix
+(table D.III: rows marked with a dagger only run with patches (3) and (4)).
+
+Base:   https://github.com/RoccoLoter/DMapS at commit b0b5dde
+Apply:  git apply /path/to/dsabre/code/patches/dmaps.patch   (inside the DMapS checkout)
+
+(1) src/router/multi_mode_routing.py: make the bundled pytket-dqc baseline
+    import optional; its pytket-qiskit ABI conflicts with DMapS's qiskit pin.
+(2) src/router/multi_mode_routing.py: size the output register from the
+    device's qubit names instead of the hard-coded 66 qubits.
+(3) src/router/multi_mode_routing.py: map every qubit by its global circuit
+    index, so multi-register circuits (ae, qpeexact) no longer collide.
+(4) src/partitioner/qucirc_partitioner.py: give qubits that carry only
+    single-qubit gates a partition vertex (weight 1) and skip device padding
+    qubits, fixing the KeyError on bv.
+
+diff --git a/src/partitioner/qucirc_partitioner.py b/src/partitioner/qucirc_partitioner.py
+index 89d1167..362824a 100644
+--- a/src/partitioner/qucirc_partitioner.py
++++ b/src/partitioner/qucirc_partitioner.py
+@@ -101,7 +101,13 @@ class QuCircPartitioner:
+ 
+             # TODO: Need to be optimized
+             # Set the initial partition of hypergraph
+-            sorted_qubit_tmp_idx = {qubit : qubits_tmp_idx[qubit] for qubit in quantum_circuit.qubits}
++            # PATCH: skip circuit qubits that don't appear in any DAG op (padding
++            # qubits added when the device has more physical qubits than the
++            # circuit uses).  They have no temp index and would raise KeyError;
++            # they also shouldn't consume initial-partition block capacity.
++            sorted_qubit_tmp_idx = {qubit : qubits_tmp_idx[qubit]
++                                    for qubit in quantum_circuit.qubits
++                                    if qubit in qubits_tmp_idx}
+             sorted_tmp_idx = list(sorted_qubit_tmp_idx.values())
+             
+             tmp_dict = {}
+@@ -150,6 +156,23 @@ class QuCircPartitioner:
+ 
+         edges_wgt_dict = {}
+         twoQ_ops_blocks = self._find_2q_op_block(dag)
++        # PATCH: pre-seed vers_wgt_dict with every circuit qubit that appears
++        # in ANY DAG op (even single-qubit) at weight 1 so that isolated qubits
++        # -- those that have only single-qubit gates, never appearing in a
++        # 2-qubit block (e.g. the idle Hadamard targets in Bernstein-Vazirani
++        # -- still get a temp index later.  Without this, the line
++        # "sorted_qubit_tmp_idx = {qubit: qubits_tmp_idx[qubit] for qubit in
++        # quantum_circuit.qubits}" in run() raises KeyError.  Padding qubits
++        # (those in the canonical register that no op references) are
++        # intentionally skipped: adding them inflates capacity demand and
++        # trips an IndexError in the initial-partition fill loop.  Weight is
++        # 1 (not 0) because KaHyPar 1.3.7 rejects zero-weight vertices.
++        _dag_used = set()
++        for _node in dag.op_nodes():
++            _dag_used.update(_node.qargs)
++        for _q in _dag_used:
++            if _q not in vers_wgt_dict:
++                vers_wgt_dict[_q] = 1
+         # Calculate the weight of node and net
+         for ops_block in twoQ_ops_blocks:
+             qubits = []
+diff --git a/src/router/multi_mode_routing.py b/src/router/multi_mode_routing.py
+index a016640..3922481 100644
+--- a/src/router/multi_mode_routing.py
++++ b/src/router/multi_mode_routing.py
+@@ -25,8 +25,14 @@ from frontend.create_matrix import (
+     create_chip_dist_matrix,
+ )
+ from comparison_algorithms.mhsa.mhsa_mapper import MHSAMapper
+-from comparison_algorithms.pytket_dqc.init_pytket_dqc_map import tket_dqc_map
+-from comparison_algorithms.pytket_dqc.tket_dqc_rout import tketdqc_local_rout
++try:
++    from comparison_algorithms.pytket_dqc.init_pytket_dqc_map import tket_dqc_map
++    from comparison_algorithms.pytket_dqc.tket_dqc_rout import tketdqc_local_rout
++except Exception as _e:  # pytket-qiskit ABI mismatch — only needed for tket baselines
++    def tket_dqc_map(*a, **kw):
++        raise RuntimeError(f"pytket_dqc baseline disabled: {_e}")
++    def tketdqc_local_rout(*a, **kw):
++        raise RuntimeError(f"pytket_dqc baseline disabled: {_e}")
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -1197,8 +1203,9 @@ class MultiModeRouting:
+         )
+ 
+         # Add the information of quantum registers.
+-        #! The default value here is 66 for the time being, and further optimization will be carried out later.
+-        canonical_register = QuantumRegister(name="q", size=66)
++        # PATCH: derive register size from the device qubit-name map (was hardcoded 66).
++        _reg_size = max(int(name[1:]) for name in qubits_name_n_idx) + 1
++        canonical_register = QuantumRegister(name="q", size=_reg_size)
+         new_circ.add_register(canonical_register)
+ 
+         # Add the information of classical registers.
+@@ -1282,10 +1289,14 @@ def generate_new_circuit(input_circ: QuantumCircuit, size: int):
+     for creg in input_circ.cregs:
+         circ.add_register(creg)
+ 
++    # PATCH: use the qubit's GLOBAL circuit index instead of its register-local
++    # index so that multi-register circuits (e.g. QPE/QAE with `eval`+`q`) do
++    # not collapse `eval[0]` and `q[0]` to the same canonical_register slot.
++    _global = {q: i for i, q in enumerate(input_circ.qubits)}
+     for insn in input_circ:
+         instruction = insn[0]
+         qubits = [
+-            Qubit(register=canonical_register, index=qubit.index) for qubit in insn[1]
++            Qubit(register=canonical_register, index=_global[qubit]) for qubit in insn[1]
+         ]
+         clbits = [clbit for clbit in insn[2]]
+         circ.append(instruction, qubits, clbits)

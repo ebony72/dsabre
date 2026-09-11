@@ -9,6 +9,7 @@ command that produces it and the result file it reads. Commands are run from
 ```
 Python 3.13, Qiskit 2.3, NetworkX 3.5
 pytket-dqc 0.0.1, pytket 2.16, KaHyPar 1.3.5   (cross-model comparison only)
+DMapS b0b5dde, Python 3.10, Qiskit 0.39.2, KaHyPar 1.3.7   (DMapS comparison only; separate environment)
 ```
 
 ```bash
@@ -71,7 +72,7 @@ against VQE-SU2, `gmean (8)` against Gmean (8 common)).
 | C.VII, per-seed counts | `python gen_seed_table.py` | `results/results_{25q,36q,64q}.json` |
 | D.I, `pytket-dqc` capacity audit | `python bench_pytket_fair.py --suite all --budget 900` | `results/results_pytket_fair_v3_*.json` |
 | D.II, entanglement lifetime | `python bench_dmax_lifetime.py` then `python gen_dmax_table.py` | `results/results_dmax_64q.json` |
-| D.III, DMapS head-to-head | `python run_dmaps_bench.py` | `results/results_dmaps_bench.json` |
+| D.III, DMapS head-to-head | `python run_dmaps_bench.py` in the [DMapS environment](#dmaps-baseline) | `results/results_dmaps_bench.json` |
 
 `results_scaling_b.json` (B.I) is the earlier 2026-08-06 run of the same
 configuration, kept for its timing series only. The EPR counts in Table III
@@ -100,6 +101,31 @@ for reproduction:
 Device files (`B_grid_2_2_4_4.json`, `H_grid_2_3_4_4.json`,
 `H_grid_{2_3_5_5,4_3_5_5}.json`, `HeavyHex_{ring4,star4}_27.json`) come from
 that repository's `devices/` directory.
+
+## DMapS baseline
+
+`DMapS` is built from its own repository
+(<https://github.com/RoccoLoter/DMapS>) at commit `b0b5dde`. It pins
+`qiskit==0.39.2`, so it runs in its own Python 3.10 environment, and it needs
+four small fixes before it runs on these devices and circuits. They are
+patches (1)–(4) of the DMapS table (D.III), whose dagger rows run only with
+(3) and (4), and they ship as `code/patches/dmaps.patch`:
+
+1. make the bundled `pytket-dqc` baseline import optional;
+2. size the output register from the device instead of a hard-coded 66 qubits;
+3. map qubits by their global circuit index, so multi-register circuits
+   (`ae`, `qpeexact`) no longer collide;
+4. give qubits that carry only single-qubit gates a partition vertex (`bv`).
+
+```bash
+git clone https://github.com/RoccoLoter/DMapS ~/Documents/DMapS
+cd ~/Documents/DMapS && git checkout b0b5dde
+git apply /path/to/dsabre/code/patches/dmaps.patch
+pip install -e .   # in the Python 3.10 environment
+```
+
+`run_dmaps_bench.py` looks for the checkout at `~/Documents/DMapS`; run it
+with that environment's interpreter.
 
 ## Verification
 
